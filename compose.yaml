@@ -3,4 +3,4 @@ services:
     env_file: ".env"
     image: "mysql:latest"
     ports:
-      - "3306"
+      - "33061:3306"
