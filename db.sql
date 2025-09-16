@@ -100,7 +100,7 @@ create table form_question (
     form_id     int4 unsigned             not null,
     `order`     int1 unsigned             not null,
     category    varchar(50)               not null check (category != ''),
-    text        varchar(100)                       default null check (text is null or text != ''),
+    text        varchar(200)                       default null check (text is null or text != ''),
     image_id    int4 unsigned                      default null,
     required    bool                      not null default true,
     type        enum (
@@ -429,11 +429,135 @@ create table user_form_answer (
     id          int4 unsigned primary key not null auto_increment,
     user_id     int4 unsigned             not null,
     question_id int4 unsigned             not null,
-    answer      varchar(1000)             not null check (answer != ''),
+    option_id   int4 unsigned default null,
+    value       int2 unsigned default null,
+    answer      varchar(1000) default null check (answer is null or answer != ''),
     unique (user_id, question_id),
     foreign key (user_id) references user (id) on delete cascade,
-    foreign key (question_id) references form_question (id) on delete restrict
+    foreign key (question_id) references form_question (id) on delete restrict,
+    foreign key (option_id) references form_question_option (id) on delete restrict
 );
+
+delimiter $$
+create trigger before_insert_user_form_answer
+    before insert
+    on user_form_answer
+    for each row
+begin
+    declare q_type varchar(20);
+    declare is_other bool;
+
+    set q_type = (select q.type from form_question as q where q.id = new.question_id);
+
+    if (q_type in ('select-one', 'select-multiple')) then
+        set is_other = (select ifnull(q.other, false) from form_question as q where q.id = new.question_id);
+
+        if is_other then
+            if (new.answer is null) then
+                signal sqlstate '45000' set message_text =
+                    'answer must be present when question_id.type is select-one or select-multiple and question_id.other is true';
+            end if;
+
+            if (new.option_id is not null) then
+                signal sqlstate '45000' set message_text =
+                    'option_id should not be present when question_id.type is select-one or select-multiple and question_id.other is true';
+            end if;
+        else
+            if (new.option_id is null) then
+                signal sqlstate '45000' set message_text =
+                    'option_id must be present when question_id.type is select-one or select-multiple and question_id.other is false';
+            end if;
+
+            if (new.answer is not null) then
+                signal sqlstate '45000' set message_text =
+                    'answer should not be present when question_id.type is select-one or select-multiple and question_id.other is false';
+            end if;
+        end if;
+    elseif (new.option_id is not null) then
+        signal sqlstate '45000' set message_text =
+            'option_id should not be present when question_id.type is neither select-one or select-multiple';
+    end if;
+
+    if (q_type = 'slider' and new.value is null) then
+        signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
+    end if;
+
+    if (q_type != 'slider' and new.value is not null) then
+        signal sqlstate '45000' set message_text = 'value should not be present when question_id.type is not slider';
+    end if;
+
+    if (q_type in ('text-short', 'text-long') and new.answer is null) then
+        signal sqlstate '45000' set message_text =
+            'answer must be present when question_id.type is text-short or text-long';
+    end if;
+
+    if (q_type not in ('text-short', 'text-long', 'select-one', 'select-multiple') and new.answer is not null) then
+        signal sqlstate '45000' set message_text =
+            'answer should not be present when question_id.type is neither text-short or text-long';
+    end if;
+end;
+
+$$
+delimiter ;
+
+delimiter $$
+create trigger before_update_user_form_answer
+    before update
+    on user_form_answer
+    for each row
+begin
+    declare q_type varchar(20);
+    declare is_other bool;
+
+    set q_type = (select q.type from form_question as q where q.id = new.question_id);
+
+    if (q_type in ('select-one', 'select-multiple')) then
+        set is_other = (select ifnull(q.other, false) from form_question as q where q.id = new.question_id);
+
+        if is_other then
+            if (new.answer is null) then
+                signal sqlstate '45000' set message_text =
+                    'answer must be present when question_id.type is select-one or select-multiple and question_id.other is true';
+            end if;
+
+            if (new.option_id is not null) then
+                signal sqlstate '45000' set message_text =
+                    'option_id should not be present when question_id.type is select-one or select-multiple and question_id.other is true';
+            end if;
+        else
+            if (new.option_id is null) then
+                signal sqlstate '45000' set message_text =
+                    'option_id must be present when question_id.type is select-one or select-multiple and question_id.other is false';
+            end if;
+
+            if (new.answer is not null) then
+                signal sqlstate '45000' set message_text =
+                    'answer should not be present when question_id.type is select-one or select-multiple and question_id.other is false';
+            end if;
+        end if;
+    elseif (new.option_id is not null) then
+        signal sqlstate '45000' set message_text =
+            'option_id should not be present when question_id.type is neither select-one or select-multiple';
+    end if;
+
+    if (q_type = 'slider' and new.value is null) then
+        signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
+    end if;
+
+    if (q_type != 'slider' and new.value is not null) then
+        signal sqlstate '45000' set message_text = 'value should not be present when question_id.type is not slider';
+    end if;
+
+    if (q_type in ('text-short', 'text-long') and new.answer is null) then
+        signal sqlstate '45000' set message_text =
+            'answer must be present when question_id.type is text-short or text-long';
+    end if;
+
+    if (q_type not in ('text-short', 'text-long', 'select-one', 'select-multiple') and new.answer is not null) then
+        signal sqlstate '45000' set message_text =
+            'answer should not be present when question_id.type is neither text-short or text-long';
+    end if;
+end;
 
 create table user_test_question_log (
     id          int8 unsigned primary key not null auto_increment,
