@@ -1,6 +1,7 @@
 [versions]
 asciidoctorVersion = "3.3.2"
 dotenvVersion = "3.2.0"
+lombokVersion = "1.18.40"
 mysqlConnectorVersion = "9.4.0"
 springFrameworkVersion = "3.5.5"
 springDepManagerVersion = "1.1.7"
@@ -8,6 +9,7 @@ springDepManagerVersion = "1.1.7"
 [libraries]
 dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenvVersion" }
 junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombokVersion" }
 mysql-connector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysqlConnectorVersion" }
 spring-boot-configuration-processor = { group = "org.springframework.boot", name = "spring-boot-configuration-processor" }
 spring-boot-devtools = { group = "org.springframework.boot", name = "spring-boot-devtools" }

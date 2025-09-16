@@ -48,6 +48,8 @@ dependencies {
 
     // others
 
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
     implementation(libs.dotenv)
     runtimeOnly(libs.mysql.connector)
 
