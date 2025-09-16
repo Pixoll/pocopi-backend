@@ -1,0 +1,42 @@
+package com.pocopi.api.modules.UserFormAnswer;
+
+import com.pocopi.api.modules.FormQuestion.FormQuestionModel;
+import com.pocopi.api.modules.User.UserModel;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Entity
+@Table(name = "user_form_answer", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "question_id"})})
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserFormAnswerModel {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Setter(AccessLevel.NONE)
+    private int id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserModel user;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "question_id", nullable = false)
+    private FormQuestionModel question;
+
+    @Size(max = 1000)
+    @NotNull
+    @Column(name = "answer", nullable = false, length = 1000)
+    private String answer;
+
+}
