@@ -238,7 +238,7 @@ delimiter ;
 create table form_question_slider_label (
     id               int4 unsigned primary key not null auto_increment,
     form_question_id int4 unsigned             not null,
-    number           int1 unsigned             not null,
+    number           int2 unsigned             not null,
     label            varchar(50)               not null check (label != ''),
     unique (form_question_id, number),
     foreign key (form_question_id) references form_question (id) on delete cascade
