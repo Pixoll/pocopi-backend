@@ -2,11 +2,11 @@ drop table if exists home_info_card;
 
 drop table if exists home_faq;
 
+drop table if exists user_form_answer;
+
 drop table if exists form_question_option;
 
 drop table if exists form_question_slider_label;
-
-drop table if exists user_form_answer;
 
 drop table if exists form_question;
 
@@ -446,6 +446,8 @@ create trigger before_insert_user_form_answer
 begin
     declare q_type varchar(20);
     declare is_other bool;
+    declare min int2 unsigned;
+    declare max int2 unsigned;
 
     set q_type = (select q.type from form_question as q where q.id = new.question_id);
 
@@ -478,8 +480,17 @@ begin
             'option_id should not be present when question_id.type is neither select-one or select-multiple';
     end if;
 
-    if (q_type = 'slider' and new.value is null) then
-        signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
+    if (q_type = 'slider') then
+        if (new.value is null) then
+            signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
+        end if;
+
+        set min = (select q.min from form_question as q where q.id = new.question_id);
+        set max = (select q.max from form_question as q where q.id = new.question_id);
+
+        if (new.value < min or new.value > max) then
+            signal sqlstate '45000' set message_text = 'value must be between the min and max specified in question_id';
+        end if;
     end if;
 
     if (q_type != 'slider' and new.value is not null) then
@@ -508,6 +519,8 @@ create trigger before_update_user_form_answer
 begin
     declare q_type varchar(20);
     declare is_other bool;
+    declare min int2 unsigned;
+    declare max int2 unsigned;
 
     set q_type = (select q.type from form_question as q where q.id = new.question_id);
 
@@ -540,8 +553,17 @@ begin
             'option_id should not be present when question_id.type is neither select-one or select-multiple';
     end if;
 
-    if (q_type = 'slider' and new.value is null) then
-        signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
+    if (q_type = 'slider') then
+        if (new.value is null) then
+            signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
+        end if;
+
+        set min = (select q.min from form_question as q where q.id = new.question_id);
+        set max = (select q.max from form_question as q where q.id = new.question_id);
+
+        if (new.value < min or new.value > max) then
+            signal sqlstate '45000' set message_text = 'value must be between the min and max specified in question_id';
+        end if;
     end if;
 
     if (q_type != 'slider' and new.value is not null) then
@@ -563,10 +585,9 @@ create table user_test_question_log (
     id          int8 unsigned primary key not null auto_increment,
     user_id     int4 unsigned             not null,
     question_id int4 unsigned             not null,
-    start       timestamp                 not null,
-    end         timestamp                 not null,
-    unique (user_id, question_id),
-    check (start <= end),
+    timestamp   datetime(3)               not null,
+    duration    int4 unsigned             not null,
+    unique (user_id, question_id, timestamp),
     foreign key (user_id) references user (id) on delete cascade,
     foreign key (question_id) references test_question (id) on delete restrict
 );
@@ -576,7 +597,7 @@ create table user_test_option_log (
     user_id   int4 unsigned                        not null,
     option_id int4 unsigned                        not null,
     type      enum ('deselect', 'select', 'hover') not null,
-    timestamp timestamp                            not null,
+    timestamp datetime(3)                          not null,
     unique (user_id, option_id, type, timestamp),
     foreign key (user_id) references user (id) on delete cascade,
     foreign key (option_id) references test_option (id) on delete restrict
