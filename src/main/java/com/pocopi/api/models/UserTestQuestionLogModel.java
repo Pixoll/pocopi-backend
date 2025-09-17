@@ -1,16 +1,18 @@
-package com.pocopi.api.modules.UserTestQuestionLog;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.TestQuestion.TestQuestionModel;
-import com.pocopi.api.modules.User.UserModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 @Entity
-@Table(name = "user_test_question_log", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "question_id"})})
+@Table(
+    name = "user_test_question_log",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "question_id", "timestamp"})}
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +21,8 @@ import java.time.LocalDateTime;
 public class UserTestQuestionLogModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, columnDefinition = "int8 unsigned")
+    @Setter(AccessLevel.NONE)
     private long id;
 
     @NotNull
@@ -30,15 +33,14 @@ public class UserTestQuestionLogModel {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "question_id", nullable = false)
     private TestQuestionModel question;
 
     @NotNull
-    @Column(name = "start", nullable = false)
-    private LocalDateTime start;
+    @Column(name = "timestamp", nullable = false)
+    private Instant timestamp;
 
-    @NotNull
-    @Column(name = "end", nullable = false)
-    private LocalDateTime end;
-
+    @Column(name = "duration", nullable = false, columnDefinition = "int4 unsigned")
+    private int duration;
 }

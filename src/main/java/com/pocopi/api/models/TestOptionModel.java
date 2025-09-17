@@ -1,7 +1,5 @@
-package com.pocopi.api.modules.TestOption;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.Image.ImageModel;
-import com.pocopi.api.modules.TestQuestion.TestQuestionModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,7 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class TestOptionModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
     @Setter(AccessLevel.NONE)
     private int id;
 
@@ -29,19 +27,17 @@ public class TestOptionModel {
     @JoinColumn(name = "question_id", nullable = false)
     private TestQuestionModel question;
 
-    @Column(name = "order", columnDefinition = "tinyint UNSIGNED not null")
+    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
-    @Size(max = 100)
+    @Size(min = 1, max = 100)
     @Column(name = "text", length = 100)
-    private String text;
+    private String text = null;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")
-    private ImageModel image;
+    private ImageModel image = null;
 
-    @NotNull
     @Column(name = "correct", nullable = false)
     private boolean correct;
-
 }

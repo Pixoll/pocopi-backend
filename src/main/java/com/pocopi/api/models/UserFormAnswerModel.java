@@ -1,7 +1,5 @@
-package com.pocopi.api.modules.UserFormAnswer;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.FormQuestion.FormQuestionModel;
-import com.pocopi.api.modules.User.UserModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,7 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class UserFormAnswerModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int unsigned")
     @Setter(AccessLevel.NONE)
     private int id;
 
@@ -31,12 +29,19 @@ public class UserFormAnswerModel {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "question_id", nullable = false)
     private FormQuestionModel question;
 
-    @Size(max = 1000)
-    @NotNull
-    @Column(name = "answer", nullable = false, length = 1000)
-    private String answer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
+    @JoinColumn(name = "option_id")
+    private FormQuestionOptionModel option = null;
 
+    @Column(name = "value", columnDefinition = "int2 unsigned")
+    private Short value = null;
+
+    @Size(min = 1, max = 1000)
+    @Column(name = "answer", length = 1000)
+    private String answer = null;
 }

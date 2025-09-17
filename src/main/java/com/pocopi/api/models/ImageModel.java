@@ -1,4 +1,4 @@
-package com.pocopi.api.modules.Image;
+package com.pocopi.api.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -15,18 +15,16 @@ import lombok.*;
 public class ImageModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
     @Setter(AccessLevel.NONE)
     private int id;
 
-    @Size(max = 512)
+    @Size(min = 1, max = 512)
     @NotNull
     @Column(name = "path", nullable = false, length = 512)
     private String path;
 
-    @Size(max = 100)
+    @Size(min = 1, max = 100)
     @Column(name = "alt", length = 100)
-    private String alt;
-
-
+    private String alt = null;
 }

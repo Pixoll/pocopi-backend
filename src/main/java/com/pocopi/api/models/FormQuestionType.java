@@ -1,9 +1,9 @@
-package com.pocopi.api.modules.FormQuestion;
+package com.pocopi.api.models;
 
 import lombok.Getter;
 
 @Getter
-public enum TextType {
+public enum FormQuestionType {
     SELECT_ONE("select-one"),
     SELECT_MULTIPLE("select-multiple"),
     SLIDER("slider"),
@@ -12,8 +12,7 @@ public enum TextType {
 
     private final String name;
 
-    TextType(String name) {
+    FormQuestionType(String name) {
         this.name = name;
     }
-
 }

@@ -1,13 +1,14 @@
-package com.pocopi.api.modules.User;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.TestGroup.TestGroupModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "user")
+@Table(name = "user", indexes = {@Index(columnList = "group_id")})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,38 +17,37 @@ import lombok.*;
 public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
     @Setter(AccessLevel.NONE)
     private int id;
 
-    @Size(max = 32)
+    @Size(min = 1, max = 32)
     @NotNull
-    @Column(name = "username", nullable = false, length = 32)
+    @Column(name = "username", nullable = false, length = 32, unique = true)
     private String username;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "group_id", nullable = false)
     private TestGroupModel group;
 
-    @NotNull
     @Column(name = "anonymous", nullable = false)
     private boolean anonymous;
 
-    @Size(max = 50)
+    @Size(min = 1, max = 50)
     @Column(name = "name", length = 50)
     private String name = null;
 
-    @Size(max = 50)
-    @Column(name = "email", length = 50)
+    @Size(min = 1, max = 50)
+    @Column(name = "email", length = 50, unique = true)
     private String email = null;
 
-    @Column(name = "age", columnDefinition = "tinyint UNSIGNED")
-    private byte age;
+    @Column(name = "age", columnDefinition = "int1 unsigned")
+    private Byte age = null;
 
-    @Size(max = 60)
+    @Size(min = 60, max = 60)
     @NotNull
     @Column(name = "password", nullable = false, length = 60)
     private String password;
-
 }

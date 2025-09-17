@@ -1,6 +1,5 @@
-package com.pocopi.api.modules.TestGroup;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.Config.ConfigModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,7 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_group", uniqueConstraints = {@UniqueConstraint(columnNames = {"label", "config_version"})})
+@Table(name = "test_group", uniqueConstraints = {@UniqueConstraint(columnNames = {"config_version", "label"})})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class TestGroupModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
     @Setter(AccessLevel.NONE)
     private int id;
 
@@ -26,18 +25,17 @@ public class TestGroupModel {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "config_version", nullable = false)
-    private ConfigModel configVersion;
+    private ConfigModel config;
 
-    @Size(max = 25)
+    @Size(min = 1, max = 25)
     @NotNull
     @Column(name = "label", nullable = false, length = 25)
     private String label;
 
-    @Column(name = "probability", columnDefinition = "tinyint UNSIGNED not null")
+    @Column(name = "probability", nullable = false, columnDefinition = "int1 unsigned")
     private byte probability;
 
-    @Size(max = 2000)
+    @Size(min = 1, max = 2000)
     @Column(name = "greeting", length = 2000)
-    private String greeting;
-
+    private String greeting = null;
 }

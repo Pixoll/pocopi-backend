@@ -1,4 +1,4 @@
-package com.pocopi.api.modules.forms;
+package com.pocopi.api.models;
 
 import lombok.Getter;
 
@@ -12,5 +12,4 @@ public enum FormType {
     FormType(String name) {
         this.name = name;
     }
-
 }

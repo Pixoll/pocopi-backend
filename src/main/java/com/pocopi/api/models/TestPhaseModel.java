@@ -1,6 +1,5 @@
-package com.pocopi.api.modules.TestPhase;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.TestProtocol.TestProtocolModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -8,7 +7,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_phase", uniqueConstraints = {@UniqueConstraint(columnNames = {"order", "protocol_id"})})
+@Table(name = "test_phase", uniqueConstraints = {@UniqueConstraint(columnNames = {"protocol_id", "order"})})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,7 +16,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class TestPhaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
+    @Setter(AccessLevel.NONE)
     private int id;
 
     @NotNull
@@ -26,7 +26,7 @@ public class TestPhaseModel {
     @JoinColumn(name = "protocol_id", nullable = false)
     private TestProtocolModel protocol;
 
-    @Column(name = "order", columnDefinition = "tinyint UNSIGNED not null")
+    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
     @Column(name = "randomize_questions")

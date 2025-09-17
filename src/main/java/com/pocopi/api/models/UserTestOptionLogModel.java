@@ -1,16 +1,18 @@
-package com.pocopi.api.modules.UserTestOptionLog;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.TestOption.TestOptionModel;
-import com.pocopi.api.modules.User.UserModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 @Entity
-@Table(name = "user_test_option_log", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "option_id", "type", "timestamp"})})
+@Table(
+    name = "user_test_option_log",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "option_id", "type", "timestamp"})}
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +21,7 @@ import java.time.LocalDateTime;
 public class UserTestOptionLogModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, columnDefinition = "int8 unsigned")
     @Setter(AccessLevel.NONE)
     private long id;
 
@@ -31,16 +33,16 @@ public class UserTestOptionLogModel {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "option_id", nullable = false)
     private TestOptionModel option;
 
     @NotNull
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private String type;
+    private UserTestOptionType type;
 
     @NotNull
     @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
-
+    private Instant timestamp;
 }

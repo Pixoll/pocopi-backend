@@ -1,4 +1,4 @@
-package com.pocopi.api.modules.UserTestOptionLog;
+package com.pocopi.api.models;
 
 import lombok.Getter;
 
@@ -13,5 +13,4 @@ public enum UserTestOptionType {
     UserTestOptionType(String name) {
         this.name = name;
     }
-
 }

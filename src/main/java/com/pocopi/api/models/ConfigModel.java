@@ -1,59 +1,51 @@
-package com.pocopi.api.modules.Config;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.HomeInfoCard.HomeInfoCardModel;
-import com.pocopi.api.modules.Image.ImageModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "config")
 @Getter
 @Setter
-@NoArgsConstructor()
-@AllArgsConstructor()
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ConfigModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "version", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "version", nullable = false, columnDefinition = "int4 unsigned")
     @Setter(AccessLevel.NONE)
-    private int id;
+    private int version;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "icon_id")
-    private ImageModel icon;
+    private ImageModel icon = null;
 
-    @Size(max = 100)
+    @Size(min = 1, max = 100)
     @NotNull
     @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @Size(max = 200)
+    @Size(min = 1, max = 200)
     @Column(name = "subtitle", length = 200)
-    private String subtitle;
+    private String subtitle = null;
 
-    @Size(max = 2000)
+    @Size(min = 1, max = 2000)
     @NotNull
     @Column(name = "description", nullable = false, length = 2000)
     private String description;
 
-    @Size(max = 2000)
+    @Size(min = 1, max = 2000)
     @NotNull
     @Column(name = "informed_consent", nullable = false, length = 2000)
     private String informedConsent;
 
     @NotNull
-    @ColumnDefault("1")
     @Column(name = "anonymous", nullable = false)
-    private boolean anonymous = false;
-
-    @OneToMany(mappedBy = "configVersion")
-    private Set<HomeInfoCardModel> homeInfoCards = new LinkedHashSet<>();
-
+    private boolean anonymous = true;
 }

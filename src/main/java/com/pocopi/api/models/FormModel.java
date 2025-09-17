@@ -1,39 +1,38 @@
-package com.pocopi.api.modules.forms;
+package com.pocopi.api.models;
 
-import com.pocopi.api.modules.Config.ConfigModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "form")
+@Table(name = "form", uniqueConstraints = {@UniqueConstraint(columnNames = {"config_version", "type"})})
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class FormModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
     @Setter(AccessLevel.NONE)
-    private Long id;
+    private int id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "config_version", nullable = false)
-    private ConfigModel configVersion;
+    private ConfigModel config;
 
     @NotNull
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private FormType type;
 
-    @Size(max = 100)
+    @Size(min = 1, max = 100)
     @Column(name = "title", length = 100)
-    private String title;
-
+    private String title = null;
 }
