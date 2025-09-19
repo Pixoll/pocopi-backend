@@ -12,8 +12,6 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,10 +42,21 @@ public class UserModel {
     private String email = null;
 
     @Column(name = "age", columnDefinition = "int1 unsigned")
-    private Byte age = null;
+    private byte age;
 
     @Size(min = 60, max = 60)
     @NotNull
     @Column(name = "password", nullable = false, length = 60)
     private String password;
+
+    @Builder
+    public UserModel(String username, TestGroupModel group, boolean anonymous, String name, String email, Byte age, String password) {
+        this.username = username;
+        this.group = group;
+        this.anonymous = anonymous;
+        this.name = name;
+        this.email = email;
+        this.age = age;
+        this.password = password;
+    }
 }
