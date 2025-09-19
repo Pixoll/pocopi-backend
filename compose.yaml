@@ -4,3 +4,12 @@ services:
     image: "mysql:latest"
     ports:
       - "33061:3306"
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./images:/var/www/images:ro
+      
