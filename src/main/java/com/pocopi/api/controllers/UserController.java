@@ -1,13 +1,12 @@
 package com.pocopi.api.controllers;
 
+import com.pocopi.api.dto.User.CreateUserRequest;
 import com.pocopi.api.dto.User.SingleUserResponse;
 import com.pocopi.api.services.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,5 +24,10 @@ public class UserController {
     public ResponseEntity<List<SingleUserResponse>> getAllUsers() {
         List<SingleUserResponse> response = userService.getAll();
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @PostMapping
+    public ResponseEntity<String> createUser(@RequestBody CreateUserRequest request) {
+        String response = userService.createUser(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }
