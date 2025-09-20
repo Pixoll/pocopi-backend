@@ -18,9 +18,7 @@ public class ImageServiceImp implements ImageService {
 
     ImageRepository imageRepository;
 
-    private final String BASE_PATH = "/images";
-
-    private final String BASE_URL = "http://localhost";
+    private final String BASE_URL = "http://localhost:8081";
 
     public ImageServiceImp(ImageRepository imageRepository) {
         this.imageRepository = imageRepository;
