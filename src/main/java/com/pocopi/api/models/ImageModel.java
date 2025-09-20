@@ -21,7 +21,7 @@ public class ImageModel {
 
     @Size(min = 1, max = 512)
     @NotNull
-    @Column(name = "path", nullable = false, length = 512)
+    @Column(name = "path", nullable = false, length = 512, unique = true)
     private String path;
 
     @Size(min = 1, max = 100)
