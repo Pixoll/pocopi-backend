@@ -44,7 +44,6 @@ public class ImageServiceImp implements ImageService {
 
             String relativePath = path.replaceFirst("^images/", "");
             Path fullPath = uploadDir.resolve(relativePath);
-            System.out.println(fullPath);
             if (!Files.exists(fullPath.getParent())) {
                 Files.createDirectories(fullPath.getParent());
             }
