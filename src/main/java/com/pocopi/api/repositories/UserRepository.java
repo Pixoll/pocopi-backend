@@ -10,10 +10,10 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
-   @Query(value = "SELECT COUNT(u) > 0 FROM user u WHERE u.username = :username", nativeQuery = true)
+   @Query(value = "SELECT true FROM user u WHERE u.username = :username", nativeQuery = true)
    boolean existsByUsername(@Param("username") String username);
 
-   @Query(value = "SELECT COUNT(u) > 0 FROM user u WHERE u.email = :email", nativeQuery = true)
+   @Query(value = "SELECT true FROM user u WHERE u.email = :email", nativeQuery = true)
    boolean existsByEmail(@Param("email") String email);
 
     @Query(value = "SELECT * from user", nativeQuery = true)
