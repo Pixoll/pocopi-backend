@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserServiceImp implements UserService {
@@ -53,8 +54,10 @@ public class UserServiceImp implements UserService {
             fieldErrors.add(new FieldErrorResponse("groupId", "Test group does not exist"));
         }
 
-        if (userRepository.existsByUsername(request.username())) {
-            fieldErrors.add(new FieldErrorResponse("username", "Username already exists"));
+        if (request.username().isPresent()) {
+            if (userRepository.existsByUsername(request.username().get())) {
+                fieldErrors.add(new FieldErrorResponse("username", "Username already exists"));
+            }
         }
 
         if (request.email() != null && !request.email().trim().isEmpty()) {
@@ -77,7 +80,7 @@ public class UserServiceImp implements UserService {
         try {
             UserModel newUser = UserModel.builder()
                     .group(group)
-                    .username(request.username())
+                    .username(request.username().isPresent() ? request.username().get() : generateUniqueUsername())
                     .anonymous(request.anonymous())
                     .name(request.name())
                     .email(request.email())
@@ -104,9 +107,6 @@ public class UserServiceImp implements UserService {
 
     private void validateOnCreateUser(CreateUserRequest request, List<FieldErrorResponse> fieldErrors) {
         if (request.anonymous()) {
-            if (request.name() != null && !request.name().trim().isEmpty()) {
-                fieldErrors.add(new FieldErrorResponse("name", "Name must be null for anonymous users"));
-            }
             if (request.email() != null && !request.email().trim().isEmpty()) {
                 fieldErrors.add(new FieldErrorResponse("email", "Email must be null for anonymous users"));
             }
@@ -121,20 +121,21 @@ public class UserServiceImp implements UserService {
         }
     }
     private void validateFieldLengths(CreateUserRequest request, List<FieldErrorResponse> fieldErrors) {
-        if (request.username() != null && request.username().length() > 32) {
-            fieldErrors.add(new FieldErrorResponse("username", "Username cannot exceed 32 characters"));
+        if (request.username().isPresent()) {
+            String username = request.username().get();
+            if (username.length() > 32) {
+                fieldErrors.add(new FieldErrorResponse("username", "Username cannot exceed 32 characters"));
+            }
+            if (username.trim().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("username", "Username cannot be empty"));
+            }
         }
-
+        
         if (request.name() != null && request.name().length() > 50) {
             fieldErrors.add(new FieldErrorResponse("name", "Name cannot exceed 50 characters"));
         }
-
         if (request.email() != null && request.email().length() > 50) {
             fieldErrors.add(new FieldErrorResponse("email", "Email cannot exceed 50 characters"));
-        }
-
-        if (request.username() != null && request.username().trim().isEmpty()) {
-            fieldErrors.add(new FieldErrorResponse("username", "Username cannot be empty"));
         }
 
         if (request.password() != null && request.password().trim().isEmpty()) {
@@ -150,5 +151,13 @@ public class UserServiceImp implements UserService {
 
     private boolean isValidEmail(String email) {
         return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    }
+
+    private String generateUniqueUsername() {
+        String username;
+        do {
+            username = "user_" + UUID.randomUUID().toString().substring(0, 8);
+        } while (userRepository.existsByUsername(username));
+        return username;
     }
 }
