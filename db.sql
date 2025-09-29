@@ -78,11 +78,10 @@ create table home_info_card (
 create table home_faq (
     id             int4 unsigned primary key not null auto_increment,
     config_version int4 unsigned             not null,
-    `order`        int1 unsigned             not null,
+    `order`        int1 unsigned             not null
     question       varchar(100)              not null check (question != ''),
     answer         varchar(500)              not null check (answer != ''),
     unique (config_version, `order`),
-    foreign key (config_version) references config (version) on delete cascade,
     foreign key (config_version) references config (version) on delete cascade
 );
 
