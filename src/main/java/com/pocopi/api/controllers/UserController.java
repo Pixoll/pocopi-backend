@@ -2,7 +2,12 @@ package com.pocopi.api.controllers;
 
 import com.pocopi.api.dto.User.CreateUserRequest;
 import com.pocopi.api.dto.User.SingleUserResponse;
+import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.services.interfaces.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +30,17 @@ public class UserController {
         List<SingleUserResponse> response = userService.getAll();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
     @PostMapping
+    @Operation(
+            summary = "Create new user",
+            description = "Creates a new user and returns success message",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User created successfully"),
+                    @ApiResponse(responseCode = "400", description = "Validation error",
+                            content = @Content(schema = @Schema(implementation = MultiFieldException.class)))
+            }
+    )
     public ResponseEntity<String> createUser(@RequestBody CreateUserRequest request) {
         String response = userService.createUser(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
