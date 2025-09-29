@@ -47,10 +47,10 @@ dependencies {
     testImplementation(libs.spring.security.test)
 
     // others
-
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     implementation(libs.dotenv)
+    implementation(libs.openApi)
     runtimeOnly(libs.mysql.connector)
 
     // testing

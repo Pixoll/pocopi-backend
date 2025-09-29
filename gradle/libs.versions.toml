@@ -5,8 +5,10 @@ lombokVersion = "1.18.40"
 mysqlConnectorVersion = "9.4.0"
 springFrameworkVersion = "3.5.5"
 springDepManagerVersion = "1.1.7"
+openAPIVersion = "2.8.13"
 
 [libraries]
+openApi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "openAPIVersion" }
 dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenvVersion" }
 junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombokVersion" }
