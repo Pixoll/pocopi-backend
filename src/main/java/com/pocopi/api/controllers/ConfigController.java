@@ -4,10 +4,9 @@ import com.pocopi.api.dto.Config.SingleConfigResponse;
 import com.pocopi.api.services.interfaces.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/config")
@@ -19,9 +18,9 @@ public class ConfigController {
     public ConfigController(ConfigService configService) {
         this.configService = configService;
     }
-
-    public ResponseEntity<List<SingleConfigResponse>> getConfigs() {
-        List<SingleConfigResponse> response = configService.getConfigs();
-        return ResponseEntity.ok(response);
+    @GetMapping("/latest")
+    public ResponseEntity<SingleConfigResponse> getLastestConfig() {
+        SingleConfigResponse response = configService.getLastConfig();
+        return ResponseEntity.ok(response); 
     }
 }

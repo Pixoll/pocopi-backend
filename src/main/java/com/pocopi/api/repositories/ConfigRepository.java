@@ -5,11 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface ConfigRepository extends JpaRepository<ConfigModel,String> {
 
-    @Query(value = "SELECT * from config",nativeQuery = true)
-    List<ConfigModel> findAll();
+    @Query(value = "SELECT * FROM config c WHERE c.version = (SELECT max(c2.version) FROM config c2)\n", nativeQuery = true)
+    ConfigModel findLastConfig();
 }

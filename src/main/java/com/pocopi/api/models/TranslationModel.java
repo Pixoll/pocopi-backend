@@ -8,33 +8,32 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "form", uniqueConstraints = {@UniqueConstraint(columnNames = {"config_version", "type"})})
+@Table(name = "translation")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FormModel {
+public class TranslationModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
-    @Setter(AccessLevel.NONE)
+    @Column(name = "id", columnDefinition = "int UNSIGNED not null")
     private int id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "config_version", nullable = false)
-    private ConfigModel config;
+    private ConfigModel configVersion;
 
-
-    @Size(min = 1, max = 100)
-    @Column(name = "title", length = 100)
-    private String title = null;
-
+    @Size(max = 50)
     @NotNull
-    @Lob
-    @Column(name = "type", nullable = false)
-    private String type;
+    @Column(name = "`key`", nullable = false, length = 50)
+    private String key;
+
+    @Size(max = 200)
+    @NotNull
+    @Column(name = "value", nullable = false, length = 200)
+    private String value;
 
 }

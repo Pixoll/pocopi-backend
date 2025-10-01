@@ -48,11 +48,6 @@ public class FormQuestionModel {
     @Column(name = "required", nullable = false)
     private boolean required = true;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private FormQuestionType type;
-
     @Column(name = "min", columnDefinition = "int2 unsigned")
     private Short min = null;
 
@@ -74,4 +69,9 @@ public class FormQuestionModel {
     @Size(min = 1, max = 50)
     @Column(name = "placeholder", length = 50)
     private String placeholder = null;
+
+    @NotNull
+    @Lob
+    @Column(name = "type", nullable = false)
+    private String type;
 }
