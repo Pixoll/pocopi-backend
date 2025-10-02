@@ -105,6 +105,16 @@ public class UserServiceImp implements UserService {
         }
     }
 
+    @Override
+    public UserModel getUserById(int id) {
+        return userRepository.getUserByUserId(id);
+    }
+
+    @Override
+    public List<Integer> getAllUserIds() {
+        return userRepository.getAllUserIds();
+    }
+
     private void validateOnCreateUser(CreateUserRequest request, List<FieldErrorResponse> fieldErrors) {
         if (request.anonymous()) {
             if (request.email() != null && !request.email().trim().isEmpty()) {

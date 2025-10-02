@@ -10,11 +10,17 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
-   @Query(value = "SELECT true FROM user u WHERE u.username = :username", nativeQuery = true)
-   boolean existsByUsername(@Param("username") String username);
+    @Query(value = "SELECT * from user u where u.id =:userId",nativeQuery = true)
+    UserModel getUserByUserId(@Param("userId") int userId);
 
-   @Query(value = "SELECT true FROM user u WHERE u.email = :email", nativeQuery = true)
-   boolean existsByEmail(@Param("email") String email);
+    @Query(value = "SELECT u.id from user u ",nativeQuery = true)
+    List<Integer> getAllUserIds();
+
+    @Query(value = "SELECT true FROM user u WHERE u.username = :username", nativeQuery = true)
+    boolean existsByUsername(@Param("username") String username);
+
+    @Query(value = "SELECT true FROM user u WHERE u.email = :email", nativeQuery = true)
+    boolean existsByEmail(@Param("email") String email);
 
     @Query(value = "SELECT * from user", nativeQuery = true)
     List<UserModel> getAllUsers();

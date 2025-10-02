@@ -47,7 +47,7 @@ public class ConfigServiceImp implements ConfigService {
 
     @Override
     public SingleConfigResponse getLastConfig() {
-        ConfigModel configModel = configRepository.findLastConfig();
+        ConfigModel configModel = findLastConfig();
         int configId = configModel.getVersion();
 
         SingleImageResponse icon = null;
@@ -114,6 +114,10 @@ public class ConfigServiceImp implements ConfigService {
             groups,
             translationMap
         );
+    }
+    @Override
+    public ConfigModel findLastConfig(){
+        return configRepository.findLastConfig();
     }
     private List<GroupResponse> buildGroupResponses(int configVersion) {
         List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);

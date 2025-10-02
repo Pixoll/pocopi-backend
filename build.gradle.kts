@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.websocket)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     developmentOnly(libs.spring.boot.devtools)
     developmentOnly(libs.spring.boot.docker.compose)
