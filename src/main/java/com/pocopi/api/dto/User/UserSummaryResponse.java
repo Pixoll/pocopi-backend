@@ -11,7 +11,7 @@ public record UserSummaryResponse(
     long timestamp,
     @JsonProperty("time_taken") int timeTaken,
     @JsonProperty("correct_questions") int correctQuestions,
-    @JsonProperty("correct_answered")int questionsAnswered,
+    @JsonProperty("questions_answered")int questionsAnswered,
     double accuracy
     ) {
 }
