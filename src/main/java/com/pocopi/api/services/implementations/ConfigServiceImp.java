@@ -115,6 +115,7 @@ public class ConfigServiceImp implements ConfigService {
             translationMap
         );
     }
+
     @Override
     public ConfigModel findLastConfig(){
         return configRepository.findLastConfig();
