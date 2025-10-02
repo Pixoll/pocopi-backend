@@ -9,4 +9,5 @@ public interface ImageService {
     UploadImageResponse saveImageToExistsUrl(MultipartFile file, String alt);
 
     SingleImageResponse getImageByPath(String path);
+    SingleImageResponse getImageById(int id);
 }

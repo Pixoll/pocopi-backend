@@ -5,6 +5,7 @@ import com.pocopi.api.dto.Form.Form;
 import com.pocopi.api.dto.HomeFaq.Faq;
 import com.pocopi.api.dto.HomeInfoCard.InformationCard;
 import com.pocopi.api.dto.Image.SingleImageResponse;
+import com.pocopi.api.dto.TestGroup.GroupResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ public record SingleConfigResponse(
     List<Faq> faq,
     @JsonProperty("pre_test_form") Optional<Form> preTestForm,
     @JsonProperty("post_test_form") Optional<Form> postTestForm,
+    List<GroupResponse> groups,
     Map<String, String> translations
 ) {
 }

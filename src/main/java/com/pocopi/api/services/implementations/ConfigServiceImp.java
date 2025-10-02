@@ -8,6 +8,7 @@ import com.pocopi.api.dto.HomeFaq.Faq;
 import com.pocopi.api.dto.HomeInfoCard.InformationCard;
 import com.pocopi.api.dto.Image.SingleImageResponse;
 import com.pocopi.api.dto.SliderLabel.SliderLabel;
+import com.pocopi.api.dto.TestGroup.*;
 import com.pocopi.api.models.*;
 import com.pocopi.api.repositories.*;
 import com.pocopi.api.services.interfaces.ConfigService;
@@ -24,15 +25,16 @@ public class ConfigServiceImp implements ConfigService {
     private final HomeInfoCardRepository homeInfoCardRepository;
     private final HomeFaqRepository homeFaqRepository;
     private final FormRepository formRepository;
+    private final TestGroupRepository testGroupRepository;
     private final ImageService imageService;
 
-    public ConfigServiceImp(
-        ConfigRepository configRepository,
-        TranslationRepository translationRepository,
-        HomeInfoCardRepository homeInfoCardRepository,
-        HomeFaqRepository homeFaqRepository,
-        FormRepository formRepository,
-        ImageService imageService
+    public ConfigServiceImp(ConfigRepository configRepository,
+                            TranslationRepository translationRepository,
+                            HomeInfoCardRepository homeInfoCardRepository,
+                            HomeFaqRepository homeFaqRepository,
+                            FormRepository formRepository,
+                            ImageService imageService,
+                            TestGroupRepository testGroupRepository
     ) {
         this.configRepository = configRepository;
         this.translationRepository = translationRepository;
@@ -40,6 +42,7 @@ public class ConfigServiceImp implements ConfigService {
         this.homeFaqRepository = homeFaqRepository;
         this.formRepository = formRepository;
         this.imageService = imageService;
+        this.testGroupRepository = testGroupRepository;
     }
 
     @Override
@@ -50,7 +53,6 @@ public class ConfigServiceImp implements ConfigService {
         SingleImageResponse icon = null;
         if (configModel.getIcon().getPath() != null) {
             icon = imageService.getImageByPath(configModel.getIcon().getPath());
-            System.out.println(icon);
         }
 
         List<TranslationModel> translations = translationRepository.findAllByConfigVersion(configId);
@@ -97,6 +99,7 @@ public class ConfigServiceImp implements ConfigService {
         for (HomeFaqModel faq : homeFaqs) {
             faqs.add(new Faq(faq.getQuestion(), faq.getAnswer()));
         }
+        List<GroupResponse> groups = buildGroupResponses(configId);
         return new SingleConfigResponse(
             Optional.ofNullable(icon),
             configModel.getTitle(),
@@ -108,9 +111,64 @@ public class ConfigServiceImp implements ConfigService {
             faqs,
             Optional.ofNullable(preTest),
             Optional.ofNullable(postTest),
+            groups,
             translationMap
         );
     }
+    private List<GroupResponse> buildGroupResponses(int configVersion) {
+        List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);
+
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Integer, List<TestGroupData>> groupsMap =
+            rows.stream().collect(Collectors.groupingBy(TestGroupData::getGroupId, LinkedHashMap::new, Collectors.toList()));
+
+        return groupsMap.values().stream()
+            .map(groupRows -> {
+                TestGroupData first = groupRows.getFirst();
+
+                Map<Integer, List<TestGroupData>> phasesMap =
+                    groupRows.stream().collect(Collectors.groupingBy(TestGroupData::getPhaseOrder, LinkedHashMap::new, Collectors.toList()));
+
+                List<PhaseResponse> phases = phasesMap.values().stream()
+                    .map(phaseRows -> {
+                        Map<Integer, List<TestGroupData>> questionsMap =
+                            phaseRows.stream().collect(Collectors.groupingBy(TestGroupData::getQuestionOrder, LinkedHashMap::new, Collectors.toList()));
+
+                        List<QuestionResponse> questions = questionsMap.values().stream()
+                            .map(qRows -> {
+                                List<OptionResponse> options = qRows.stream()
+                                    .map(r -> new OptionResponse(
+                                        r.getOptionText(),
+                                        r.getCorrect()
+                                    ))
+                                    .toList();
+
+                                return new QuestionResponse(
+                                    imageService.getImageById(qRows.getFirst().getQuestionImageId()),
+                                    options
+                                );
+                            })
+                            .toList();
+
+                        return new PhaseResponse(questions);
+                    })
+                    .toList();
+
+                ProtocolResponse protocol = new ProtocolResponse(phases);
+
+                return new GroupResponse(
+                    first.getProbability(),
+                    first.getGroupLabel(),
+                    first.getGreeting(),
+                    protocol
+                );
+            })
+            .toList();
+    }
+
 
     private Form generateFormFromQuery(List<FormProjection> rows) {
         Map<Integer, List<FormProjection>> groupedByQuestion = rows.stream()
@@ -181,7 +239,6 @@ public class ConfigServiceImp implements ConfigService {
                     first.getMinLength(),
                     first.getMaxLength()
                 ));
-
                 case TEXT_LONG -> questions.add(new FormQuestion.TextLong(
                     first.getQuestionId(),
                     first.getCategory(),

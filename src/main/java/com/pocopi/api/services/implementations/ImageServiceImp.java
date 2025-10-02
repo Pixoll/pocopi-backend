@@ -69,4 +69,14 @@ public class ImageServiceImp implements ImageService {
         return new SingleImageResponse(url, imageModel.getAlt());
     }
 
+    @Override
+    public SingleImageResponse getImageById(int id) {
+        ImageModel imageModel = imageRepository.findById(id).orElse(null);
+        if (imageModel == null) {
+            throw new RuntimeException("Image not found with id: " + id);
+        }
+        String url = BASE_URL + "/" + imageModel.getPath();
+        return new SingleImageResponse(url, imageModel.getAlt());
+    }
+
 }

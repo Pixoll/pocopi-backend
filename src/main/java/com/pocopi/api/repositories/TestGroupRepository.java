@@ -3,12 +3,12 @@ package com.pocopi.api.repositories;
 import com.pocopi.api.models.TestGroupModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 
 public interface TestGroupRepository extends JpaRepository<TestGroupModel, Integer> {
     @Query(value = """
         SELECT
+            tg.id as group_id,
             tg.config_version,
             tg.label as group_label,
             tg.probability,
@@ -26,12 +26,6 @@ public interface TestGroupRepository extends JpaRepository<TestGroupModel, Integ
                  LEFT JOIN test_question tq ON tph.id = tq.phase_id
                  LEFT JOIN test_option topt ON tq.id = topt.question_id
         WHERE tg.config_version = :configVersion
-        ORDER BY
-            tg.config_version,
-            tg.label,
-            tph.order,
-            tq.order,
-            topt.order
         """,nativeQuery = true)
-    List<Object> findAllGroupsDataByConfigVersion(int configVersion);
+    List<TestGroupData> findAllGroupsDataByConfigVersion(int configVersion);
 }
