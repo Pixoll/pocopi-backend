@@ -1,5 +1,6 @@
 package com.pocopi.api.models;
 
+import com.pocopi.api.converters.FormTypeConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,14 +28,12 @@ public class FormModel {
     @JoinColumn(name = "config_version", nullable = false)
     private ConfigModel config;
 
-
     @Size(min = 1, max = 100)
     @Column(name = "title", length = 100)
     private String title = null;
 
     @NotNull
-    @Lob
+    @Convert(converter = FormTypeConverter.class)
     @Column(name = "type", nullable = false)
-    private String type;
-
+    private FormType type;
 }

@@ -1,5 +1,6 @@
 package com.pocopi.api.models;
 
+import com.pocopi.api.converters.FormQuestionTypeConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -71,7 +72,7 @@ public class FormQuestionModel {
     private String placeholder = null;
 
     @NotNull
-    @Lob
+    @Convert(converter = FormQuestionTypeConverter.class)
     @Column(name = "type", nullable = false)
-    private String type;
+    private FormQuestionType type;
 }

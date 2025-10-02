@@ -4,6 +4,7 @@ services:
     image: "mysql:latest"
     ports:
       - "33061:3306"
+
   nginx:
     image: nginx:alpine
     ports:

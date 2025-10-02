@@ -2,7 +2,6 @@ package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.Config.SingleConfigResponse;
 import com.pocopi.api.dto.Form.Form;
-import com.pocopi.api.dto.FormQuestion.BaseQuestion;
 import com.pocopi.api.dto.FormQuestion.FormQuestion;
 import com.pocopi.api.dto.FormQuestionOption.FormOption;
 import com.pocopi.api.dto.HomeFaq.Faq;
@@ -27,12 +26,13 @@ public class ConfigServiceImp implements ConfigService {
     private final FormRepository formRepository;
     private final ImageService imageService;
 
-    public ConfigServiceImp(ConfigRepository configRepository,
-                            TranslationRepository translationRepository,
-                            HomeInfoCardRepository homeInfoCardRepository,
-                            HomeFaqRepository homeFaqRepository,
-                            FormRepository formRepository,
-                            ImageService imageService
+    public ConfigServiceImp(
+        ConfigRepository configRepository,
+        TranslationRepository translationRepository,
+        HomeInfoCardRepository homeInfoCardRepository,
+        HomeFaqRepository homeFaqRepository,
+        FormRepository formRepository,
+        ImageService imageService
     ) {
         this.configRepository = configRepository;
         this.translationRepository = translationRepository;
@@ -67,7 +67,7 @@ public class ConfigServiceImp implements ConfigService {
             List<FormProjection> firstRows = formRepository.findFormWithAllData(firstForm.getConfig().getVersion());
             List<FormProjection> secondRows = formRepository.findFormWithAllData(secondForm.getConfig().getVersion());
 
-            if (FormType.PRE.getName().equals(firstForm.getType())) {
+            if (firstForm.getType() == FormType.PRE) {
                 preTest = generateFormFromQuery(firstRows);
                 postTest = generateFormFromQuery(secondRows);
             } else {
@@ -88,7 +88,7 @@ public class ConfigServiceImp implements ConfigService {
             }
             InformationCard informationCard = new InformationCard(homeInfoCardModel.getTitle(),
                 homeInfoCardModel.getDescription(),
-                homeInfoCardModel.getColor(),
+                String.format("#%06X", homeInfoCardModel.getColor()),
                 Optional.ofNullable(iconByInfoCard)
             );
             informationCards.add(informationCard);
@@ -100,14 +100,14 @@ public class ConfigServiceImp implements ConfigService {
         return new SingleConfigResponse(
             Optional.ofNullable(icon),
             configModel.getTitle(),
-            configModel.getSubtitle(),
+            Optional.ofNullable(configModel.getSubtitle()),
             configModel.getDescription(),
             configModel.isAnonymous(),
             informationCards,
             configModel.getInformedConsent(),
             faqs,
-            preTest,
-            postTest,
+            Optional.ofNullable(preTest),
+            Optional.ofNullable(postTest),
             translationMap
         );
     }
@@ -127,76 +127,41 @@ public class ConfigServiceImp implements ConfigService {
                 imageResponse = imageService.getImageByPath(first.getQuestionImagePath());
             }
 
-            BaseQuestion base = new BaseQuestion(
-                first.getQuestionId(),
-                first.getCategory(),
-                Optional.ofNullable(first.getQuestionText()),
-                imageResponse != null ? Optional.of(imageResponse) : Optional.empty()
-            );
-
-
-            String type = first.getQuestionType();
+            FormQuestionType type = first.getQuestionType();
             switch (type) {
-                case "select-multiple" -> {
-                    List<FormOption> options = group.stream()
-                        .filter(r -> r.getOptionId() != null)
-                        .map(r -> {
-                            SingleImageResponse imageResponseBySMOptions = null;
-                            if (r.getOptionImagePath() != null) {
-                                imageResponseBySMOptions = imageService.getImageByPath(r.getOptionImagePath());
-                            }
-                            return new FormOption(
-                                Optional.ofNullable(r.getOptionText()),
-                                imageResponseBySMOptions != null ? Optional.of(imageResponseBySMOptions) :
-                                    Optional.empty()
-                            );
-                        })
-                        .toList();
+                case SELECT_MULTIPLE -> questions.add(new FormQuestion.SelectMultiple(
+                    first.getQuestionId(),
+                    first.getCategory(),
+                    Optional.ofNullable(first.getQuestionText()),
+                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
+                    type,
+                    this.getOptionsFromGroup(group),
+                    first.getMin(),
+                    first.getMax(),
+                    first.getOther()
+                ));
 
+                case SELECT_ONE -> questions.add(new FormQuestion.SelectOne(
+                    first.getQuestionId(),
+                    first.getCategory(),
+                    Optional.ofNullable(first.getQuestionText()),
+                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
+                    type,
+                    this.getOptionsFromGroup(group),
+                    first.getOther()
+                ));
 
-                    questions.add(new FormQuestion.SelectMultiple(
-                        base,
-                        type,
-                        options,
-                        first.getMin(),
-                        first.getMax(),
-                        first.getOther()
-                    ));
-                }
-
-                case "select-one" -> {
-                    List<FormOption> options = group.stream()
-                        .filter(r -> r.getOptionId() != null)
-                        .map(r -> {
-                            SingleImageResponse imageResponseBySOOptions = null;
-                            if (r.getOptionImagePath() != null) {
-                                imageResponseBySOOptions = imageService.getImageByPath(r.getOptionImagePath());
-                            }
-                            return new FormOption(
-                                Optional.ofNullable(r.getOptionText()),
-                                imageResponseBySOOptions != null ? Optional.of(imageResponseBySOOptions) :
-                                    Optional.empty()
-                            );
-                        })
-                        .toList();
-
-
-                    questions.add(new FormQuestion.SelectOne(
-                        base,
-                        type,
-                        options,
-                        first.getOther()
-                    ));
-                }
-
-                case "slider" -> {
+                case SLIDER -> {
                     List<SliderLabel> labels = group.stream()
                         .filter(r -> r.getSliderValue() != null)
                         .map(r -> new SliderLabel(r.getSliderValue(), r.getSliderLabel()))
                         .toList();
 
                     questions.add(new FormQuestion.Slider(
-                        base,
+                        first.getQuestionId(),
+                        first.getCategory(),
+                        Optional.ofNullable(first.getQuestionText()),
+                        imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
                         type,
                         first.getPlaceholder(),
                         first.getMin(),
@@ -206,29 +171,48 @@ public class ConfigServiceImp implements ConfigService {
                     ));
                 }
 
-                case "text-short" -> {
-                    questions.add(new FormQuestion.TextShort(
-                        base,
-                        type,
-                        first.getPlaceholder(),
-                        first.getMinLength(),
-                        first.getMaxLength()
-                    ));
-                }
+                case TEXT_SHORT -> questions.add(new FormQuestion.TextShort(
+                    first.getQuestionId(),
+                    first.getCategory(),
+                    Optional.ofNullable(first.getQuestionText()),
+                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
+                    type,
+                    first.getPlaceholder(),
+                    first.getMinLength(),
+                    first.getMaxLength()
+                ));
 
-                case "text-long" -> {
-                    questions.add(new FormQuestion.TextLong(
-                        base,
-                        type,
-                        first.getPlaceholder(),
-                        first.getMinLength(),
-                        first.getMaxLength()
-                    ));
-                }
+                case TEXT_LONG -> questions.add(new FormQuestion.TextLong(
+                    first.getQuestionId(),
+                    first.getCategory(),
+                    Optional.ofNullable(first.getQuestionText()),
+                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
+                    type,
+                    first.getPlaceholder(),
+                    first.getMinLength(),
+                    first.getMaxLength()
+                ));
             }
         }
 
         return new Form(questions);
     }
 
+    private List<FormOption> getOptionsFromGroup(List<FormProjection> group) {
+        return group.stream()
+            .filter(r -> r.getOptionId() != null)
+            .map(r -> {
+                SingleImageResponse imageResponseBySMOptions = null;
+                if (r.getOptionImagePath() != null) {
+                    imageResponseBySMOptions = imageService.getImageByPath(r.getOptionImagePath());
+                }
+                return new FormOption(
+                    r.getOptionId(),
+                    Optional.ofNullable(r.getOptionText()),
+                    imageResponseBySMOptions != null ? Optional.of(imageResponseBySMOptions) :
+                        Optional.empty()
+                );
+            })
+            .toList();
+    }
 }

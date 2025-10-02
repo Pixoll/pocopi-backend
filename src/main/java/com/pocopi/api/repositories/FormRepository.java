@@ -9,13 +9,12 @@ import java.util.List;
 
 @Repository
 public interface FormRepository extends JpaRepository<FormModel, Integer> {
-
     @Query(value = """
-        SELECT
+        select
         f.id as form_id,
         f.config_version,
         fq.id as question_id,
-        fq.type as question_type,
+        fq.type as question_type_string,
         fq.category,
         fq.text as question_text,
         fq.placeholder,
@@ -31,17 +30,19 @@ public interface FormRepository extends JpaRepository<FormModel, Integer> {
         oi.path as option_image_path,
         sl.number as slider_value,
         sl.label as slider_label
-        FROM form f
-             LEFT JOIN form_question fq ON f.id = fq.form_id
-             LEFT JOIN image fi ON fq.image_id = fi.id
-             LEFT JOIN form_question_option fqo ON fq.id = fqo.form_question_id
-             LEFT JOIN image oi ON fqo.image_id = oi.id
-             LEFT JOIN form_question_slider_label sl ON fq.id = sl.form_question_id
-        WHERE f.id = :formId
-        ORDER BY fq.id, fqo.id, sl.label
-        """, nativeQuery = true)
+        from form f
+             left join form_question fq on f.id = fq.form_id
+             left join image fi on fq.image_id = fi.id
+             left join form_question_option fqo on fq.id = fqo.form_question_id
+             left join image oi on fqo.image_id = oi.id
+             left join form_question_slider_label sl on fq.id = sl.form_question_id
+        where f.id = :formId
+        order by fq.id, fqo.id, sl.label
+        """,
+        nativeQuery = true
+    )
     List<FormProjection> findFormWithAllData(int formId);
 
-    @Query(value = "SELECT * FROM form as f WHERE f.config_version =:configVersion",nativeQuery=true)
+    @Query(value = "select * from form as f where f.config_version = :configVersion", nativeQuery = true)
     List<FormModel> findAllByConfigVersion(int configVersion);
 }

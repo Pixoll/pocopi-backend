@@ -2,62 +2,85 @@ package com.pocopi.api.dto.FormQuestion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pocopi.api.dto.FormQuestionOption.FormOption;
+import com.pocopi.api.dto.Image.SingleImageResponse;
 import com.pocopi.api.dto.SliderLabel.SliderLabel;
+import com.pocopi.api.models.FormQuestionType;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
-public sealed interface FormQuestion permits
-    FormQuestion.SelectMultiple,
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+public sealed interface FormQuestion
+    permits FormQuestion.SelectMultiple,
     FormQuestion.SelectOne,
     FormQuestion.Slider,
     FormQuestion.TextLong,
     FormQuestion.TextShort {
 
-    record SelectMultiple(
-        @JsonProperty("base_question") BaseQuestion baseQuestion,
-        String type,
-        List<FormOption> options,
-        int min,
-        int max,
-        boolean other
-    ) implements FormQuestion {
+    @AllArgsConstructor
+    final class SelectMultiple implements FormQuestion {
+        public int id;
+        public String category;
+        public Optional<String> text;
+        public Optional<SingleImageResponse> image;
+        public FormQuestionType type;
+        public List<FormOption> options;
+        public int min;
+        public int max;
+        public boolean other;
     }
 
-    record SelectOne(
-        @JsonProperty("base_question") BaseQuestion baseQuestion,
-        String type,
-        List<FormOption> options,
-        boolean other
-    ) implements FormQuestion {
+    @AllArgsConstructor
+    final class SelectOne implements FormQuestion {
+        public int id;
+        public String category;
+        public Optional<String> text;
+        public Optional<SingleImageResponse> image;
+        public FormQuestionType type;
+        public List<FormOption> options;
+        public boolean other;
     }
 
-    record Slider(
-        @JsonProperty("base_question") BaseQuestion baseQuestion,
-        String type,
-        String placeholder,
-        int min,
-        int max,
-        int step,
-        List<SliderLabel> labels
-    ) implements FormQuestion {
+    @AllArgsConstructor
+    final class Slider implements FormQuestion {
+        public int id;
+        public String category;
+        public Optional<String> text;
+        public Optional<SingleImageResponse> image;
+        public FormQuestionType type;
+        public String placeholder;
+        public int min;
+        public int max;
+        public int step;
+        public List<SliderLabel> labels;
     }
 
-    record TextLong(
-        @JsonProperty("base_question") BaseQuestion baseQuestion,
-        String type,
-        String placeholder,
-        @JsonProperty("min_length") int minLength,
-        @JsonProperty("max_length") int maxLength
-    ) implements FormQuestion {
+    @AllArgsConstructor
+    final class TextLong implements FormQuestion {
+        public int id;
+        public String category;
+        public Optional<String> text;
+        public Optional<SingleImageResponse> image;
+        public FormQuestionType type;
+        public String placeholder;
+        @JsonProperty("min_length")
+        public int minLength;
+        @JsonProperty("max_length")
+        public int maxLength;
     }
 
-    record TextShort(
-        @JsonProperty("base_question") BaseQuestion baseQuestion,
-        String type,
-        String placeholder,
-        @JsonProperty("min_length") int minLength,
-        @JsonProperty("max_length") int maxLength
-    ) implements FormQuestion {
+    @AllArgsConstructor
+    final class TextShort implements FormQuestion {
+        public int id;
+        public String category;
+        public Optional<String> text;
+        public Optional<SingleImageResponse> image;
+        public FormQuestionType type;
+        public String placeholder;
+        @JsonProperty("min_length")
+        public int minLength;
+        @JsonProperty("max_length")
+        public int maxLength;
     }
-
 }

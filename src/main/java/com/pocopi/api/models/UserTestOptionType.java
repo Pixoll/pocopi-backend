@@ -1,5 +1,6 @@
 package com.pocopi.api.models;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
@@ -12,5 +13,10 @@ public enum UserTestOptionType {
 
     UserTestOptionType(String name) {
         this.name = name;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return this.name;
     }
 }

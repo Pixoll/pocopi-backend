@@ -13,14 +13,14 @@ import java.util.Optional;
 public record SingleConfigResponse(
     Optional<SingleImageResponse> icon,
     String title,
-    String subtitle,
+    Optional<String> subtitle,
     String description,
     boolean anonymous,
     @JsonProperty("information_cards") List<InformationCard> informationCards,
     @JsonProperty("informed_consent") String informedConsent,
     List<Faq> faq,
-    @JsonProperty("pre_test") Form preTest,
-    @JsonProperty("post_test") Form postTest,
+    @JsonProperty("pre_test_form") Optional<Form> preTestForm,
+    @JsonProperty("post_test_form") Optional<Form> postTestForm,
     Map<String, String> translations
-    ) {
+) {
 }
