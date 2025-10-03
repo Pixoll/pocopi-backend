@@ -38,7 +38,7 @@ public class FormServiceImp implements FormService {
         UserModel user = userRepository.getUserByUserId(request.userId());
         for (FormAnswerRequest.QuestionAnswer answer : request.answers()) {
             FormQuestionModel question = formQuestionRepository.findById(answer.questionId())
-                    .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada"));
+                    .orElseThrow(() -> new IllegalArgumentException("Question not found"));
             FormQuestionOptionModel option = null;
             if (answer.optionId() != null) {
                 option = formQuestionOptionRepository.findById(answer.optionId())

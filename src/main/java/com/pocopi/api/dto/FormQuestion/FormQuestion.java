@@ -78,9 +78,7 @@ public sealed interface FormQuestion
         public Optional<SingleImageResponse> image;
         public FormQuestionType type;
         public String placeholder;
-        @JsonProperty("min_length")
         public int minLength;
-        @JsonProperty("max_length")
         public int maxLength;
     }
 }

@@ -84,7 +84,7 @@ public class UserServiceImp implements UserService {
                     .anonymous(request.anonymous())
                     .name(request.name())
                     .email(request.email())
-                    .age(request.age())
+                    .age((byte) request.age())
                     .password(passwordEncoder.encode(request.password()))
                     .build();
 
