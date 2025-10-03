@@ -99,7 +99,8 @@ public class ConfigServiceImp implements ConfigService {
         for (HomeFaqModel faq : homeFaqs) {
             faqs.add(new Faq(faq.getQuestion(), faq.getAnswer()));
         }
-        List<GroupResponse> groups = buildGroupResponses(configId);
+        Map<String,GroupResponse> groups = buildGroupResponses(configId);
+
         return new SingleConfigResponse(
             Optional.ofNullable(icon),
             configModel.getTitle(),
@@ -120,11 +121,10 @@ public class ConfigServiceImp implements ConfigService {
     public ConfigModel findLastConfig(){
         return configRepository.findLastConfig();
     }
-    private List<GroupResponse> buildGroupResponses(int configVersion) {
+    private Map<String, GroupResponse> buildGroupResponses(int configVersion) {
         List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);
-
         if (rows.isEmpty()) {
-            return List.of();
+            return Map.of();
         }
 
         Map<Integer, List<TestGroupData>> groupsMap =
@@ -163,16 +163,16 @@ public class ConfigServiceImp implements ConfigService {
                     .toList();
 
                 ProtocolResponse protocol = new ProtocolResponse(phases);
-
-                return new GroupResponse(
+                return Map.entry(first.getGroupLabel(), new GroupResponse(
                     first.getProbability(),
                     first.getGroupLabel(),
                     first.getGreeting(),
                     protocol
-                );
+                ));
             })
-            .toList();
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a,b) -> a, LinkedHashMap::new));
     }
+
 
 
     private Form generateFormFromQuery(List<FormProjection> rows) {
