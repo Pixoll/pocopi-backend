@@ -1,6 +1,6 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.Image.SingleImageResponse;
+import com.pocopi.api.dto.Image.Image;
 import com.pocopi.api.dto.Image.UploadImageResponse;
 import com.pocopi.api.models.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
@@ -60,23 +60,23 @@ public class ImageServiceImp implements ImageService {
     }
 
     @Override
-    public SingleImageResponse getImageByPath(String path) {
+    public Image getImageByPath(String path) {
         ImageModel imageModel = imageRepository.findByPath(path);
         if (imageModel == null) {
             throw new RuntimeException("Image not found with path: " + path);
         }
         String url = BASE_URL + "/" + path;
-        return new SingleImageResponse(url, imageModel.getAlt());
+        return new Image(url, imageModel.getAlt());
     }
 
     @Override
-    public SingleImageResponse getImageById(int id) {
+    public Image getImageById(int id) {
         ImageModel imageModel = imageRepository.findById(id).orElse(null);
         if (imageModel == null) {
             throw new RuntimeException("Image not found with id: " + id);
         }
         String url = BASE_URL + "/" + imageModel.getPath();
-        return new SingleImageResponse(url, imageModel.getAlt());
+        return new Image(url, imageModel.getAlt());
     }
 
 }

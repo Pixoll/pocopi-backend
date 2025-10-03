@@ -1,7 +1,7 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.dto.User.CreateUserRequest;
-import com.pocopi.api.dto.User.SingleUserResponse;
+import com.pocopi.api.dto.User.User;
 import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.services.interfaces.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,8 +26,8 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<SingleUserResponse>> getAllUsers() {
-        List<SingleUserResponse> response = userService.getAll();
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> response = userService.getAll();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -6,7 +6,7 @@ import com.pocopi.api.dto.FormQuestion.FormQuestion;
 import com.pocopi.api.dto.FormQuestionOption.FormOption;
 import com.pocopi.api.dto.HomeFaq.Faq;
 import com.pocopi.api.dto.HomeInfoCard.InformationCard;
-import com.pocopi.api.dto.Image.SingleImageResponse;
+import com.pocopi.api.dto.Image.Image;
 import com.pocopi.api.dto.SliderLabel.SliderLabel;
 import com.pocopi.api.dto.TestGroup.*;
 import com.pocopi.api.models.*;
@@ -50,7 +50,7 @@ public class ConfigServiceImp implements ConfigService {
         ConfigModel configModel = findLastConfig();
         int configId = configModel.getVersion();
 
-        SingleImageResponse icon = null;
+        Image icon = null;
         if (configModel.getIcon().getPath() != null) {
             icon = imageService.getImageByPath(configModel.getIcon().getPath());
         }
@@ -84,7 +84,7 @@ public class ConfigServiceImp implements ConfigService {
 
         List<InformationCard> informationCards = new ArrayList<>();
         for (HomeInfoCardModel homeInfoCardModel : homeInfoCardModels) {
-            SingleImageResponse iconByInfoCard = null;
+            Image iconByInfoCard = null;
             if (homeInfoCardModel.getIcon().getPath() != null) {
                 iconByInfoCard = imageService.getImageByPath(homeInfoCardModel.getIcon().getPath());
             }
@@ -99,7 +99,7 @@ public class ConfigServiceImp implements ConfigService {
         for (HomeFaqModel faq : homeFaqs) {
             faqs.add(new Faq(faq.getQuestion(), faq.getAnswer()));
         }
-        Map<String,GroupResponse> groups = buildGroupResponses(configId);
+        Map<String, Group> groups = buildGroupResponses(configId);
 
         return new SingleConfigResponse(
             Optional.ofNullable(icon),
@@ -121,7 +121,7 @@ public class ConfigServiceImp implements ConfigService {
     public ConfigModel findLastConfig(){
         return configRepository.findLastConfig();
     }
-    private Map<String, GroupResponse> buildGroupResponses(int configVersion) {
+    private Map<String, Group> buildGroupResponses(int configVersion) {
         List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);
         if (rows.isEmpty()) {
             return Map.of();
@@ -137,33 +137,33 @@ public class ConfigServiceImp implements ConfigService {
                 Map<Integer, List<TestGroupData>> phasesMap =
                     groupRows.stream().collect(Collectors.groupingBy(TestGroupData::getPhaseOrder, LinkedHashMap::new, Collectors.toList()));
 
-                List<PhaseResponse> phases = phasesMap.values().stream()
+                List<Phase> phases = phasesMap.values().stream()
                     .map(phaseRows -> {
                         Map<Integer, List<TestGroupData>> questionsMap =
                             phaseRows.stream().collect(Collectors.groupingBy(TestGroupData::getQuestionOrder, LinkedHashMap::new, Collectors.toList()));
 
-                        List<QuestionResponse> questions = questionsMap.values().stream()
+                        List<Question> questions = questionsMap.values().stream()
                             .map(qRows -> {
-                                List<OptionResponse> options = qRows.stream()
-                                    .map(r -> new OptionResponse(
+                                List<Option> options = qRows.stream()
+                                    .map(r -> new Option(
                                         r.getOptionText(),
                                         r.getCorrect()
                                     ))
                                     .toList();
 
-                                return new QuestionResponse(
+                                return new Question(
                                     imageService.getImageById(qRows.getFirst().getQuestionImageId()),
                                     options
                                 );
                             })
                             .toList();
 
-                        return new PhaseResponse(questions);
+                        return new Phase(questions);
                     })
                     .toList();
 
-                ProtocolResponse protocol = new ProtocolResponse(phases);
-                return Map.entry(first.getGroupLabel(), new GroupResponse(
+                Protocol protocol = new Protocol(phases);
+                return Map.entry(first.getGroupLabel(), new Group(
                     first.getProbability(),
                     first.getGroupLabel(),
                     first.getGreeting(),
@@ -185,7 +185,7 @@ public class ConfigServiceImp implements ConfigService {
             List<FormProjection> group = entry.getValue();
             FormProjection first = group.getFirst();
 
-            SingleImageResponse imageResponse = null;
+            Image imageResponse = null;
             if (first.getQuestionImagePath() != null) {
                 imageResponse = imageService.getImageByPath(first.getQuestionImagePath());
             }
@@ -264,7 +264,7 @@ public class ConfigServiceImp implements ConfigService {
         return group.stream()
             .filter(r -> r.getOptionId() != null)
             .map(r -> {
-                SingleImageResponse imageResponseBySMOptions = null;
+                Image imageResponseBySMOptions = null;
                 if (r.getOptionImagePath() != null) {
                     imageResponseBySMOptions = imageService.getImageByPath(r.getOptionImagePath());
                 }

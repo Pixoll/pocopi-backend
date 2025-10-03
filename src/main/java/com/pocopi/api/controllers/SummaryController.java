@@ -1,7 +1,7 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.User.TotalUserSummaryResponse;
-import com.pocopi.api.dto.User.UserSummaryResponse;
+import com.pocopi.api.dto.User.TotalUserSummary;
+import com.pocopi.api.dto.User.UserSummary;
 import com.pocopi.api.services.interfaces.SummaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,14 +21,14 @@ public class SummaryController {
     }
 
     @GetMapping
-    public ResponseEntity<TotalUserSummaryResponse> getAllUserSummaries() {
-        TotalUserSummaryResponse response = summaryService.getAllUserSummaries();
+    public ResponseEntity<TotalUserSummary> getAllUserSummaries() {
+        TotalUserSummary response = summaryService.getAllUserSummaries();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserSummaryResponse> getUserSummaryById(@PathVariable int userId) {
-        UserSummaryResponse response = summaryService.getUserSummaryById(userId);
+    public ResponseEntity<UserSummary> getUserSummaryById(@PathVariable int userId) {
+        UserSummary response = summaryService.getUserSummaryById(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

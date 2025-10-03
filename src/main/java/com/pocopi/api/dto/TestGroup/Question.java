@@ -1,12 +1,15 @@
-package com.pocopi.api.dto.HomeFaq;
+package com.pocopi.api.dto.TestGroup;
 
+import com.pocopi.api.dto.Image.Image;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record Faq(
+import java.util.List;
+
+public record Question(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String question,
+    Image image,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String answer
+    List<Option> options
 ) {
 }

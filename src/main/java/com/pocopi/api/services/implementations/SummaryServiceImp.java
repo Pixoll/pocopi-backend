@@ -1,7 +1,7 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.User.TotalUserSummaryResponse;
-import com.pocopi.api.dto.User.UserSummaryResponse;
+import com.pocopi.api.dto.User.TotalUserSummary;
+import com.pocopi.api.dto.User.UserSummary;
 import com.pocopi.api.models.ConfigModel;
 import com.pocopi.api.models.UserModel;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
@@ -34,34 +34,34 @@ public class SummaryServiceImp implements SummaryService {
         this.userTestOptionLogRepository = userTestOptionLogRepository;
     }
     @Override
-    public UserSummaryResponse getUserSummaryById(int userId) {
+    public UserSummary getUserSummaryById(int userId) {
         return getUserSummary(userId);
     }
 
     @Override
-    public TotalUserSummaryResponse getAllUserSummaries() {
+    public TotalUserSummary getAllUserSummaries() {
         List<Integer> userIds = userService.getAllUserIds();
-        List<UserSummaryResponse>  userSummaries = new ArrayList<>();
+        List<UserSummary>  userSummaries = new ArrayList<>();
         double totalCorrect = 0;
         int totalTime = 0;
         int totalQuestionsAnswered = 0;
 
         for (Integer userId : userIds) {
-            UserSummaryResponse userSummaryResponse = getUserSummary(userId);
+            UserSummary userSummaryResponse = getUserSummary(userId);
             totalCorrect += userSummaryResponse.correctQuestions();
             totalQuestionsAnswered += userSummaryResponse.questionsAnswered();
             totalTime += userSummaryResponse.timeTaken();
             userSummaries.add(getUserSummary(userId));
 
         }
-        return new TotalUserSummaryResponse(
+        return new TotalUserSummary(
             totalCorrect / totalQuestionsAnswered,
             (double) totalTime /totalQuestionsAnswered,
             totalQuestionsAnswered,
             userSummaries
         );
     }
-    private UserSummaryResponse getUserSummary(int userId){
+    private UserSummary getUserSummary(int userId){
         UserModel user = userService.getUserById(userId);
         ConfigModel lastConfig = configService.findLastConfig();
 
@@ -94,7 +94,7 @@ public class SummaryServiceImp implements SummaryService {
 
         double percentage = questionsAnswered > 0 ? ((double) questionsCorrect / questionsAnswered) * 100 : 0.0;
 
-        return new UserSummaryResponse(
+        return new UserSummary(
             user.getId(),
             user.getName(),
             user.getEmail(),

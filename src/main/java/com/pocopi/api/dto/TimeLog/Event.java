@@ -1,12 +1,15 @@
-package com.pocopi.api.dto.HomeFaq;
+package com.pocopi.api.dto.TimeLog;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record Faq(
+public record Event(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String question,
+    String type,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String answer
+    int optionId,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    long timestamp
 ) {
 }

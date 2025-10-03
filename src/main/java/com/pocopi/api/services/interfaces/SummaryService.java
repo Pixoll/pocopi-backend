@@ -1,9 +1,9 @@
 package com.pocopi.api.services.interfaces;
 
-import com.pocopi.api.dto.User.TotalUserSummaryResponse;
-import com.pocopi.api.dto.User.UserSummaryResponse;
+import com.pocopi.api.dto.User.TotalUserSummary;
+import com.pocopi.api.dto.User.UserSummary;
 
 public interface SummaryService {
-    UserSummaryResponse getUserSummaryById(int userId);
-    TotalUserSummaryResponse getAllUserSummaries();
+    UserSummary getUserSummaryById(int userId);
+    TotalUserSummary getAllUserSummaries();
 }

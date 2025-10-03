@@ -1,10 +1,12 @@
 package com.pocopi.api.dto.User;
 
-public record SingleUserResponse(
+public record User(
+
+        int id,
         String username,
         String name,
         String email,
-        byte age
+        int age
 ) {
 
 }

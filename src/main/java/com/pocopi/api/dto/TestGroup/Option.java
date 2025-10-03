@@ -1,12 +1,12 @@
-package com.pocopi.api.dto.HomeFaq;
+package com.pocopi.api.dto.TestGroup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record Faq(
+public record Option(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String question,
+    String text,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String answer
+    boolean correct
 ) {
 }

@@ -1,6 +1,6 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.TimeLog.SingleTimeLogResponse;
+import com.pocopi.api.dto.TimeLog.TimeLog;
 import com.pocopi.api.services.interfaces.TimeLogsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +21,8 @@ public class TimeLogController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SingleTimeLogResponse>> getAllTimeLogs(){
-        List<SingleTimeLogResponse> response = timeLogsService.getTimeLogs();
+    public ResponseEntity<List<TimeLog>> getAllTimeLogs(){
+        List<TimeLog> response = timeLogsService.getTimeLogs();
         return ResponseEntity.ok(response);
     }
 }

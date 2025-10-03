@@ -1,7 +1,7 @@
 package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.User.CreateUserRequest;
-import com.pocopi.api.dto.User.SingleUserResponse;
+import com.pocopi.api.dto.User.User;
 import com.pocopi.api.dto.api.FieldErrorResponse;
 import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.models.TestGroupModel;
@@ -35,11 +35,11 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public List<SingleUserResponse> getAll() {
+    public List<User> getAll() {
         List<UserModel> users = userRepository.getAllUsers();
-        List<SingleUserResponse> usersResponse = new ArrayList<>();
+        List<User> usersResponse = new ArrayList<>();
         for (UserModel user : users) {
-            usersResponse.add(new SingleUserResponse(user.getUsername(), user.getName(), user.getEmail(), user.getAge()));
+            usersResponse.add(new User(user.getId(),user.getUsername(), user.getName(), user.getEmail(), user.getAge()));
         }
         return usersResponse;
     }

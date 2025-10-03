@@ -1,7 +1,7 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.TimeLog.SingleEventResponse;
-import com.pocopi.api.dto.TimeLog.SingleTimeLogResponse;
+import com.pocopi.api.dto.TimeLog.Event;
+import com.pocopi.api.dto.TimeLog.TimeLog;
 import com.pocopi.api.models.ConfigModel;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
@@ -32,13 +32,13 @@ public class TimeLogServiceImp implements TimeLogsService {
     }
 
     @Override
-    public List<SingleTimeLogResponse> getTimeLogs() {
+    public List<TimeLog> getTimeLogs() {
         ConfigModel lastConfig = configServiceImp.findLastConfig();
 
         List<Object[]> allQuestionInfo = userTestQuestionLogRepository.findAllQuestionEventsInfoByUserId(lastConfig.getVersion());
         List<Object[]> allEvents = userTestOptionLogRepository.findAllEventByLastConfig(lastConfig.getVersion());
 
-        Map<String, List<SingleEventResponse>> eventsMap = new HashMap<>();
+        Map<String, List<Event>> eventsMap = new HashMap<>();
 
         for (Object[] event : allEvents) {
             int questionId = (Integer) event[0];
@@ -49,12 +49,12 @@ public class TimeLogServiceImp implements TimeLogsService {
 
             String key = userId + "_" + questionId;
 
-            SingleEventResponse eventResponse = new SingleEventResponse(type, optionId, timestamp);
+            Event eventResponse = new Event(type, optionId, timestamp);
 
             eventsMap.computeIfAbsent(key, k -> new ArrayList<>()).add(eventResponse);
         }
 
-        List<SingleTimeLogResponse> response = new ArrayList<>();
+        List<TimeLog> response = new ArrayList<>();
 
         for (Object[] questionInfo : allQuestionInfo) {
             int userId = (int) questionInfo[0];
@@ -68,9 +68,9 @@ public class TimeLogServiceImp implements TimeLogsService {
             int totalOptionHovers = ((Number) questionInfo[8]).intValue();
 
             String key = userId + "_" + questionId;
-            List<SingleEventResponse> events = eventsMap.getOrDefault(key, new ArrayList<>());
+            List<Event> events = eventsMap.getOrDefault(key, new ArrayList<>());
 
-            SingleTimeLogResponse timeLogResponse = new SingleTimeLogResponse(
+            TimeLog timeLogResponse = new TimeLog(
                 userId,
                 phaseId,
                 questionId,
