@@ -56,4 +56,23 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
             ORDER BY tq.id, utol.user_id, utol.timestamp
 """, nativeQuery = true)
     List<Object[]> findAllEventByLastConfig(@Param("configVersion") int configVersion);
+
+    @Query(value = """
+            SELECT
+                tq.id AS question_id,
+                utol.type,
+                utol.option_id,
+                UNIX_TIMESTAMP(utol.timestamp) * 1000 AS timestamp,
+                utol.user_id
+            FROM user_test_option_log utol
+                 JOIN test_option to_opt ON to_opt.id = utol.option_id
+                 JOIN test_question tq ON tq.id = to_opt.question_id
+                 JOIN test_phase tph ON tph.id = tq.phase_id
+                 JOIN test_protocol tp ON tp.id = tph.protocol_id
+                 JOIN config c ON c.version = tp.config_version
+            WHERE c.version = :configVersion
+                  AND utol.user_id = :userId
+            ORDER BY tq.id, utol.user_id, utol.timestamp
+""", nativeQuery = true)
+    List<Object[]> findAllEventByUserIdAndConfigVersion(@Param("configVersion") int configVersion,  @Param("userId") int userId);
 }

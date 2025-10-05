@@ -39,7 +39,8 @@ public class UserServiceImp implements UserService {
         List<UserModel> users = userRepository.getAllUsers();
         List<User> usersResponse = new ArrayList<>();
         for (UserModel user : users) {
-            usersResponse.add(new User(user.getId(),user.getUsername(), user.getName(), user.isAnonymous(), user.getEmail(), user.getAge()));
+            usersResponse.add(new User(user.getId(), user.getUsername(), user.getName(), user.isAnonymous(),
+                user.getEmail(), user.getAge()));
         }
         return usersResponse;
     }
@@ -75,27 +76,27 @@ public class UserServiceImp implements UserService {
         validateFieldLengths(request, fieldErrors);
 
         if (!fieldErrors.isEmpty()) {
-            throw new MultiFieldException("Some error in fields",fieldErrors);
+            throw new MultiFieldException("Some error in fields", fieldErrors);
         }
         try {
             UserModel newUser = UserModel.builder()
-                    .group(group)
-                    .username(request.username().isPresent() ? request.username().get() : generateUniqueUsername())
-                    .anonymous(request.anonymous())
-                    .name(request.name())
-                    .email(request.email())
-                    .age((byte) request.age())
-                    .password(passwordEncoder.encode(request.password()))
-                    .build();
+                .group(group)
+                .username(request.username().isPresent() ? request.username().get() : generateUniqueUsername())
+                .anonymous(request.anonymous())
+                .name(request.name())
+                .email(request.email())
+                .age((byte) request.age())
+                .password(passwordEncoder.encode(request.password()))
+                .build();
 
             userRepository.insertNewUser(
-                    newUser.getUsername(),
-                    newUser.getGroup().getId(),
-                    newUser.isAnonymous(),
-                    newUser.getName(),
-                    newUser.getEmail(),
-                    newUser.getAge(),
-                    newUser.getPassword()
+                newUser.getUsername(),
+                newUser.getGroup().getId(),
+                newUser.isAnonymous(),
+                newUser.getName(),
+                newUser.getEmail(),
+                newUser.getAge(),
+                newUser.getPassword()
             );
 
             return "User created successfully";
@@ -108,6 +109,21 @@ public class UserServiceImp implements UserService {
     @Override
     public UserModel getUserById(int id) {
         return userRepository.getUserByUserId(id);
+    }
+
+    @Override
+    public User getByUsername(String username) throws RuntimeException {
+        if (!userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username not found");
+        }
+        UserModel savedUser = userRepository.findByUsername(username);
+        return new User(savedUser.getId(),
+            savedUser.getUsername(),
+            savedUser.getName(),
+            savedUser.isAnonymous(),
+            savedUser.getEmail(),
+            savedUser.getAge()
+        );
     }
 
     @Override
@@ -130,6 +146,7 @@ public class UserServiceImp implements UserService {
             }
         }
     }
+
     private void validateFieldLengths(CreateUserRequest request, List<FieldErrorResponse> fieldErrors) {
         if (request.username().isPresent()) {
             String username = request.username().get();
@@ -140,7 +157,7 @@ public class UserServiceImp implements UserService {
                 fieldErrors.add(new FieldErrorResponse("username", "Username cannot be empty"));
             }
         }
-        
+
         if (request.name() != null && request.name().length() > 50) {
             fieldErrors.add(new FieldErrorResponse("name", "Name cannot exceed 50 characters"));
         }

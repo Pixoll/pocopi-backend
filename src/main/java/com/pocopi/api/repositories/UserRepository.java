@@ -1,5 +1,6 @@
 package com.pocopi.api.repositories;
 
+import com.pocopi.api.dto.User.User;
 import com.pocopi.api.models.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +19,9 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
     @Query(value = "SELECT true FROM user u WHERE u.username = :username", nativeQuery = true)
     boolean existsByUsername(@Param("username") String username);
+
+    @Query(value = "SELECT * FROM user u WHERE u.username = :username", nativeQuery = true)
+    UserModel findByUsername(@Param("username") String username);
 
     @Query(value = "SELECT true FROM user u WHERE u.email = :email", nativeQuery = true)
     boolean existsByEmail(@Param("email") String email);

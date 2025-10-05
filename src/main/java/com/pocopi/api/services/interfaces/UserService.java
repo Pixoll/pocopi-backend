@@ -11,5 +11,6 @@ public interface UserService {
     List<User> getAll();
     String createUser(CreateUserRequest request);
     UserModel getUserById(int id);
+    User getByUsername(String username);
     List<Integer> getAllUserIds();
 }

@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface TimeLogsService {
     List<TimeLog> getTimeLogs();
+    TimeLog getTimeLogByUserId(int userId);
 }

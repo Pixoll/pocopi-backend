@@ -148,7 +148,9 @@ public class ConfigServiceImp implements ConfigService {
                                     .map(r -> new Option(
                                         r.getOptionId(),
                                         r.getOptionText(),
-                                        imageService.getImageById(r.getOptionImageId()),
+                                        r.getOptionImageId() != null
+                                            ? imageService.getImageById(r.getOptionImageId())
+                                            : null,
                                         r.getCorrect()
                                     ))
                                     .toList();
@@ -262,7 +264,7 @@ public class ConfigServiceImp implements ConfigService {
             }
         }
 
-        return new Form(questions);
+        return new Form(rows.getFirst().getFormId(),questions);
     }
 
     private List<FormOption> getOptionsFromGroup(List<FormProjection> group) {

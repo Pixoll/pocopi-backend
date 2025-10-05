@@ -16,17 +16,14 @@ import java.util.Map;
 @Service
 public class TimeLogServiceImp implements TimeLogsService {
     private final ConfigServiceImp configServiceImp;
-    private final UserServiceImp userServiceImp;
     private final UserTestQuestionLogRepository userTestQuestionLogRepository;
     private final UserTestOptionLogRepository userTestOptionLogRepository;
 
     public TimeLogServiceImp(ConfigServiceImp configServiceImp,
-                             UserServiceImp userServiceImp,
                              UserTestQuestionLogRepository userTestQuestionLogRepository,
                              UserTestOptionLogRepository userTestOptionLogRepository
     ) {
         this.configServiceImp = configServiceImp;
-        this.userServiceImp = userServiceImp;
         this.userTestQuestionLogRepository = userTestQuestionLogRepository;
         this.userTestOptionLogRepository = userTestOptionLogRepository;
     }
@@ -35,7 +32,7 @@ public class TimeLogServiceImp implements TimeLogsService {
     public List<TimeLog> getTimeLogs() {
         ConfigModel lastConfig = configServiceImp.findLastConfig();
 
-        List<Object[]> allQuestionInfo = userTestQuestionLogRepository.findAllQuestionEventsInfoByUserId(lastConfig.getVersion());
+        List<Object[]> allQuestionInfo = userTestQuestionLogRepository.findAllQuestionEvents(lastConfig.getVersion());
         List<Object[]> allEvents = userTestOptionLogRepository.findAllEventByLastConfig(lastConfig.getVersion());
 
         Map<String, List<Event>> eventsMap = new HashMap<>();
@@ -88,4 +85,75 @@ public class TimeLogServiceImp implements TimeLogsService {
 
         return response;
     }
+
+    @Override
+    public TimeLog getTimeLogByUserId(int userId) {
+        ConfigModel lastConfig = configServiceImp.findLastConfig();
+
+        List<Object[]> userQuestionInfo = userTestQuestionLogRepository
+            .findAllQuestionEventsInfoByUserId(lastConfig.getVersion(), userId);
+        List<Object[]> userEvents = userTestOptionLogRepository
+            .findAllEventByUserIdAndConfigVersion(userId, lastConfig.getVersion());
+
+        Map<String, List<Event>> eventsMap = new HashMap<>();
+
+        // 🔹 Asociamos los eventos (clics, hovers, etc.) por pregunta
+        for (Object[] event : userEvents) {
+            int questionId = (Integer) event[0];
+            String type = (String) event[1];
+            int optionId = (Integer) event[2];
+            long timestamp = ((Number) event[3]).longValue();
+            int uid = (Integer) event[4];
+
+            String key = uid + "_" + questionId;
+            Event eventResponse = new Event(type, optionId, timestamp);
+
+            eventsMap.computeIfAbsent(key, k -> new ArrayList<>()).add(eventResponse);
+        }
+
+        List<TimeLog> response = new ArrayList<>();
+
+        // 🔹 Creamos los registros de tiempo
+        for (Object[] questionInfo : userQuestionInfo) {
+            int uid = (int) questionInfo[0];
+            int phaseId = (int) questionInfo[1];
+            int questionId = (int) questionInfo[2];
+            long startTimestamp = ((Number) questionInfo[3]).longValue();
+            long endTimestamp = ((Number) questionInfo[4]).longValue();
+            boolean correct = ((Number) questionInfo[5]).intValue() == 1;
+            boolean skipped = ((Number) questionInfo[6]).intValue() == 1;
+            int totalOptionChanges = ((Number) questionInfo[7]).intValue();
+            int totalOptionHovers = ((Number) questionInfo[8]).intValue();
+
+            String key = uid + "_" + questionId;
+            List<Event> events = eventsMap.getOrDefault(key, new ArrayList<>());
+
+            TimeLog timeLogResponse = new TimeLog(
+                uid,
+                phaseId,
+                questionId,
+                startTimestamp,
+                endTimestamp,
+                skipped,
+                correct,
+                totalOptionChanges,
+                totalOptionHovers,
+                events
+            );
+
+            response.add(timeLogResponse);
+        }
+
+        // 🔹 Devolvemos el resumen del usuario
+        // Si el usuario tiene múltiples logs (una por pregunta), podrías devolver todos:
+        if (response.isEmpty()) {
+            return null;
+        }
+
+        // Si tu interfaz `TimeLogsService` espera devolver solo uno,
+        // devolvemos un resumen (por ejemplo, el primero o el último)
+        // o puedes cambiar la firma para devolver `List<TimeLog>`
+        return response.getFirst();
+    }
+
 }

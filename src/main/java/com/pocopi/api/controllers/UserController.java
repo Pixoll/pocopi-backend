@@ -31,6 +31,12 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getUser(@PathVariable String username) {
+        User response = userService.getByUsername(username);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping
     @Operation(
             summary = "Create new user",
