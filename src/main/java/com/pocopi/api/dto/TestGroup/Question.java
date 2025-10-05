@@ -7,6 +7,11 @@ import java.util.List;
 
 public record Question(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int id,
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+
+    String text,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Image image,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

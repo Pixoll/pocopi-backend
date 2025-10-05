@@ -39,7 +39,7 @@ public class UserServiceImp implements UserService {
         List<UserModel> users = userRepository.getAllUsers();
         List<User> usersResponse = new ArrayList<>();
         for (UserModel user : users) {
-            usersResponse.add(new User(user.getId(),user.getUsername(), user.getName(), user.getEmail(), user.getAge()));
+            usersResponse.add(new User(user.getId(),user.getUsername(), user.getName(), user.isAnonymous(), user.getEmail(), user.getAge()));
         }
         return usersResponse;
     }

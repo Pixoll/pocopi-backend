@@ -3,6 +3,9 @@ package com.pocopi.api.dto.TestGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record Group(
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int id,
+
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Probability between 0 and 100")
     int probability,
 

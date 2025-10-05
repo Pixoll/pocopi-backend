@@ -135,7 +135,7 @@ public class ConfigServiceImp implements ConfigService {
                 TestGroupData first = groupRows.getFirst();
 
                 Map<Integer, List<TestGroupData>> phasesMap =
-                    groupRows.stream().collect(Collectors.groupingBy(TestGroupData::getPhaseOrder, LinkedHashMap::new, Collectors.toList()));
+                    groupRows.stream().collect(Collectors.groupingBy(TestGroupData::getPhaseId, LinkedHashMap::new, Collectors.toList()));
 
                 List<Phase> phases = phasesMap.values().stream()
                     .map(phaseRows -> {
@@ -146,24 +146,29 @@ public class ConfigServiceImp implements ConfigService {
                             .map(qRows -> {
                                 List<Option> options = qRows.stream()
                                     .map(r -> new Option(
+                                        r.getOptionId(),
                                         r.getOptionText(),
+                                        imageService.getImageById(r.getOptionImageId()),
                                         r.getCorrect()
                                     ))
                                     .toList();
 
                                 return new Question(
+                                    qRows.getFirst().getQuestionId(),
+                                    qRows.getFirst().getQuestionText(),
                                     imageService.getImageById(qRows.getFirst().getQuestionImageId()),
                                     options
                                 );
                             })
                             .toList();
 
-                        return new Phase(questions);
+                        return new Phase(phaseRows.getFirst().getPhaseId(),questions);
                     })
                     .toList();
 
-                Protocol protocol = new Protocol(phases);
+                Protocol protocol = new Protocol(first.getAllowPreviousPhase(), first.getAllowPreviousQuestion(), first.getAllowSkipQuestion(), phases);
                 return Map.entry(first.getGroupLabel(), new Group(
+                    first.getGroupId(),
                     first.getProbability(),
                     first.getGroupLabel(),
                     first.getGreeting(),

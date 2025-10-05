@@ -6,10 +6,15 @@ public interface TestGroupData {
     String getGroupLabel();
     int getProbability();
     String getGreeting();
-    int getPhaseOrder();
+    boolean getAllowPreviousPhase();
+    boolean getAllowPreviousQuestion();
+    boolean getAllowSkipQuestion();
+    int getPhaseId();
+    int getQuestionId();
+    String getQuestionText();
     int getQuestionOrder();
     int getQuestionImageId();
-    int getOptionOrder();
+    int getOptionId();
     String getOptionText();
     Integer getOptionImageId();
     boolean getCorrect();

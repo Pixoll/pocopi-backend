@@ -6,6 +6,15 @@ import java.util.List;
 
 public record Protocol(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean allowPreviousPhase,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean allowPreviousQuestion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean allowSkipQuestion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<Phase> phases
 ) {
 }
