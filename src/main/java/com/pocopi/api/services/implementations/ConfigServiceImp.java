@@ -90,7 +90,7 @@ public class ConfigServiceImp implements ConfigService {
             }
             InformationCard informationCard = new InformationCard(homeInfoCardModel.getTitle(),
                 homeInfoCardModel.getDescription(),
-                String.format("#%06X", homeInfoCardModel.getColor()),
+                homeInfoCardModel.getColor(),
                 Optional.ofNullable(iconByInfoCard)
             );
             informationCards.add(informationCard);
@@ -123,12 +123,16 @@ public class ConfigServiceImp implements ConfigService {
     }
     private Map<String, Group> buildGroupResponses(int configVersion) {
         List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);
+
         if (rows.isEmpty()) {
             return Map.of();
         }
 
-        Map<Integer, List<TestGroupData>> groupsMap =
-            rows.stream().collect(Collectors.groupingBy(TestGroupData::getGroupId, LinkedHashMap::new, Collectors.toList()));
+        Map<Integer, List<TestGroupData>> groupsMap = new LinkedHashMap<>();
+        for (TestGroupData row : rows) {
+            groupsMap.computeIfAbsent(row.getGroupId(), k -> new ArrayList<>()).add(row);
+        }
+
 
         return groupsMap.values().stream()
             .map(groupRows -> {

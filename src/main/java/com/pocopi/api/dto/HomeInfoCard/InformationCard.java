@@ -13,7 +13,7 @@ public record InformationCard(
     String description,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String color,
+    int color,
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     Optional<Image> icon
