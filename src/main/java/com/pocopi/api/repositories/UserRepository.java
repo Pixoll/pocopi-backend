@@ -17,14 +17,12 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
     @Query(value = "SELECT u.id from user u ",nativeQuery = true)
     List<Integer> getAllUserIds();
 
-    @Query(value = "SELECT true FROM user u WHERE u.username = :username", nativeQuery = true)
-    boolean existsByUsername(@Param("username") String username);
+    boolean existsByUsername(String username);
 
     @Query(value = "SELECT * FROM user u WHERE u.username = :username", nativeQuery = true)
     UserModel findByUsername(@Param("username") String username);
 
-    @Query(value = "SELECT true FROM user u WHERE u.email = :email", nativeQuery = true)
-    boolean existsByEmail(@Param("email") String email);
+    boolean existsByEmail(String email);
 
     @Query(value = "SELECT * from user", nativeQuery = true)
     List<UserModel> getAllUsers();
