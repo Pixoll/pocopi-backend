@@ -1,5 +1,6 @@
 package com.pocopi.api.services.interfaces;
 
+import com.pocopi.api.dto.TimeLog.SendOptionEvent;
 import com.pocopi.api.dto.TimeLog.TimeLog;
 
 import java.util.List;
@@ -7,4 +8,5 @@ import java.util.List;
 public interface TimeLogsService {
     List<TimeLog> getTimeLogs();
     TimeLog getTimeLogByUserId(int userId);
+    String addTimeLog(SendOptionEvent optionEvent);
 }

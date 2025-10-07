@@ -35,7 +35,7 @@ public class FormServiceImp implements FormService {
 
     @Override
     public void saveUserFormAnswers(FormAnswerRequest request) {
-        UserModel user = userRepository.getUserByUserId(request.userId());
+        UserModel user = userRepository.findByUsername(request.username());
         for (FormAnswerRequest.QuestionAnswer answer : request.answers()) {
             FormQuestionModel question = formQuestionRepository.findById(answer.questionId())
                     .orElseThrow(() -> new IllegalArgumentException("Question not found"));

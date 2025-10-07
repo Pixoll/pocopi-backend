@@ -6,7 +6,7 @@ import java.util.List;
 
 public record FormAnswerRequest(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        int userId,
+        String username,
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         int formId,

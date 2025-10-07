@@ -1,11 +1,15 @@
 package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.TimeLog.Event;
+import com.pocopi.api.dto.TimeLog.SendOptionEvent;
 import com.pocopi.api.dto.TimeLog.TimeLog;
 import com.pocopi.api.models.ConfigModel;
+import com.pocopi.api.models.UserModel;
+import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
 import com.pocopi.api.services.interfaces.TimeLogsService;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,14 +20,17 @@ import java.util.Map;
 @Service
 public class TimeLogServiceImp implements TimeLogsService {
     private final ConfigServiceImp configServiceImp;
+    private final UserRepository userRepository;
     private final UserTestQuestionLogRepository userTestQuestionLogRepository;
     private final UserTestOptionLogRepository userTestOptionLogRepository;
 
     public TimeLogServiceImp(ConfigServiceImp configServiceImp,
+                             UserRepository userRepository,
                              UserTestQuestionLogRepository userTestQuestionLogRepository,
                              UserTestOptionLogRepository userTestOptionLogRepository
     ) {
         this.configServiceImp = configServiceImp;
+        this.userRepository = userRepository;
         this.userTestQuestionLogRepository = userTestQuestionLogRepository;
         this.userTestOptionLogRepository = userTestOptionLogRepository;
     }
@@ -97,7 +104,6 @@ public class TimeLogServiceImp implements TimeLogsService {
 
         Map<String, List<Event>> eventsMap = new HashMap<>();
 
-        // 🔹 Asociamos los eventos (clics, hovers, etc.) por pregunta
         for (Object[] event : userEvents) {
             int questionId = (Integer) event[0];
             String type = (String) event[1];
@@ -113,7 +119,6 @@ public class TimeLogServiceImp implements TimeLogsService {
 
         List<TimeLog> response = new ArrayList<>();
 
-        // 🔹 Creamos los registros de tiempo
         for (Object[] questionInfo : userQuestionInfo) {
             int uid = (int) questionInfo[0];
             int phaseId = (int) questionInfo[1];
@@ -144,16 +149,28 @@ public class TimeLogServiceImp implements TimeLogsService {
             response.add(timeLogResponse);
         }
 
-        // 🔹 Devolvemos el resumen del usuario
-        // Si el usuario tiene múltiples logs (una por pregunta), podrías devolver todos:
         if (response.isEmpty()) {
             return null;
         }
 
-        // Si tu interfaz `TimeLogsService` espera devolver solo uno,
-        // devolvemos un resumen (por ejemplo, el primero o el último)
-        // o puedes cambiar la firma para devolver `List<TimeLog>`
         return response.getFirst();
+    }
+
+    @Transactional
+    @Override
+    public String addTimeLog(SendOptionEvent optionEvent) {
+        UserModel savedUser = userRepository.findByUsername(optionEvent.username());
+        if(savedUser == null){
+            return "Username not found";
+        }
+        int userId = savedUser.getId();
+
+        userTestOptionLogRepository.insertUserTestOptionLog(
+            userId,
+            optionEvent.optionId(),
+            optionEvent.type()
+        );
+        return "Event created";
     }
 
 }
