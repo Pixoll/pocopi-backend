@@ -10,4 +10,6 @@ public interface ConfigRepository extends JpaRepository<ConfigModel,String> {
 
     @Query(value = "SELECT * FROM config c WHERE c.version = (SELECT max(c2.version) FROM config c2)\n", nativeQuery = true)
     ConfigModel findLastConfig();
+
+    ConfigModel getByVersion(int version);
 }

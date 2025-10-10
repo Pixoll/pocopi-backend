@@ -1,20 +1,27 @@
 package com.pocopi.api.services.implementations;
 
+import com.pocopi.api.dto.Config.PatchLastConfig;
+import com.pocopi.api.dto.Config.PatchRequest;
 import com.pocopi.api.dto.Config.SingleConfigResponse;
 import com.pocopi.api.dto.Form.Form;
 import com.pocopi.api.dto.FormQuestion.FormQuestion;
 import com.pocopi.api.dto.FormQuestionOption.FormOption;
 import com.pocopi.api.dto.HomeFaq.Faq;
 import com.pocopi.api.dto.HomeInfoCard.InformationCard;
+import com.pocopi.api.dto.HomeInfoCard.PatchInformationCard;
 import com.pocopi.api.dto.Image.Image;
+import com.pocopi.api.dto.Image.UploadImageResponse;
 import com.pocopi.api.dto.SliderLabel.SliderLabel;
 import com.pocopi.api.dto.TestGroup.*;
 import com.pocopi.api.models.*;
 import com.pocopi.api.repositories.*;
 import com.pocopi.api.services.interfaces.ConfigService;
 import com.pocopi.api.services.interfaces.ImageService;
+import com.pocopi.api.services.interfaces.TestGroupService;
 import org.springframework.stereotype.Service;
-
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,8 +32,8 @@ public class ConfigServiceImp implements ConfigService {
     private final HomeInfoCardRepository homeInfoCardRepository;
     private final HomeFaqRepository homeFaqRepository;
     private final FormRepository formRepository;
-    private final TestGroupRepository testGroupRepository;
     private final ImageService imageService;
+    private final TestGroupService testGroupService;
 
     public ConfigServiceImp(ConfigRepository configRepository,
                             TranslationRepository translationRepository,
@@ -34,7 +41,7 @@ public class ConfigServiceImp implements ConfigService {
                             HomeFaqRepository homeFaqRepository,
                             FormRepository formRepository,
                             ImageService imageService,
-                            TestGroupRepository testGroupRepository
+                            TestGroupService testGroupService
     ) {
         this.configRepository = configRepository;
         this.translationRepository = translationRepository;
@@ -42,7 +49,7 @@ public class ConfigServiceImp implements ConfigService {
         this.homeFaqRepository = homeFaqRepository;
         this.formRepository = formRepository;
         this.imageService = imageService;
-        this.testGroupRepository = testGroupRepository;
+        this.testGroupService = testGroupService;
     }
 
     @Override
@@ -99,7 +106,7 @@ public class ConfigServiceImp implements ConfigService {
         for (HomeFaqModel faq : homeFaqs) {
             faqs.add(new Faq(faq.getQuestion(), faq.getAnswer()));
         }
-        Map<String, Group> groups = buildGroupResponses(configId);
+        Map<String, Group> groups = testGroupService.buildGroupResponses(configId);
 
         return new SingleConfigResponse(
             Optional.ofNullable(icon),
@@ -118,72 +125,144 @@ public class ConfigServiceImp implements ConfigService {
     }
 
     @Override
-    public ConfigModel findLastConfig(){
+    public ConfigModel findLastConfig() {
         return configRepository.findLastConfig();
     }
-    private Map<String, Group> buildGroupResponses(int configVersion) {
-        List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);
 
-        if (rows.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<Integer, List<TestGroupData>> groupsMap = new LinkedHashMap<>();
-        for (TestGroupData row : rows) {
-            groupsMap.computeIfAbsent(row.getGroupId(), k -> new ArrayList<>()).add(row);
-        }
-
-
-        return groupsMap.values().stream()
-            .map(groupRows -> {
-                TestGroupData first = groupRows.getFirst();
-
-                Map<Integer, List<TestGroupData>> phasesMap =
-                    groupRows.stream().collect(Collectors.groupingBy(TestGroupData::getPhaseId, LinkedHashMap::new, Collectors.toList()));
-
-                List<Phase> phases = phasesMap.values().stream()
-                    .map(phaseRows -> {
-                        Map<Integer, List<TestGroupData>> questionsMap =
-                            phaseRows.stream().collect(Collectors.groupingBy(TestGroupData::getQuestionOrder, LinkedHashMap::new, Collectors.toList()));
-
-                        List<Question> questions = questionsMap.values().stream()
-                            .map(qRows -> {
-                                List<Option> options = qRows.stream()
-                                    .map(r -> new Option(
-                                        r.getOptionId(),
-                                        r.getOptionText(),
-                                        r.getOptionImageId() != null
-                                            ? imageService.getImageById(r.getOptionImageId())
-                                            : null,
-                                        r.getCorrect()
-                                    ))
-                                    .toList();
-
-                                return new Question(
-                                    qRows.getFirst().getQuestionId(),
-                                    qRows.getFirst().getQuestionText(),
-                                    imageService.getImageById(qRows.getFirst().getQuestionImageId()),
-                                    options
-                                );
-                            })
-                            .toList();
-
-                        return new Phase(phaseRows.getFirst().getPhaseId(),questions);
-                    })
-                    .toList();
-
-                Protocol protocol = new Protocol(first.getAllowPreviousPhase(), first.getAllowPreviousQuestion(), first.getAllowSkipQuestion(), phases);
-                return Map.entry(first.getGroupLabel(), new Group(
-                    first.getGroupId(),
-                    first.getProbability(),
-                    first.getGroupLabel(),
-                    first.getGreeting(),
-                    protocol
-                ));
-            })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a,b) -> a, LinkedHashMap::new));
+    @Override
+    public String updateConfig(PatchRequest request) {
+        return "";
     }
 
+    private String processUpdatedConfig(PatchRequest request) {
+        ConfigModel savedModel = configRepository.getByVersion(request.updateLastConfig().version());
+
+        if (savedModel == null) {
+            return "Config not found";
+        }
+
+        Map<String, String> configUpdates = processConfigGeneralData(savedModel, request.updateLastConfig());
+        Map<String, String> informationCardUpdates = processCardInformation(request.updateLastConfig().informationCards(), request.informationCardFiles());
+
+        return "xd";
+
+    }
+
+    private Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<File> updateImages) {
+        Map<String, String> results = new HashMap<>();
+        int index = 0;
+
+        for (PatchInformationCard patchInformationCard : updateInformationCards) {
+            HomeInfoCardModel existingCard = homeInfoCardRepository
+                .findById(patchInformationCard.id())
+                .orElse(null);
+
+            if (existingCard == null) {
+                results.put("card_" + patchInformationCard.id(), "Card not found");
+                index++;
+                continue;
+            }
+
+            File imageFile = updateImages.get(index);
+            boolean infoChanged = checkChangeByInfoCard(existingCard, patchInformationCard);
+
+            boolean deleteImage = imageFile != null && imageFile.length() == 0;
+            boolean replaceImage = imageFile != null && imageFile.length() > 0;
+
+            if (infoChanged || deleteImage || replaceImage) {
+                HomeInfoCardModel newCard = new HomeInfoCardModel();
+
+                newCard.setTitle(infoChanged ? patchInformationCard.title() : existingCard.getTitle());
+                newCard.setDescription(infoChanged ? patchInformationCard.description() : existingCard.getDescription());
+                newCard.setColor(infoChanged ? patchInformationCard.color() : existingCard.getColor());
+
+                if (deleteImage) {
+                    newCard.setIcon(null);
+                    ImageModel oldImage = existingCard.getIcon();
+                    if (oldImage != null) {
+                        imageService.deleteImage(oldImage.getPath());
+                    }
+                } else if (replaceImage) {
+                    try {
+                        byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+                        ImageModel currentImage = existingCard.getIcon();
+
+                        if (currentImage != null) {
+                            imageService.saveImageBytes(imageBytes, currentImage.getPath());
+                            newCard.setIcon(currentImage);
+
+                        } else {
+                            String category = "homeinfo";
+                            String alt = "Home info card: " + newCard.getTitle();
+
+                            UploadImageResponse response = imageService.createAndSaveImageBytes(
+                                imageBytes,
+                                category,
+                                imageFile.getName(),
+                                alt
+                            );
+                            String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                            ImageModel newImage = imageService.getImageModelByPath(path);
+                            newCard.setIcon(newImage);
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Error al procesar imagen: " + e.getMessage());
+                        newCard.setIcon(existingCard.getIcon());
+                    }
+                } else {
+                    newCard.setIcon(existingCard.getIcon());
+                }
+                homeInfoCardRepository.save(newCard);
+
+                results.put("card_" + patchInformationCard.id(),
+                    "Created new entity with ID: " + newCard.getId());
+            } else {
+                results.put("card_" + patchInformationCard.id(), "No changes");
+            }
+            index++;
+        }
+        return results;
+    }
+
+
+    private boolean checkChangeByInfoCard(HomeInfoCardModel savedCard, PatchInformationCard updated) {
+        return savedCard.getColor() != updated.color() ||
+            !Objects.equals(savedCard.getTitle(), updated.title()) ||
+            !Objects.equals(savedCard.getDescription(), updated.description());
+    }
+
+    private Map<String, String> processConfigGeneralData(ConfigModel savedConfig, PatchLastConfig updatedConfig) {
+        Map<String, String> updates = new HashMap<>();
+
+        if (!Objects.equals(savedConfig.getTitle(), updatedConfig.title())) {
+            savedConfig.setTitle(updatedConfig.title());
+            updates.put("title", "The new title is: " + savedConfig.getTitle());
+        }
+
+        if (!Objects.equals(savedConfig.getSubtitle(), String.valueOf(updatedConfig.subtitle()))) {
+            savedConfig.setSubtitle(String.valueOf(updatedConfig.subtitle()));
+            updates.put("subtitle", "The new subtitle is: " + savedConfig.getSubtitle());
+        }
+
+        if (!Objects.equals(savedConfig.getDescription(), String.valueOf(updatedConfig.description()))) {
+            savedConfig.setDescription(String.valueOf(updatedConfig.description()));
+            updates.put("description", "The new description is: " + savedConfig.getDescription());
+
+        }
+
+        if (savedConfig.isAnonymous() != updatedConfig.anonymous()) {
+            savedConfig.setAnonymous(updatedConfig.anonymous());
+            updates.put("anonymous", "The configuration now is" + (savedConfig.isAnonymous() ? "anonymous" : "not " +
+                "anonymous"));
+        }
+
+        if (!Objects.equals(savedConfig.getInformedConsent(), updatedConfig.informedConsent())) {
+            savedConfig.setInformedConsent(updatedConfig.informedConsent());
+            updates.put("informedConsent", "The new informed consent is: " + savedConfig.getInformedConsent());
+        }
+
+        return updates;
+    }
 
 
     private Form generateFormFromQuery(List<FormProjection> rows) {
@@ -268,7 +347,7 @@ public class ConfigServiceImp implements ConfigService {
             }
         }
 
-        return new Form(rows.getFirst().getFormId(),questions);
+        return new Form(rows.getFirst().getFormId(), questions);
     }
 
     private List<FormOption> getOptionsFromGroup(List<FormProjection> group) {

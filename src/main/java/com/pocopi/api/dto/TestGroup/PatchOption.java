@@ -3,19 +3,16 @@ package com.pocopi.api.dto.TestGroup;
 import com.pocopi.api.dto.Image.Image;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.List;
+import java.util.Optional;
 
-public record Question(
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int id,
+public record PatchOption(
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    Optional<Integer> id,
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String text,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Image image,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<Option> options
+    boolean correct
 ) {
 }
