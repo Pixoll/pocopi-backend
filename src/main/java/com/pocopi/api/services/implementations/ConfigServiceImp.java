@@ -7,6 +7,7 @@ import com.pocopi.api.dto.Form.Form;
 import com.pocopi.api.dto.FormQuestion.FormQuestion;
 import com.pocopi.api.dto.FormQuestionOption.FormOption;
 import com.pocopi.api.dto.HomeFaq.Faq;
+import com.pocopi.api.dto.HomeFaq.PatchFaq;
 import com.pocopi.api.dto.HomeInfoCard.InformationCard;
 import com.pocopi.api.dto.HomeInfoCard.PatchInformationCard;
 import com.pocopi.api.dto.Image.Image;
@@ -141,8 +142,9 @@ public class ConfigServiceImp implements ConfigService {
             return "Config not found";
         }
 
-        Map<String, String> configUpdates = processConfigGeneralData(savedModel, request.updateLastConfig());
-        Map<String, String> informationCardUpdates = processCardInformation(request.updateLastConfig().informationCards(), request.informationCardFiles());
+        Map<String, String> configUpdatesSummary = processConfigGeneralData(savedModel, request.updateLastConfig());
+        Map<String, String> informationCardUpdatesSummary = processCardInformation(request.updateLastConfig().informationCards(), request.informationCardFiles());
+        Map<String, String> faqUpdatedSummary = processFaq(request.updateLastConfig().faq());
 
         return "xd";
 
@@ -150,85 +152,200 @@ public class ConfigServiceImp implements ConfigService {
 
     private Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<File> updateImages) {
         Map<String, String> results = new HashMap<>();
-        int index = 0;
+        List<HomeInfoCardModel> allExistingCards = homeInfoCardRepository.findAll();
+        Map<Integer, Boolean> processedCards = new HashMap<>();
 
-        for (PatchInformationCard patchInformationCard : updateInformationCards) {
-            HomeInfoCardModel existingCard = homeInfoCardRepository
-                .findById(patchInformationCard.id())
-                .orElse(null);
+        for (HomeInfoCardModel card : allExistingCards) {
+            processedCards.put(card.getId(), false);
+        }
 
-            if (existingCard == null) {
-                results.put("card_" + patchInformationCard.id(), "Card not found");
-                index++;
-                continue;
-            }
+        int order = 0;
+        for (PatchInformationCard patchCard : updateInformationCards) {
+            File imageFile = updateImages != null ? updateImages.get(order) : null;
 
-            File imageFile = updateImages.get(index);
-            boolean infoChanged = checkChangeByInfoCard(existingCard, patchInformationCard);
+            if (patchCard.id().isPresent()) {
+                Integer cardId = patchCard.id().get();
+                HomeInfoCardModel existingCard = homeInfoCardRepository
+                    .findById(cardId)
+                    .orElse(null);
 
-            boolean deleteImage = imageFile != null && imageFile.length() == 0;
-            boolean replaceImage = imageFile != null && imageFile.length() > 0;
+                if (existingCard == null) {
+                    results.put("card_" + cardId, "Card not found");
+                    order++;
+                    continue;
+                }
 
-            if (infoChanged || deleteImage || replaceImage) {
-                HomeInfoCardModel newCard = new HomeInfoCardModel();
+                boolean infoChanged = checkChangeByInfoCard(existingCard, patchCard);
+                boolean orderChanged = existingCard.getOrder() != order;
+                boolean deleteImage = imageFile != null && imageFile.length() == 0;
+                boolean replaceImage = imageFile != null && imageFile.length() > 0;
 
-                newCard.setTitle(infoChanged ? patchInformationCard.title() : existingCard.getTitle());
-                newCard.setDescription(infoChanged ? patchInformationCard.description() : existingCard.getDescription());
-                newCard.setColor(infoChanged ? patchInformationCard.color() : existingCard.getColor());
+                if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                    existingCard.setTitle(patchCard.title());
+                    existingCard.setDescription(patchCard.description());
+                    existingCard.setColor(patchCard.color());
+                    existingCard.setOrder((byte) order);
 
-                if (deleteImage) {
-                    newCard.setIcon(null);
-                    ImageModel oldImage = existingCard.getIcon();
-                    if (oldImage != null) {
-                        imageService.deleteImage(oldImage.getPath());
+                    if (deleteImage) {
+                        ImageModel oldImage = existingCard.getIcon();
+                        existingCard.setIcon(null);
+                        if (oldImage != null) {
+                            imageService.deleteImage(oldImage.getPath());
+                        }
+                    } else if (replaceImage) {
+                        try {
+                            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+                            ImageModel currentImage = existingCard.getIcon();
+
+                            if (currentImage != null) {
+                                imageService.saveImageBytes(imageBytes, currentImage.getPath());
+
+                            } else {
+                                String category = "homeinfo";
+                                String alt = "Home info card: " + existingCard.getTitle();
+
+                                UploadImageResponse response = imageService.createAndSaveImageBytes(
+                                    imageBytes,
+                                    category,
+                                    imageFile.getName(),
+                                    alt
+                                );
+                                String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                                ImageModel newImage = imageService.getImageModelByPath(path);
+                                existingCard.setIcon(newImage);
+                            }
+                        } catch (IOException e) {
+                            results.put("card_" + cardId + "_image_error", "Failed to process image: " + e.getMessage());
+                        }
                     }
-                } else if (replaceImage) {
+
+                    homeInfoCardRepository.save(existingCard);
+                    results.put("card_" + cardId, "Updated successfully");
+                } else {
+                    results.put("card_" + cardId, "No changes");
+                }
+                processedCards.put(cardId, true);
+
+            } else {
+                HomeInfoCardModel newCard = new HomeInfoCardModel();
+                newCard.setTitle(patchCard.title());
+                newCard.setDescription(patchCard.description());
+                newCard.setColor(patchCard.color());
+                newCard.setOrder((byte) order);
+
+                if (imageFile != null && imageFile.length() > 0) {
                     try {
                         byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
-                        ImageModel currentImage = existingCard.getIcon();
+                        String category = "homeinfo";
+                        String alt = "Home info card: " + newCard.getTitle();
 
-                        if (currentImage != null) {
-                            imageService.saveImageBytes(imageBytes, currentImage.getPath());
-                            newCard.setIcon(currentImage);
-
-                        } else {
-                            String category = "homeinfo";
-                            String alt = "Home info card: " + newCard.getTitle();
-
-                            UploadImageResponse response = imageService.createAndSaveImageBytes(
-                                imageBytes,
-                                category,
-                                imageFile.getName(),
-                                alt
-                            );
-                            String path = response.url().substring(response.url().indexOf("/images/") + 1);
-                            ImageModel newImage = imageService.getImageModelByPath(path);
-                            newCard.setIcon(newImage);
-                        }
+                        UploadImageResponse response = imageService.createAndSaveImageBytes(
+                            imageBytes,
+                            category,
+                            imageFile.getName(),
+                            alt
+                        );
+                        String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                        ImageModel newImage = imageService.getImageModelByPath(path);
+                        newCard.setIcon(newImage);
                     } catch (IOException e) {
-                        System.err.println("Error al procesar imagen: " + e.getMessage());
-                        newCard.setIcon(existingCard.getIcon());
+                        results.put("card_new_" + order + "_image_error", "Failed to process image: " + e.getMessage());
                     }
-                } else {
-                    newCard.setIcon(existingCard.getIcon());
                 }
-                homeInfoCardRepository.save(newCard);
 
-                results.put("card_" + patchInformationCard.id(),
-                    "Created new entity with ID: " + newCard.getId());
-            } else {
-                results.put("card_" + patchInformationCard.id(), "No changes");
+                HomeInfoCardModel savedNewCard = homeInfoCardRepository.save(newCard);
+                results.put("card_new_" + order, "Created with ID: " + savedNewCard.getId());
             }
-            index++;
+
+            order++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedCards.entrySet()) {
+            if (!entry.getValue()) {
+                HomeInfoCardModel cardToDelete = homeInfoCardRepository.findById(entry.getKey()).orElse(null);
+                if (cardToDelete != null) {
+                    ImageModel imageToDelete = cardToDelete.getIcon();
+                    if (imageToDelete != null) {
+                        imageService.deleteImage(imageToDelete.getPath());
+                    }
+                    homeInfoCardRepository.deleteById(entry.getKey());
+                    results.put("card_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private Map<String, String> processFaq(List<PatchFaq> updateFaqs) {
+        Map<String, String> results = new HashMap<>();
+        List<HomeFaqModel> allExistingFaqs = homeFaqRepository.findAll();
+        Map<Integer, Boolean> processedFaqs = new HashMap<>();
+
+        for (HomeFaqModel faq : allExistingFaqs) {
+            processedFaqs.put(faq.getId(), false);
+        }
+
+        int order = 0;
+        for (PatchFaq patchFaq : updateFaqs) {
+            if (patchFaq.id().isPresent()) {
+                Integer faqId = patchFaq.id().get();
+                HomeFaqModel savedFaq = homeFaqRepository.getHomeFaqModelById(faqId);
+
+                if (savedFaq == null) {
+                    results.put("faq_" + faqId, "FAQ not found");
+                    order++;
+                    continue;
+                }
+
+                boolean infoChanged = checkChangeByFaq(savedFaq, patchFaq);
+                boolean orderChanged = savedFaq.getOrder() != order;
+
+                if (infoChanged || orderChanged) {
+                    savedFaq.setAnswer(patchFaq.answer());
+                    savedFaq.setQuestion(patchFaq.question());
+                    savedFaq.setOrder((byte) order);
+
+                    homeFaqRepository.save(savedFaq);
+                    results.put("faq_" + faqId, "Updated successfully");
+                } else {
+                    results.put("faq_" + faqId, "No changes");
+                }
+                processedFaqs.put(faqId, true);
+
+            } else {
+                HomeFaqModel newFaq = new HomeFaqModel();
+                newFaq.setAnswer(patchFaq.answer());
+                newFaq.setQuestion(patchFaq.question());
+                newFaq.setOrder((byte) order);
+
+                HomeFaqModel savedNewFaq = homeFaqRepository.save(newFaq);
+                results.put("faq_new_" + order, "Created with ID: " + savedNewFaq.getId());
+            }
+
+            order++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedFaqs.entrySet()) {
+            if (!entry.getValue()) {
+                homeFaqRepository.deleteById(entry.getKey());
+                results.put("faq_" + entry.getKey(), "Deleted");
+            }
         }
         return results;
     }
 
-
     private boolean checkChangeByInfoCard(HomeInfoCardModel savedCard, PatchInformationCard updated) {
-        return savedCard.getColor() != updated.color() ||
+        return (savedCard.getColor() != updated.color() ||
             !Objects.equals(savedCard.getTitle(), updated.title()) ||
-            !Objects.equals(savedCard.getDescription(), updated.description());
+            !Objects.equals(savedCard.getDescription(), updated.description())
+        );
+    }
+
+    private boolean checkChangeByFaq(HomeFaqModel savedFaq, PatchFaq updated) {
+        return (!Objects.equals(savedFaq.getAnswer(), updated.answer()) ||
+            !Objects.equals(savedFaq.getQuestion(), updated.question())
+            );
     }
 
     private Map<String, String> processConfigGeneralData(ConfigModel savedConfig, PatchLastConfig updatedConfig) {

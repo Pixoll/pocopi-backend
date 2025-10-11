@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import java.util.List;
 import java.util.Optional;
 
-public sealed interface PatchFormQuestion
+public sealed interface     PatchFormQuestion
     permits PatchFormQuestion.PatchSelectMultiple,
     PatchFormQuestion.PatchSelectOne,
     PatchFormQuestion.PatchSlider,
