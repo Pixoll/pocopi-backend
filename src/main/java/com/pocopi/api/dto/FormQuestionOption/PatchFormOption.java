@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public record PatchFormOption(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int id,
+    Optional<Integer> id,
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     Optional<String> text

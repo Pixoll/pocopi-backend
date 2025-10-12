@@ -1,8 +1,6 @@
 package com.pocopi.api.dto.FormQuestion;
 
-import com.pocopi.api.dto.FormQuestionOption.FormOption;
 import com.pocopi.api.dto.FormQuestionOption.PatchFormOption;
-import com.pocopi.api.dto.Image.Image;
 import com.pocopi.api.dto.SliderLabel.SliderLabel;
 import com.pocopi.api.models.FormQuestionType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,7 +9,7 @@ import lombok.AllArgsConstructor;
 import java.util.List;
 import java.util.Optional;
 
-public sealed interface     PatchFormQuestion
+public sealed interface PatchFormQuestion
     permits PatchFormQuestion.PatchSelectMultiple,
     PatchFormQuestion.PatchSelectOne,
     PatchFormQuestion.PatchSlider,
@@ -21,7 +19,7 @@ public sealed interface     PatchFormQuestion
         @AllArgsConstructor
         final class PatchSelectMultiple implements PatchFormQuestion {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            public int id;
+            public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             public String category;
@@ -48,7 +46,7 @@ public sealed interface     PatchFormQuestion
         @AllArgsConstructor
         final class PatchSelectOne implements PatchFormQuestion {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            public int id;
+            public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             public String category;
@@ -69,7 +67,7 @@ public sealed interface     PatchFormQuestion
         @AllArgsConstructor
         final class PatchSlider implements PatchFormQuestion {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            public int id;
+            public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             public String category;
@@ -99,7 +97,7 @@ public sealed interface     PatchFormQuestion
         @AllArgsConstructor
         final class PatchTextLong implements PatchFormQuestion {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            public int id;
+            public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             public String category;
@@ -123,7 +121,7 @@ public sealed interface     PatchFormQuestion
         @AllArgsConstructor
         final class PatchTextShort implements PatchFormQuestion {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            public int id;
+            public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             public String category;

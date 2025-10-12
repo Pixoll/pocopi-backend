@@ -7,5 +7,5 @@ import com.pocopi.api.models.ConfigModel;
 public interface ConfigService {
     SingleConfigResponse getLastConfig();
     ConfigModel findLastConfig();
-    String updateConfig(PatchRequest request);
+    String processUpdatedConfig(PatchRequest request);
 }

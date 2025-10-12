@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FormQuestionRepository extends JpaRepository<FormQuestionModel, Integer> {
+    FormQuestionModel getFormQuestionModelById(int id);
 }

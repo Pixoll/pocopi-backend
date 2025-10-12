@@ -37,10 +37,10 @@ public record PatchLastConfig(
     List<PatchFaq> faq,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Optional<PatchForm> preTestForm,
+    PatchForm preTestForm,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Optional<PatchForm> postTestForm,
+    PatchForm postTestForm,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Map<String, PatchGroup> groups,

@@ -4,8 +4,11 @@ import com.pocopi.api.dto.Config.PatchLastConfig;
 import com.pocopi.api.dto.Config.PatchRequest;
 import com.pocopi.api.dto.Config.SingleConfigResponse;
 import com.pocopi.api.dto.Form.Form;
+import com.pocopi.api.dto.Form.PatchForm;
 import com.pocopi.api.dto.FormQuestion.FormQuestion;
+import com.pocopi.api.dto.FormQuestion.PatchFormQuestion;
 import com.pocopi.api.dto.FormQuestionOption.FormOption;
+import com.pocopi.api.dto.FormQuestionOption.PatchFormOption;
 import com.pocopi.api.dto.HomeFaq.Faq;
 import com.pocopi.api.dto.HomeFaq.PatchFaq;
 import com.pocopi.api.dto.HomeInfoCard.InformationCard;
@@ -20,6 +23,7 @@ import com.pocopi.api.services.interfaces.ConfigService;
 import com.pocopi.api.services.interfaces.ImageService;
 import com.pocopi.api.services.interfaces.TestGroupService;
 import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,6 +37,8 @@ public class ConfigServiceImp implements ConfigService {
     private final HomeInfoCardRepository homeInfoCardRepository;
     private final HomeFaqRepository homeFaqRepository;
     private final FormRepository formRepository;
+    private final FormQuestionRepository formQuestionRepository;
+    private final FormQuestionOptionRepository formQuestionOptionRepository;
     private final ImageService imageService;
     private final TestGroupService testGroupService;
 
@@ -41,6 +47,8 @@ public class ConfigServiceImp implements ConfigService {
                             HomeInfoCardRepository homeInfoCardRepository,
                             HomeFaqRepository homeFaqRepository,
                             FormRepository formRepository,
+                            FormQuestionRepository formQuestionRepository,
+                            FormQuestionOptionRepository formQuestionOptionRepository,
                             ImageService imageService,
                             TestGroupService testGroupService
     ) {
@@ -49,6 +57,8 @@ public class ConfigServiceImp implements ConfigService {
         this.homeInfoCardRepository = homeInfoCardRepository;
         this.homeFaqRepository = homeFaqRepository;
         this.formRepository = formRepository;
+        this.formQuestionRepository = formQuestionRepository;
+        this.formQuestionOptionRepository = formQuestionOptionRepository;
         this.imageService = imageService;
         this.testGroupService = testGroupService;
     }
@@ -129,13 +139,8 @@ public class ConfigServiceImp implements ConfigService {
     public ConfigModel findLastConfig() {
         return configRepository.findLastConfig();
     }
-
     @Override
-    public String updateConfig(PatchRequest request) {
-        return "";
-    }
-
-    private String processUpdatedConfig(PatchRequest request) {
+    public String processUpdatedConfig(PatchRequest request) {
         ConfigModel savedModel = configRepository.getByVersion(request.updateLastConfig().version());
 
         if (savedModel == null) {
@@ -146,6 +151,11 @@ public class ConfigServiceImp implements ConfigService {
         Map<String, String> informationCardUpdatesSummary = processCardInformation(request.updateLastConfig().informationCards(), request.informationCardFiles());
         Map<String, String> faqUpdatedSummary = processFaq(request.updateLastConfig().faq());
 
+        Map<String, String> preTestUpdatedSummary = processFormQuestions(request.updateLastConfig().preTestForm(), request.preTestFormQuestionOptionsFiles());
+        Map<String, String> postTestUpdatedSummary = processFormQuestions(request.updateLastConfig().postTestForm(), request.preTestFormQuestionOptionsFiles());
+
+
+
         return "xd";
 
     }
@@ -154,6 +164,7 @@ public class ConfigServiceImp implements ConfigService {
         Map<String, String> results = new HashMap<>();
         List<HomeInfoCardModel> allExistingCards = homeInfoCardRepository.findAll();
         Map<Integer, Boolean> processedCards = new HashMap<>();
+        String category = "/home/cards";
 
         for (HomeInfoCardModel card : allExistingCards) {
             processedCards.put(card.getId(), false);
@@ -176,11 +187,10 @@ public class ConfigServiceImp implements ConfigService {
                 }
 
                 boolean infoChanged = checkChangeByInfoCard(existingCard, patchCard);
-                boolean orderChanged = existingCard.getOrder() != order;
                 boolean deleteImage = imageFile != null && imageFile.length() == 0;
                 boolean replaceImage = imageFile != null && imageFile.length() > 0;
 
-                if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                if (infoChanged || deleteImage || replaceImage) {
                     existingCard.setTitle(patchCard.title());
                     existingCard.setDescription(patchCard.description());
                     existingCard.setColor(patchCard.color());
@@ -201,14 +211,11 @@ public class ConfigServiceImp implements ConfigService {
                                 imageService.saveImageBytes(imageBytes, currentImage.getPath());
 
                             } else {
-                                String category = "homeinfo";
-                                String alt = "Home info card: " + existingCard.getTitle();
-
                                 UploadImageResponse response = imageService.createAndSaveImageBytes(
                                     imageBytes,
                                     category,
                                     imageFile.getName(),
-                                    alt
+                                    "Home info card: " + existingCard.getTitle()
                                 );
                                 String path = response.url().substring(response.url().indexOf("/images/") + 1);
                                 ImageModel newImage = imageService.getImageModelByPath(path);
@@ -236,14 +243,11 @@ public class ConfigServiceImp implements ConfigService {
                 if (imageFile != null && imageFile.length() > 0) {
                     try {
                         byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
-                        String category = "homeinfo";
-                        String alt = "Home info card: " + newCard.getTitle();
-
                         UploadImageResponse response = imageService.createAndSaveImageBytes(
                             imageBytes,
                             category,
                             imageFile.getName(),
-                            alt
+                            "Home info card: " + newCard.getTitle()
                         );
                         String path = response.url().substring(response.url().indexOf("/images/") + 1);
                         ImageModel newImage = imageService.getImageModelByPath(path);
@@ -333,6 +337,565 @@ public class ConfigServiceImp implements ConfigService {
             }
         }
         return results;
+    }
+
+    private Map<String, String> processFormQuestions(PatchForm updatedForm, List<File> images) {
+        Map<String, String> results = new HashMap<>();
+        List<FormQuestionModel> allExistingQuestions = formQuestionRepository.findAll();
+        Map<Integer, Boolean> processedQuestions = new HashMap<>();
+
+        for (FormQuestionModel question : allExistingQuestions) {
+            processedQuestions.put(question.getId(), false);
+        }
+
+        int order = 0;
+        int imageIndex = 0;
+
+        for (PatchFormQuestion patchQuestion : updatedForm.questions()) {
+            switch (patchQuestion) {
+                case PatchFormQuestion.PatchSelectMultiple selectMultiple -> {
+                    if (selectMultiple.id.isPresent()) {
+                        Integer questionId = selectMultiple.id.get();
+                        FormQuestionModel savedQuestion = formQuestionRepository.getFormQuestionModelById(questionId);
+
+                        if (savedQuestion == null) {
+                            results.put("question_" + questionId, "Question not found");
+                            order++;
+                            continue;
+                        }
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        boolean infoChanged = checkChangeByQuestion(savedQuestion, selectMultiple);
+                        boolean orderChanged = savedQuestion.getOrder() != order;
+                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
+                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                        if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                            savedQuestion.setCategory(selectMultiple.category);
+                            savedQuestion.setText(selectMultiple.text.orElse(null));
+                            savedQuestion.setOrder((byte) order);
+                            savedQuestion.setMax((short) selectMultiple.max);
+                            savedQuestion.setMin((short) selectMultiple.min);
+                            savedQuestion.setOther(selectMultiple.other);
+
+                            if (deleteImage) {
+                                deleteImageFromEntity(savedQuestion);
+                            } else if (replaceImage) {
+                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                            }
+
+                            formQuestionRepository.save(savedQuestion);
+                            results.put("question_" + questionId, "Updated successfully");
+                        } else {
+                            results.put("question_" + questionId, "No changes");
+                        }
+
+                        imageIndex = processQuestionOptions(savedQuestion, selectMultiple.options, images, imageIndex, results);
+                        processedQuestions.put(questionId, true);
+
+                    } else {
+                        FormQuestionModel newQuestion = new FormQuestionModel();
+                        newQuestion.setCategory(selectMultiple.category);
+                        newQuestion.setText(selectMultiple.text.orElse(null));
+                        newQuestion.setOrder((byte) order);
+                        newQuestion.setMax((short) selectMultiple.max);
+                        newQuestion.setMin((short) selectMultiple.min);
+                        newQuestion.setType(FormQuestionType.SELECT_MULTIPLE);
+                        newQuestion.setOther(selectMultiple.other);
+
+                        FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        if (questionImageFile != null && questionImageFile.length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        }
+
+                        imageIndex = processQuestionOptions(savedNewQuestion, selectMultiple.options, images, imageIndex, results);
+                        results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
+                    }
+                }
+
+                case PatchFormQuestion.PatchSelectOne selectOne -> {
+                    if (selectOne.id.isPresent()) {
+                        Integer questionId = selectOne.id.get();
+                        FormQuestionModel savedQuestion = formQuestionRepository.getFormQuestionModelById(questionId);
+
+                        if (savedQuestion == null) {
+                            results.put("question_" + questionId, "Question not found");
+                            order++;
+                            continue;
+                        }
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        boolean infoChanged = checkChangeByQuestion(savedQuestion, selectOne);
+                        boolean orderChanged = savedQuestion.getOrder() != order;
+                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
+                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                        if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                            savedQuestion.setCategory(selectOne.category);
+                            savedQuestion.setText(selectOne.text.orElse(null));
+                            savedQuestion.setOrder((byte) order);
+                            savedQuestion.setOther(selectOne.other);
+
+                            if (deleteImage) {
+                                deleteImageFromEntity(savedQuestion);
+                            } else if (replaceImage) {
+                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                            }
+
+                            formQuestionRepository.save(savedQuestion);
+                            results.put("question_" + questionId, "Updated successfully");
+                        } else {
+                            results.put("question_" + questionId, "No changes");
+                        }
+
+                        imageIndex = processQuestionOptions(savedQuestion, selectOne.options, images, imageIndex, results);
+                        processedQuestions.put(questionId, true);
+
+                    } else {
+                        FormQuestionModel newQuestion = new FormQuestionModel();
+                        newQuestion.setCategory(selectOne.category);
+                        newQuestion.setText(selectOne.text.orElse(null));
+                        newQuestion.setOrder((byte) order);
+                        newQuestion.setType(FormQuestionType.SELECT_ONE);
+                        newQuestion.setOther(selectOne.other);
+
+                        FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        if (questionImageFile != null && questionImageFile.length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        }
+
+                        imageIndex = processQuestionOptions(savedNewQuestion, selectOne.options, images, imageIndex, results);
+                        results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
+                    }
+                }
+
+                case PatchFormQuestion.PatchSlider slider -> {
+                    if (slider.id.isPresent()) {
+                        Integer questionId = slider.id.get();
+                        FormQuestionModel savedQuestion = formQuestionRepository.getFormQuestionModelById(questionId);
+
+                        if (savedQuestion == null) {
+                            results.put("question_" + questionId, "Question not found");
+                            order++;
+                            continue;
+                        }
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        boolean infoChanged = checkChangeByQuestion(savedQuestion, slider);
+                        boolean orderChanged = savedQuestion.getOrder() != order;
+                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
+                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                        if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                            savedQuestion.setCategory(slider.category);
+                            savedQuestion.setText(slider.text.orElse(null));
+                            savedQuestion.setOrder((byte) order);
+                            savedQuestion.setPlaceholder(slider.placeholder);
+                            savedQuestion.setMin((short) slider.min);
+                            savedQuestion.setMax((short) slider.max);
+                            savedQuestion.setStep((short) slider.step);
+
+                            if (deleteImage) {
+                                deleteImageFromEntity(savedQuestion);
+                            } else if (replaceImage) {
+                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                            }
+
+                            formQuestionRepository.save(savedQuestion);
+                            results.put("question_" + questionId, "Updated successfully");
+                        } else {
+                            results.put("question_" + questionId, "No changes");
+                        }
+
+                        processedQuestions.put(questionId, true);
+
+                    } else {
+                        FormQuestionModel newQuestion = new FormQuestionModel();
+                        newQuestion.setCategory(slider.category);
+                        newQuestion.setText(slider.text.orElse(null));
+                        newQuestion.setOrder((byte) order);
+                        newQuestion.setType(FormQuestionType.SLIDER);
+                        newQuestion.setPlaceholder(slider.placeholder);
+                        newQuestion.setMin((short) slider.min);
+                        newQuestion.setMax((short) slider.max);
+                        newQuestion.setStep((short) slider.step);
+
+                        FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        if (questionImageFile != null && questionImageFile.length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        }
+
+                        results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
+                    }
+                }
+
+                case PatchFormQuestion.PatchTextLong textLong -> {
+                    if (textLong.id.isPresent()) {
+                        Integer questionId = textLong.id.get();
+                        FormQuestionModel savedQuestion = formQuestionRepository.getFormQuestionModelById(questionId);
+
+                        if (savedQuestion == null) {
+                            results.put("question_" + questionId, "Question not found");
+                            order++;
+                            continue;
+                        }
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        boolean infoChanged = checkChangeByQuestion(savedQuestion, textLong);
+                        boolean orderChanged = savedQuestion.getOrder() != order;
+                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
+                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                        if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                            savedQuestion.setCategory(textLong.category);
+                            savedQuestion.setText(textLong.text.orElse(null));
+                            savedQuestion.setOrder((byte) order);
+                            savedQuestion.setPlaceholder(textLong.placeholder);
+                            savedQuestion.setMinLength((short) textLong.minLength);
+                            savedQuestion.setMaxLength((short) textLong.maxLength);
+
+                            if (deleteImage) {
+                                deleteImageFromEntity(savedQuestion);
+                            } else if (replaceImage) {
+                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                            }
+
+                            formQuestionRepository.save(savedQuestion);
+                            results.put("question_" + questionId, "Updated successfully");
+                        } else {
+                            results.put("question_" + questionId, "No changes");
+                        }
+
+                        processedQuestions.put(questionId, true);
+
+                    } else {
+                        FormQuestionModel newQuestion = new FormQuestionModel();
+                        newQuestion.setCategory(textLong.category);
+                        newQuestion.setText(textLong.text.orElse(null));
+                        newQuestion.setOrder((byte) order);
+                        newQuestion.setType(FormQuestionType.TEXT_LONG);
+                        newQuestion.setPlaceholder(textLong.placeholder);
+                        newQuestion.setMinLength((short) textLong.minLength);
+                        newQuestion.setMaxLength((short) textLong.maxLength);
+
+                        FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        if (questionImageFile != null && questionImageFile.length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        }
+
+                        results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
+                    }
+                }
+
+                case PatchFormQuestion.PatchTextShort textShort -> {
+                    if (textShort.id.isPresent()) {
+                        Integer questionId = textShort.id.get();
+                        FormQuestionModel savedQuestion = formQuestionRepository.getFormQuestionModelById(questionId);
+
+                        if (savedQuestion == null) {
+                            results.put("question_" + questionId, "Question not found");
+                            order++;
+                            continue;
+                        }
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        boolean infoChanged = checkChangeByQuestion(savedQuestion, textShort);
+                        boolean orderChanged = savedQuestion.getOrder() != order;
+                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
+                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                        if (infoChanged || orderChanged || deleteImage || replaceImage) {
+                            savedQuestion.setCategory(textShort.category);
+                            savedQuestion.setText(textShort.text.orElse(null));
+                            savedQuestion.setOrder((byte) order);
+                            savedQuestion.setPlaceholder(textShort.placeholder);
+                            savedQuestion.setMinLength((short) textShort.minLength);
+                            savedQuestion.setMaxLength((short) textShort.maxLength);
+
+                            if (deleteImage) {
+                                deleteImageFromEntity(savedQuestion);
+                            } else if (replaceImage) {
+                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                            }
+
+                            formQuestionRepository.save(savedQuestion);
+                            results.put("question_" + questionId, "Updated successfully");
+                        } else {
+                            results.put("question_" + questionId, "No changes");
+                        }
+
+                        processedQuestions.put(questionId, true);
+
+                    } else {
+                        FormQuestionModel newQuestion = new FormQuestionModel();
+                        newQuestion.setCategory(textShort.category);
+                        newQuestion.setText(textShort.text.orElse(null));
+                        newQuestion.setOrder((byte) order);
+                        newQuestion.setType(FormQuestionType.TEXT_SHORT);
+                        newQuestion.setPlaceholder(textShort.placeholder);
+                        newQuestion.setMinLength((short) textShort.minLength);
+                        newQuestion.setMaxLength((short) textShort.maxLength);
+
+                        FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
+
+                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        imageIndex++;
+
+                        if (questionImageFile != null && questionImageFile.length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        }
+
+                        results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
+                    }
+                }
+            }
+
+            order++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedQuestions.entrySet()) {
+            if (!entry.getValue()) {
+                FormQuestionModel questionToDelete = formQuestionRepository.findById(entry.getKey()).orElse(null);
+                if (questionToDelete != null) {
+                    deleteQuestionWithImage(questionToDelete);
+                    results.put("question_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private int processQuestionOptions(FormQuestionModel question,
+                                       List<PatchFormOption> patchOptions,
+                                       List<File> images,
+                                       int currentImageIndex,
+                                       Map<String, String> results) {
+        List<FormQuestionOptionModel> allExistingOptions = formQuestionOptionRepository.findAllByFormQuestion_Id(question.getId());
+        Map<Integer, Boolean> processedOptions = new HashMap<>();
+
+        for (FormQuestionOptionModel option : allExistingOptions) {
+            processedOptions.put(option.getId(), false);
+        }
+
+        int optionOrder = 0;
+        int imageIndex = currentImageIndex;
+
+        for (PatchFormOption patchOption : patchOptions) {
+            if (patchOption.id().isPresent()) {
+                Integer optionId = patchOption.id().get();
+                FormQuestionOptionModel savedOption = formQuestionOptionRepository.getFormQuestionOptionModelById(optionId);
+
+                if (savedOption == null) {
+                    results.put("question_" + question.getId() + "_option_" + optionId, "Option not found");
+                    optionOrder++;
+                    imageIndex++;
+                    continue;
+                }
+
+                File optionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                imageIndex++;
+
+                boolean textChanged = !Objects.equals(savedOption.getText(), patchOption.text().orElse(null));
+                boolean orderChanged = savedOption.getOrder() != optionOrder;
+                boolean deleteImage = optionImageFile != null && optionImageFile.length() == 0;
+                boolean replaceImage = optionImageFile != null && optionImageFile.length() > 0;
+
+                if (textChanged || orderChanged || deleteImage || replaceImage) {
+                    savedOption.setText(patchOption.text().orElse(null));
+                    savedOption.setOrder((byte) optionOrder);
+
+                    if (deleteImage) {
+                        deleteImageFromEntity(savedOption);
+                    } else if (replaceImage) {
+                        updateOrCreateOptionImage(savedOption, optionImageFile);
+                    }
+
+                    formQuestionOptionRepository.save(savedOption);
+                    results.put("question_" + question.getId() + "_option_" + optionId, "Updated successfully");
+                } else {
+                    results.put("question_" + question.getId() + "_option_" + optionId, "No changes");
+                }
+
+                processedOptions.put(optionId, true);
+
+            } else {
+                FormQuestionOptionModel newOption = new FormQuestionOptionModel();
+                newOption.setText(patchOption.text().orElse(null));
+                newOption.setOrder((byte) optionOrder);
+                newOption.setFormQuestion(question);
+
+                FormQuestionOptionModel savedNewOption = formQuestionOptionRepository.save(newOption);
+
+                File optionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                imageIndex++;
+
+                if (optionImageFile != null && optionImageFile.length() > 0) {
+                    updateOrCreateOptionImage(savedNewOption, optionImageFile);
+                }
+
+                results.put("question_" + question.getId() + "_option_new_" + optionOrder, "Created with ID: " + savedNewOption.getId());
+            }
+
+            optionOrder++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedOptions.entrySet()) {
+            if (!entry.getValue()) {
+                formQuestionOptionRepository.findById(entry.getKey()).ifPresent(option -> {
+                    deleteOptionWithImage(option);
+                    results.put("question_" + question.getId() + "_option_" + entry.getKey(), "Deleted");
+                });
+            }
+        }
+
+        return imageIndex;
+    }
+
+    private void updateOrCreateQuestionImage(FormQuestionModel question, File imageFile) {
+        try {
+            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+            ImageModel currentImage = question.getImage();
+
+            if (currentImage != null) {
+                imageService.saveImageBytes(imageBytes, currentImage.getPath());
+            } else {
+                String altText = "Question image for: " + question.getCategory();
+                UploadImageResponse response = imageService.createAndSaveImageBytes(
+                    imageBytes,
+                    "form/questions",
+                    imageFile.getName(),
+                    altText
+                );
+                String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                ImageModel newImage = imageService.getImageModelByPath(path);
+                question.setImage(newImage);
+                formQuestionRepository.save(question);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing question image: " + e.getMessage(), e);
+        }
+    }
+
+    private void updateOrCreateOptionImage(FormQuestionOptionModel option, File imageFile) {
+        try {
+            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+            ImageModel currentImage = option.getImage();
+
+            if (currentImage != null) {
+                imageService.saveImageBytes(imageBytes, currentImage.getPath());
+            } else {
+                String altText = "Option image: " + (option.getText() != null ? option.getText() : "option");
+                UploadImageResponse response = imageService.createAndSaveImageBytes(
+                    imageBytes,
+                    "form/questions/options",
+                    imageFile.getName(),
+                    altText
+                );
+                String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                ImageModel newImage = imageService.getImageModelByPath(path);
+                option.setImage(newImage);
+                formQuestionOptionRepository.save(option);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing option image: " + e.getMessage(), e);
+        }
+    }
+
+    private void deleteImageFromEntity(FormQuestionModel question) {
+        ImageModel oldImage = question.getImage();
+        question.setImage(null);
+        if (oldImage != null) {
+            imageService.deleteImage(oldImage.getPath());
+        }
+    }
+
+    private void deleteImageFromEntity(FormQuestionOptionModel option) {
+        ImageModel oldImage = option.getImage();
+        option.setImage(null);
+        if (oldImage != null) {
+            imageService.deleteImage(oldImage.getPath());
+        }
+    }
+
+    private void deleteQuestionWithImage(FormQuestionModel question) {
+        ImageModel image = question.getImage();
+        formQuestionRepository.deleteById(question.getId());
+        if (image != null) {
+            imageService.deleteImage(image.getPath());
+        }
+    }
+
+    private void deleteOptionWithImage(FormQuestionOptionModel option) {
+        ImageModel image = option.getImage();
+        formQuestionOptionRepository.deleteById(option.getId());
+        if (image != null) {
+            imageService.deleteImage(image.getPath());
+        }
+    }
+
+    private boolean checkChangeByQuestion(FormQuestionModel saved, PatchFormQuestion patch) {
+        return switch (patch) {
+            case PatchFormQuestion.PatchSelectMultiple sm ->
+                !Objects.equals(saved.getCategory(), sm.category) ||
+                    !Objects.equals(saved.getText(), sm.text.orElse(null)) ||
+                    saved.getMin() != sm.min ||
+                    saved.getMax() != sm.max ||
+                    saved.getOther() != sm.other;
+
+            case PatchFormQuestion.PatchSelectOne so ->
+                !Objects.equals(saved.getCategory(), so.category) ||
+                    !Objects.equals(saved.getText(), so.text.orElse(null)) ||
+                    saved.getOther() != so.other;
+
+            case PatchFormQuestion.PatchSlider sl ->
+                !Objects.equals(saved.getCategory(), sl.category) ||
+                    !Objects.equals(saved.getText(), sl.text.orElse(null)) ||
+                    !Objects.equals(saved.getPlaceholder(), sl.placeholder) ||
+                    saved.getMin() != sl.min ||
+                    saved.getMax() != sl.max ||
+                    saved.getStep() != sl.step;
+
+            case PatchFormQuestion.PatchTextLong tl ->
+                !Objects.equals(saved.getCategory(), tl.category) ||
+                    !Objects.equals(saved.getText(), tl.text.orElse(null)) ||
+                    !Objects.equals(saved.getPlaceholder(), tl.placeholder) ||
+                    saved.getMinLength() != tl.minLength ||
+                    saved.getMaxLength() != tl.maxLength;
+
+            case PatchFormQuestion.PatchTextShort ts ->
+                !Objects.equals(saved.getCategory(), ts.category) ||
+                    !Objects.equals(saved.getText(), ts.text.orElse(null)) ||
+                    !Objects.equals(saved.getPlaceholder(), ts.placeholder) ||
+                    saved.getMinLength() != ts.minLength ||
+                    saved.getMaxLength() != ts.maxLength;
+        };
     }
 
     private boolean checkChangeByInfoCard(HomeInfoCardModel savedCard, PatchInformationCard updated) {

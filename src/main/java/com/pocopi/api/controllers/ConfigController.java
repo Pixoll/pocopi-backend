@@ -26,7 +26,7 @@ public class ConfigController {
 
     @PatchMapping()
     public ResponseEntity<String> updateLastestConfig(@RequestBody PatchRequest request) {
-        String response = configService.updateConfig(request);
+        String response = configService.processUpdatedConfig(request);
         return ResponseEntity.ok(response);
     }
 
