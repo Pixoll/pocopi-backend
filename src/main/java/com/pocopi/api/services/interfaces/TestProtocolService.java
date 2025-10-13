@@ -1,0 +1,22 @@
+package com.pocopi.api.services.interfaces;
+
+import com.pocopi.api.dto.TestGroup.PatchProtocol;
+import com.pocopi.api.models.TestGroupModel;
+import com.pocopi.api.models.TestProtocolModel;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+public interface TestProtocolService {
+
+    Map<String, String> processProtocol(
+        TestGroupModel group,
+        PatchProtocol updatedProtocol,
+        List<File> images,
+        int imageIndex,
+        Map<String, String> results
+    );
+    TestProtocolModel findByGroup(TestGroupModel group);
+    void deleteWithPhases(TestProtocolModel protocol);
+}

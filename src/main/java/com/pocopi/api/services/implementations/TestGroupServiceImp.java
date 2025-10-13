@@ -1,18 +1,21 @@
 package com.pocopi.api.services.implementations;
 
+import com.pocopi.api.dto.Image.UploadImageResponse;
 import com.pocopi.api.dto.TestGroup.*;
-import com.pocopi.api.models.TestGroupModel;
+import com.pocopi.api.models.*;
 import com.pocopi.api.repositories.TestGroupData;
 import com.pocopi.api.repositories.TestGroupRepository;
+import com.pocopi.api.repositories.TestProtocolRepository;
 import com.pocopi.api.services.interfaces.ImageService;
 import com.pocopi.api.services.interfaces.TestGroupService;
+import com.pocopi.api.services.interfaces.TestProtocolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,11 +23,13 @@ public class TestGroupServiceImp implements TestGroupService {
 
     TestGroupRepository testGroupRepository;
     ImageService imageService;
+    TestProtocolService testProtocolService;
 
     @Autowired
-    public TestGroupServiceImp(TestGroupRepository testGroupRepository,  ImageService imageService) {
+    public TestGroupServiceImp(TestGroupRepository testGroupRepository,  ImageService imageService,  TestProtocolService testProtocolService) {
         this.testGroupRepository = testGroupRepository;
         this.imageService = imageService;
+        this.testProtocolService = testProtocolService;
     }
     
     @Override
@@ -104,6 +109,107 @@ public class TestGroupServiceImp implements TestGroupService {
     @Override
     public TestGroupModel saveTestGroup(TestGroupModel testGroupModel) {
         return testGroupRepository.save(testGroupModel);
+    }
+    @Override
+    public Map<String, String> processGroups(Map<String, PatchGroup> groups, List<File> images) {
+        Map<String, String> results = new HashMap<>();
+        List<TestGroupModel> allExistingGroups = finAllTestGroups();
+        Map<Integer, Boolean> processedGroups = new HashMap<>();
+
+        for (TestGroupModel group : allExistingGroups) {
+            processedGroups.put(group.getId(), false);
+        }
+
+        int imageIndex = 0;
+
+        for (Map.Entry<String, PatchGroup> entry : groups.entrySet()) {
+            String groupKey = entry.getKey();
+            PatchGroup updatedGroup = entry.getValue();
+
+            if (updatedGroup.id().isPresent()) {
+                int groupId = updatedGroup.id().get();
+                TestGroupModel savedGroup = getTestGroup(groupId);
+
+                if (savedGroup == null) {
+                    results.put("group_" + groupId, "Group not found");
+                    continue;
+                }
+
+                boolean infoChanged = checkChangeByGroup(updatedGroup, savedGroup);
+
+                if (infoChanged) {
+                    savedGroup.setGreeting(updatedGroup.greeting());
+                    savedGroup.setLabel(updatedGroup.label());
+                    savedGroup.setProbability((byte) updatedGroup.probability());
+
+                    saveTestGroup(savedGroup);
+                }
+
+                Map<String, String> protocolResults = testProtocolService.processProtocol(
+                    savedGroup,
+                    updatedGroup.protocol(),
+                    images,
+                    imageIndex,
+                    results
+                );
+                results.putAll(protocolResults);
+
+                if (infoChanged) {
+                    results.put("group_" + groupId, "Updated successfully");
+                } else {
+                    results.put("group_" + groupId, "No changes");
+                }
+
+                processedGroups.put(groupId, true);
+
+            } else {
+                TestGroupModel newGroup = new TestGroupModel();
+                newGroup.setProbability((byte) updatedGroup.probability());
+                newGroup.setGreeting(updatedGroup.greeting());
+                newGroup.setLabel(updatedGroup.label());
+
+                TestGroupModel savedGroup = saveTestGroup(newGroup);
+
+                Map<String, String> protocolResults = testProtocolService.processProtocol(
+                    savedGroup,
+                    updatedGroup.protocol(),
+                    images,
+                    imageIndex,
+                    results
+                );
+                results.putAll(protocolResults);
+
+                results.put("group_new_" + groupKey, "Created with ID: " + savedGroup.getId());
+            }
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedGroups.entrySet()) {
+            if (!entry.getValue()) {
+                TestGroupModel groupToDelete = getTestGroup(entry.getKey());
+                if (groupToDelete != null) {
+                    deleteGroupWithProtocol(groupToDelete);
+                    results.put("group_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private void deleteGroupWithProtocol(TestGroupModel group) {
+        TestProtocolModel protocol = testProtocolService.findByGroup(group);
+        deleteTestGroup(group);
+        if (protocol != null) {
+            testProtocolService.deleteWithPhases(protocol);
+        }
+    }
+
+    private boolean checkChangeByGroup(PatchGroup updatedGroup, TestGroupModel savedGroup) {
+        return (
+            !Objects.equals(updatedGroup.label(), savedGroup.getLabel()) ||
+                updatedGroup.probability() != savedGroup.getProbability() ||
+                !Objects.equals(updatedGroup.greeting(), savedGroup.getGreeting())
+        );
     }
 
     @Override
