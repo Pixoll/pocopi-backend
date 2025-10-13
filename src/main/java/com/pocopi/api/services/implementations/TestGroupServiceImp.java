@@ -95,4 +95,19 @@ public class TestGroupServiceImp implements TestGroupService {
             })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a,b) -> a, LinkedHashMap::new));
     }
+
+    @Override
+    public List<TestGroupModel> finAllTestGroups() {
+        return testGroupRepository.findAll();
+    }
+
+    @Override
+    public TestGroupModel saveTestGroup(TestGroupModel testGroupModel) {
+        return testGroupRepository.save(testGroupModel);
+    }
+
+    @Override
+    public void deleteTestGroup(TestGroupModel testGroupModel) {
+        testGroupRepository.delete(testGroupModel);
+    }
 }

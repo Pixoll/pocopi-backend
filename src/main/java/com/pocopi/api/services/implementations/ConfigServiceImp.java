@@ -39,6 +39,10 @@ public class ConfigServiceImp implements ConfigService {
     private final FormRepository formRepository;
     private final FormQuestionRepository formQuestionRepository;
     private final FormQuestionOptionRepository formQuestionOptionRepository;
+    private final TestProtocolRepository  testProtocolRepository;
+    private final TestPhaseRepository testPhaseRepository;
+    private final TestQuestionRepository testQuestionRepository;
+    private final TestOptionRepository testOptionRepository;
     private final ImageService imageService;
     private final TestGroupService testGroupService;
 
@@ -49,6 +53,10 @@ public class ConfigServiceImp implements ConfigService {
                             FormRepository formRepository,
                             FormQuestionRepository formQuestionRepository,
                             FormQuestionOptionRepository formQuestionOptionRepository,
+                            TestProtocolRepository  testProtocolRepository,
+                            TestPhaseRepository  testPhaseRepository,
+                            TestQuestionRepository  testQuestionRepository,
+                            TestOptionRepository  testOptionRepository,
                             ImageService imageService,
                             TestGroupService testGroupService
     ) {
@@ -59,6 +67,10 @@ public class ConfigServiceImp implements ConfigService {
         this.formRepository = formRepository;
         this.formQuestionRepository = formQuestionRepository;
         this.formQuestionOptionRepository = formQuestionOptionRepository;
+        this.testProtocolRepository = testProtocolRepository;
+        this.testPhaseRepository = testPhaseRepository;
+        this.testQuestionRepository = testQuestionRepository;
+        this.testOptionRepository = testOptionRepository;
         this.imageService = imageService;
         this.testGroupService = testGroupService;
     }
@@ -154,10 +166,578 @@ public class ConfigServiceImp implements ConfigService {
         Map<String, String> preTestUpdatedSummary = processFormQuestions(request.updateLastConfig().preTestForm(), request.preTestFormQuestionOptionsFiles());
         Map<String, String> postTestUpdatedSummary = processFormQuestions(request.updateLastConfig().postTestForm(), request.preTestFormQuestionOptionsFiles());
 
+        Map<String, String> groupSummary = processGroups(request.updateLastConfig().groups(), request.groupQuestionOptionsFiles());
 
 
         return "xd";
 
+    }
+    private Map<String, String> processGroups(Map<String, PatchGroup> groups, List<File> images) {
+        Map<String, String> results = new HashMap<>();
+        List<TestGroupModel> allExistingGroups = testGroupService.finAllTestGroups();
+        Map<Integer, Boolean> processedGroups = new HashMap<>();
+
+        for (TestGroupModel group : allExistingGroups) {
+            processedGroups.put(group.getId(), false);
+        }
+
+        int imageIndex = 0;
+
+        for (Map.Entry<String, PatchGroup> entry : groups.entrySet()) {
+            String groupKey = entry.getKey();
+            PatchGroup updatedGroup = entry.getValue();
+
+            if (updatedGroup.id().isPresent()) {
+                int groupId = updatedGroup.id().get();
+                TestGroupModel savedGroup = testGroupService.getTestGroup(groupId);
+
+                if (savedGroup == null) {
+                    results.put("group_" + groupId, "Group not found");
+                    continue;
+                }
+
+                boolean infoChanged = checkChangeByGroup(updatedGroup, savedGroup);
+
+                if (infoChanged) {
+                    savedGroup.setGreeting(updatedGroup.greeting());
+                    savedGroup.setLabel(updatedGroup.label());
+                    savedGroup.setProbability((byte) updatedGroup.probability());
+
+                    testGroupService.saveTestGroup(savedGroup);
+                }
+
+                Map<String, String> protocolResults = processProtocol(
+                    savedGroup,
+                    updatedGroup.protocol(),
+                    images,
+                    imageIndex,
+                    results
+                );
+                results.putAll(protocolResults);
+
+                if (infoChanged) {
+                    results.put("group_" + groupId, "Updated successfully");
+                } else {
+                    results.put("group_" + groupId, "No changes");
+                }
+
+                processedGroups.put(groupId, true);
+
+            } else {
+                TestGroupModel newGroup = new TestGroupModel();
+                newGroup.setProbability((byte) updatedGroup.probability());
+                newGroup.setGreeting(updatedGroup.greeting());
+                newGroup.setLabel(updatedGroup.label());
+
+                TestGroupModel savedGroup = testGroupService.saveTestGroup(newGroup);
+
+                Map<String, String> protocolResults = processProtocol(
+                    savedGroup,
+                    updatedGroup.protocol(),
+                    images,
+                    imageIndex,
+                    results
+                );
+                results.putAll(protocolResults);
+
+                results.put("group_new_" + groupKey, "Created with ID: " + savedGroup.getId());
+            }
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedGroups.entrySet()) {
+            if (!entry.getValue()) {
+                TestGroupModel groupToDelete = testGroupService.getTestGroup(entry.getKey());
+                if (groupToDelete != null) {
+                    deleteGroupWithProtocol(groupToDelete);
+                    results.put("group_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private Map<String, String> processProtocol(
+        TestGroupModel group,
+        PatchProtocol updatedProtocol,
+        List<File> images,
+        int imageIndex,
+        Map<String, String> results
+    ) {
+        Map<String, String> protocolResults = new HashMap<>();
+
+        if (updatedProtocol.id().isPresent()) {
+            int protocolId = updatedProtocol.id().get();
+            TestProtocolModel savedProtocol = testProtocolRepository.getById(protocolId);
+
+            if (savedProtocol == null) {
+                protocolResults.put("protocol_" + protocolId, "Protocol not found");
+                return protocolResults;
+            }
+
+            boolean isChanged = checkProtocolChanged(updatedProtocol, savedProtocol);
+
+            if (isChanged) {
+                savedProtocol.setLabel(updatedProtocol.label());
+                savedProtocol.setAllowPreviousPhase(updatedProtocol.allowPreviousPhase());
+                savedProtocol.setAllowPreviousQuestion(updatedProtocol.allowPreviousQuestion());
+                savedProtocol.setAllowSkipQuestion(updatedProtocol.allowSkipQuestion());
+                testProtocolRepository.save(savedProtocol);
+            }
+
+            Map<String, String> phaseResults = processPhases(
+                savedProtocol,
+                updatedProtocol.phases(),
+                images,
+                imageIndex
+            );
+            protocolResults.putAll(phaseResults);
+
+            if (isChanged) {
+                protocolResults.put("protocol_" + protocolId, "Updated successfully");
+            } else {
+                protocolResults.put("protocol_" + protocolId, "No changes");
+            }
+
+        } else {
+            TestProtocolModel newProtocol = new TestProtocolModel();
+            newProtocol.setAllowPreviousPhase(updatedProtocol.allowPreviousPhase());
+            newProtocol.setAllowPreviousQuestion(updatedProtocol.allowPreviousQuestion());
+            newProtocol.setAllowSkipQuestion(updatedProtocol.allowSkipQuestion());
+            newProtocol.setLabel(updatedProtocol.label());
+            newProtocol.setGroup(group);
+
+            TestProtocolModel savedProtocol = testProtocolRepository.save(newProtocol);
+
+            Map<String, String> phaseResults = processPhases(
+                savedProtocol,
+                updatedProtocol.phases(),
+                images,
+                imageIndex
+            );
+            protocolResults.putAll(phaseResults);
+
+            protocolResults.put("protocol_new", "Created with ID: " + savedProtocol.getId());
+        }
+
+        return protocolResults;
+    }
+
+    private Map<String, String> processPhases(
+        TestProtocolModel protocol,
+        List<PatchPhase> phases,
+        List<File> images,
+        int imageIndex
+    ) {
+        Map<String, String> results = new HashMap<>();
+        List<TestPhaseModel> allExistingPhases = testPhaseRepository.findAllByProtocol((protocol));
+        Map<Integer, Boolean> processedPhases = new HashMap<>();
+
+        for (TestPhaseModel phase : allExistingPhases) {
+            processedPhases.put(phase.getId(), false);
+        }
+
+        int order = 0;
+        for (PatchPhase patchPhase : phases) {
+            if (patchPhase.id().isPresent()) {
+                int phaseId = patchPhase.id().get();
+                TestPhaseModel savedPhase = testPhaseRepository.findById(phaseId).orElse(null);
+
+                if (savedPhase == null) {
+                    results.put("phase_" + phaseId, "Phase not found");
+                    order++;
+                    continue;
+                }
+
+                boolean orderChanged = savedPhase.getOrder() != order;
+
+                if (orderChanged) {
+                    savedPhase.setOrder((byte) order);
+                    testPhaseRepository.save(savedPhase);
+                }
+
+                Map<String, String> questionResults = processTestQuestions(
+                    savedPhase,
+                    patchPhase.questions(),
+                    images,
+                    imageIndex
+                );
+                results.putAll(questionResults);
+
+                if (orderChanged) {
+                    results.put("phase_" + phaseId, "Updated successfully");
+                } else {
+                    results.put("phase_" + phaseId, "No changes");
+                }
+
+                processedPhases.put(phaseId, true);
+
+            } else {
+                TestPhaseModel newPhase = new TestPhaseModel();
+                newPhase.setOrder((byte) order);
+                newPhase.setProtocol(protocol);
+
+                TestPhaseModel savedPhase = testPhaseRepository.save(newPhase);
+
+                Map<String, String> questionResults = processTestQuestions(
+                    savedPhase,
+                    patchPhase.questions(),
+                    images,
+                    imageIndex
+                );
+                results.putAll(questionResults);
+
+                results.put("phase_new_" + order, "Created with ID: " + savedPhase.getId());
+            }
+
+            order++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedPhases.entrySet()) {
+            if (!entry.getValue()) {
+                TestPhaseModel phaseToDelete = testPhaseRepository.findById(entry.getKey()).orElse(null);
+                if (phaseToDelete != null) {
+                    deletePhaseWithQuestions(phaseToDelete);
+                    results.put("phase_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private Map<String, String> processTestQuestions(
+        TestPhaseModel phase,
+        List<PatchQuestion> questions,
+        List<File> images,
+        int imageIndex
+    ) {
+        Map<String, String> results = new HashMap<>();
+        List<TestQuestionModel> allExistingQuestions = testQuestionRepository.findAllByPhase(phase);
+        Map<Integer, Boolean> processedQuestions = new HashMap<>();
+
+        for (TestQuestionModel question : allExistingQuestions) {
+            processedQuestions.put(question.getId(), false);
+        }
+
+        int order = 0;
+        for (PatchQuestion patchQuestion : questions) {
+            if (patchQuestion.id().isPresent()) {
+                int questionId = patchQuestion.id().get();
+                TestQuestionModel savedQuestion = testQuestionRepository.findById(questionId).orElse(null);
+
+                if (savedQuestion == null) {
+                    results.put("question_" + questionId, "Question not found");
+                    order++;
+                    imageIndex++;
+                    continue;
+                }
+
+                File questionImageFile = images != null && imageIndex < images.size()
+                    ? images.get(imageIndex)
+                    : null;
+                imageIndex++;
+
+                boolean textChanged = !Objects.equals(savedQuestion.getText(), patchQuestion.text());
+                boolean orderChanged = savedQuestion.getOrder() != order;
+                boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
+                boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                if (textChanged || orderChanged || deleteImage || replaceImage) {
+                    savedQuestion.setText(patchQuestion.text());
+                    savedQuestion.setOrder((byte) order);
+
+                    if (deleteImage) {
+                        deleteImageFromQuestion(savedQuestion);
+                    } else if (replaceImage) {
+                        updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                    }
+
+                    testQuestionRepository.save(savedQuestion);
+                    results.put("question_" + questionId, "Updated successfully");
+                } else {
+                    results.put("question_" + questionId, "No changes");
+                }
+
+                Map<String, String> optionResults = processTestQuestionOptions(
+                    savedQuestion,
+                    patchQuestion.options(),
+                    images,
+                    imageIndex
+                );
+                results.putAll(optionResults);
+
+                processedQuestions.put(questionId, true);
+
+            } else {
+                TestQuestionModel newQuestion = new TestQuestionModel();
+                newQuestion.setText(patchQuestion.text());
+                newQuestion.setOrder((byte) order);
+                newQuestion.setPhase(phase);
+
+                TestQuestionModel savedQuestion = testQuestionRepository.save(newQuestion);
+
+                File questionImageFile = images != null && imageIndex < images.size()
+                    ? images.get(imageIndex)
+                    : null;
+                imageIndex++;
+
+                if (questionImageFile != null && questionImageFile.length() > 0) {
+                    updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                }
+
+                Map<String, String> optionResults = processTestQuestionOptions(
+                    savedQuestion,
+                    patchQuestion.options(),
+                    images,
+                    imageIndex
+                );
+                results.putAll(optionResults);
+
+                results.put("question_new_" + order, "Created with ID: " + savedQuestion.getId());
+            }
+
+            order++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedQuestions.entrySet()) {
+            if (!entry.getValue()) {
+                TestQuestionModel questionToDelete = testQuestionRepository.findById(entry.getKey()).orElse(null);
+                if (questionToDelete != null) {
+                    deleteQuestionWithOptions(questionToDelete);
+                    results.put("question_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private Map<String, String> processTestQuestionOptions(
+        TestQuestionModel question,
+        List<PatchOption> options,
+        List<File> images,
+        int imageIndex
+    ) {
+        Map<String, String> results = new HashMap<>();
+        List<TestOptionModel> allExistingOptions = testOptionRepository.findAllByQuestion(question);
+        Map<Integer, Boolean> processedOptions = new HashMap<>();
+
+        for (TestOptionModel option : allExistingOptions) {
+            processedOptions.put(option.getId(), false);
+        }
+
+        int order = 0;
+        for (PatchOption patchOption : options) {
+            if (patchOption.id().isPresent()) {
+                int optionId = patchOption.id().get();
+                TestOptionModel savedOption = testOptionRepository.findById(optionId).orElse(null);
+
+                if (savedOption == null) {
+                    results.put("question_" + question.getId() + "_option_" + optionId, "Option not found");
+                    order++;
+                    imageIndex++;
+                    continue;
+                }
+
+                File optionImageFile = images != null && imageIndex < images.size()
+                    ? images.get(imageIndex)
+                    : null;
+                imageIndex++;
+
+                boolean textChanged = !Objects.equals(savedOption.getText(), patchOption.text());
+                boolean correctChanged = savedOption.isCorrect() != patchOption.correct();
+                boolean orderChanged = savedOption.getOrder() != order;
+                boolean deleteImage = optionImageFile != null && optionImageFile.length() == 0;
+                boolean replaceImage = optionImageFile != null && optionImageFile.length() > 0;
+
+                if (textChanged || correctChanged || orderChanged || deleteImage || replaceImage) {
+                    savedOption.setText(patchOption.text());
+                    savedOption.setCorrect(patchOption.correct());
+                    savedOption.setOrder((byte) order);
+
+                    if (deleteImage) {
+                        deleteImageFromOption(savedOption);
+                    } else if (replaceImage) {
+                        updateOrCreateOptionImage(savedOption, optionImageFile);
+                    }
+
+                    testOptionRepository.save(savedOption);
+                    results.put("question_" + question.getId() + "_option_" + optionId, "Updated successfully");
+                } else {
+                    results.put("question_" + question.getId() + "_option_" + optionId, "No changes");
+                }
+
+                processedOptions.put(optionId, true);
+
+            } else {
+
+                TestOptionModel newOption = new TestOptionModel();
+                newOption.setText(patchOption.text());
+                newOption.setCorrect(patchOption.correct());
+                newOption.setOrder((byte) order);
+                newOption.setQuestion(question);
+
+                TestOptionModel savedOption = testOptionRepository.save(newOption);
+
+                File optionImageFile = images != null && imageIndex < images.size()
+                    ? images.get(imageIndex)
+                    : null;
+                imageIndex++;
+
+                if (optionImageFile != null && optionImageFile.length() > 0) {
+                    updateOrCreateOptionImage(savedOption, optionImageFile);
+                }
+
+                results.put("question_" + question.getId() + "_option_new_" + order, "Created with ID: " + savedOption.getId());
+            }
+
+            order++;
+        }
+
+        for (Map.Entry<Integer, Boolean> entry : processedOptions.entrySet()) {
+            if (!entry.getValue()) {
+                TestOptionModel optionToDelete = testOptionRepository.findById(entry.getKey()).orElse(null);
+                if (optionToDelete != null) {
+                    deleteOptionWithImage(optionToDelete);
+                    results.put("question_" + question.getId() + "_option_" + entry.getKey(), "Deleted");
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private void updateOrCreateQuestionImage(TestQuestionModel question, File imageFile) {
+        try {
+            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+            ImageModel currentImage = question.getImage();
+
+            if (currentImage != null) {
+                imageService.saveImageBytes(imageBytes, currentImage.getPath());
+            } else {
+                String altText = "Test question image: " + (question.getText() != null ? question.getText() : "question");
+                UploadImageResponse response = imageService.createAndSaveImageBytes(
+                    imageBytes,
+                    "test/questions",
+                    imageFile.getName(),
+                    altText
+                );
+                String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                ImageModel newImage = imageService.getImageModelByPath(path);
+                question.setImage(newImage);
+                testQuestionRepository.save(question);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing question image: " + e.getMessage(), e);
+        }
+    }
+
+    private void updateOrCreateOptionImage(TestOptionModel option, File imageFile) {
+        try {
+            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+            ImageModel currentImage = option.getImage();
+
+            if (currentImage != null) {
+                imageService.saveImageBytes(imageBytes, currentImage.getPath());
+            } else {
+                String altText = "Test option image: " + (option.getText() != null ? option.getText() : "option");
+                UploadImageResponse response = imageService.createAndSaveImageBytes(
+                    imageBytes,
+                    "test/questions/options",
+                    imageFile.getName(),
+                    altText
+                );
+                String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                ImageModel newImage = imageService.getImageModelByPath(path);
+                option.setImage(newImage);
+                testOptionRepository.save(option);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing option image: " + e.getMessage(), e);
+        }
+    }
+
+    private void deleteImageFromQuestion(TestQuestionModel question) {
+        ImageModel oldImage = question.getImage();
+        question.setImage(null);
+        testQuestionRepository.save(question);
+        if (oldImage != null) {
+            imageService.deleteImage(oldImage.getPath());
+        }
+    }
+
+    private void deleteImageFromOption(TestOptionModel option) {
+        ImageModel oldImage = option.getImage();
+        option.setImage(null);
+        testOptionRepository.save(option);
+        if (oldImage != null) {
+            imageService.deleteImage(oldImage.getPath());
+        }
+    }
+
+    private void deleteGroupWithProtocol(TestGroupModel group) {
+        TestProtocolModel protocol = testProtocolRepository.findByGroup(group);
+        testGroupService.deleteTestGroup(group);
+        if (protocol != null) {
+            deleteProtocolWithPhases(protocol);
+        }
+    }
+
+    private void deleteProtocolWithPhases(TestProtocolModel protocol) {
+        List<TestPhaseModel> phases = testPhaseRepository.findAllByProtocol(protocol);
+        for (TestPhaseModel phase : phases) {
+            deletePhaseWithQuestions(phase);
+        }
+        testProtocolRepository.deleteById(protocol.getId());
+    }
+
+    private void deletePhaseWithQuestions(TestPhaseModel phase) {
+        List<TestQuestionModel> questions = testQuestionRepository.findAllByPhase(phase);
+        for (TestQuestionModel question : questions) {
+            deleteQuestionWithOptions(question);
+        }
+        testPhaseRepository.deleteById(phase.getId());
+    }
+
+    private void deleteQuestionWithOptions(TestQuestionModel question) {
+        ImageModel questionImage = question.getImage();
+
+        List<TestOptionModel> options = testOptionRepository.findAllByQuestion(question);
+        for (TestOptionModel option : options) {
+            deleteOptionWithImage(option);
+        }
+
+        testQuestionRepository.deleteById(question.getId());
+
+        if (questionImage != null) {
+            imageService.deleteImage(questionImage.getPath());
+        }
+    }
+
+    private void deleteOptionWithImage(TestOptionModel option) {
+        ImageModel image = option.getImage();
+        testOptionRepository.deleteById(option.getId());
+        if (image != null) {
+            imageService.deleteImage(image.getPath());
+        }
+    }
+
+    private boolean checkProtocolChanged(PatchProtocol protocol, TestProtocolModel savedProtocol) {
+        return (
+            protocol.allowPreviousPhase() != savedProtocol.isAllowPreviousPhase() ||
+                protocol.allowPreviousQuestion() != savedProtocol.isAllowPreviousQuestion() ||
+                protocol.allowSkipQuestion() != savedProtocol.isAllowSkipQuestion() ||
+                !Objects.equals(protocol.label(), savedProtocol.getLabel())
+        );
+    }
+
+    private boolean checkChangeByGroup(PatchGroup updatedGroup, TestGroupModel savedGroup) {
+        return (
+            !Objects.equals(updatedGroup.label(), savedGroup.getLabel()) ||
+                updatedGroup.probability() != savedGroup.getProbability() ||
+                !Objects.equals(updatedGroup.greeting(), savedGroup.getGreeting())
+        );
     }
 
     private Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<File> updateImages) {

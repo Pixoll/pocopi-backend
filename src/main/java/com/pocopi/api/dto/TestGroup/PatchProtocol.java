@@ -9,6 +9,9 @@ public record PatchProtocol(
     Optional<Integer> id,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    String label,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean allowPreviousPhase,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

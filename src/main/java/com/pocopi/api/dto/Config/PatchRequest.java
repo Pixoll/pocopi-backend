@@ -12,6 +12,7 @@ public record PatchRequest(
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by pre test form")
     List<File> preTestFormQuestionOptionsFiles,
+
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by post test form")
     List<File> postTestFormQuestionOptionsFiles,
 
