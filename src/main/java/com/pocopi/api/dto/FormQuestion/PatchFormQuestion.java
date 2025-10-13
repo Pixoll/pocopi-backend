@@ -2,7 +2,7 @@ package com.pocopi.api.dto.FormQuestion;
 
 import com.pocopi.api.dto.FormQuestionOption.PatchFormOption;
 import com.pocopi.api.dto.SliderLabel.SliderLabel;
-import com.pocopi.api.models.FormQuestionType;
+import com.pocopi.api.models.form.FormQuestionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 

@@ -1,7 +1,7 @@
 package com.pocopi.api.services.interfaces;
 
 import com.pocopi.api.dto.HomeInfoCard.PatchInformationCard;
-import com.pocopi.api.models.HomeInfoCardModel;
+import com.pocopi.api.models.config.HomeInfoCardModel;
 
 import java.io.File;
 import java.util.List;

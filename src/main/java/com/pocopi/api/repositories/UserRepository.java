@@ -1,7 +1,6 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.dto.User.User;
-import com.pocopi.api.models.UserModel;
+import com.pocopi.api.models.user.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

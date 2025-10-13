@@ -1,6 +1,6 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.models.HomeFaqModel;
+import com.pocopi.api.models.config.HomeFaqModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

@@ -1,5 +1,7 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.form;
 
+import com.pocopi.api.converters.FormTypeConverter;
+import com.pocopi.api.models.config.ConfigModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,13 +10,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_option", uniqueConstraints = {@UniqueConstraint(columnNames = {"question_id", "order"})})
+@Table(name = "form", uniqueConstraints = {@UniqueConstraint(columnNames = {"config_version", "type"})})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TestOptionModel {
+public class FormModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -24,20 +26,15 @@ public class TestOptionModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "question_id", nullable = false)
-    private TestQuestionModel question;
-
-    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
+    @JoinColumn(name = "config_version", nullable = false)
+    private ConfigModel config;
 
     @Size(min = 1, max = 100)
-    @Column(name = "text", length = 100)
-    private String text = null;
+    @Column(name = "title", length = 100)
+    private String title = null;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "image_id")
-    private ImageModel image = null;
-
-    @Column(name = "correct", nullable = false)
-    private boolean correct;
+    @NotNull
+    @Convert(converter = FormTypeConverter.class)
+    @Column(name = "type", nullable = false)
+    private FormType type;
 }

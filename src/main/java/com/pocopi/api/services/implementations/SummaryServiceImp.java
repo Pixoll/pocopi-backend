@@ -2,8 +2,8 @@ package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.User.TotalUserSummary;
 import com.pocopi.api.dto.User.UserSummary;
-import com.pocopi.api.models.ConfigModel;
-import com.pocopi.api.models.UserModel;
+import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
 import com.pocopi.api.services.interfaces.ConfigService;

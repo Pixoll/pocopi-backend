@@ -2,7 +2,7 @@ package com.pocopi.api.services.interfaces;
 
 import com.pocopi.api.dto.Image.Image;
 import com.pocopi.api.dto.Image.UploadImageResponse;
-import com.pocopi.api.models.ImageModel;
+import com.pocopi.api.models.image.ImageModel;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ImageService {

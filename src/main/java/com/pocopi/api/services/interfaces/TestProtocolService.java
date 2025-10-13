@@ -1,8 +1,8 @@
 package com.pocopi.api.services.interfaces;
 
 import com.pocopi.api.dto.TestGroup.PatchProtocol;
-import com.pocopi.api.models.TestGroupModel;
-import com.pocopi.api.models.TestProtocolModel;
+import com.pocopi.api.models.test.TestGroupModel;
+import com.pocopi.api.models.test.TestProtocolModel;
 
 import java.io.File;
 import java.util.List;

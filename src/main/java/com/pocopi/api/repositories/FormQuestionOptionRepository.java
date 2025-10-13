@@ -1,6 +1,6 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.models.FormQuestionOptionModel;
+import com.pocopi.api.models.form.FormQuestionOptionModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

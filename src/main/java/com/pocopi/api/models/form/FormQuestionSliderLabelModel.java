@@ -1,4 +1,4 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.form;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -8,13 +8,16 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_group", uniqueConstraints = {@UniqueConstraint(columnNames = {"config_version", "label"})})
+@Table(
+    name = "form_question_slider_label",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"form_question_id", "number"})}
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TestGroupModel {
+public class FormQuestionSliderLabelModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -24,18 +27,14 @@ public class TestGroupModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "config_version", nullable = false)
-    private ConfigModel config;
+    @JoinColumn(name = "form_question_id", nullable = false)
+    private FormQuestionModel formQuestion;
 
-    @Size(min = 1, max = 25)
+    @Column(name = "number", nullable = false, columnDefinition = "int2 unsigned")
+    private short number;
+
+    @Size(min = 1, max = 50)
     @NotNull
-    @Column(name = "label", nullable = false, length = 25)
+    @Column(name = "label", nullable = false, length = 50)
     private String label;
-
-    @Column(name = "probability", nullable = false, columnDefinition = "int1 unsigned")
-    private byte probability;
-
-    @Size(min = 1, max = 2000)
-    @Column(name = "greeting", length = 2000)
-    private String greeting = null;
 }

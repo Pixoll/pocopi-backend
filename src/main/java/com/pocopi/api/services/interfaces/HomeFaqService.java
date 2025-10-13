@@ -2,7 +2,7 @@ package com.pocopi.api.services.interfaces;
 
 
 import com.pocopi.api.dto.HomeFaq.PatchFaq;
-import com.pocopi.api.models.HomeFaqModel;
+import com.pocopi.api.models.config.HomeFaqModel;
 
 import java.util.List;
 import java.util.Map;

@@ -1,8 +1,8 @@
 package com.pocopi.api.services.interfaces;
 
 import com.pocopi.api.dto.TestGroup.PatchOption;
-import com.pocopi.api.models.TestOptionModel;
-import com.pocopi.api.models.TestQuestionModel;
+import com.pocopi.api.models.test.TestOptionModel;
+import com.pocopi.api.models.test.TestQuestionModel;
 
 import java.io.File;
 import java.util.List;

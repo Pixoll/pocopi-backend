@@ -2,9 +2,9 @@ package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.Image.UploadImageResponse;
 import com.pocopi.api.dto.TestGroup.PatchOption;
-import com.pocopi.api.models.ImageModel;
-import com.pocopi.api.models.TestOptionModel;
-import com.pocopi.api.models.TestQuestionModel;
+import com.pocopi.api.models.image.ImageModel;
+import com.pocopi.api.models.test.TestOptionModel;
+import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.TestOptionRepository;
 import com.pocopi.api.services.interfaces.ImageService;
 import com.pocopi.api.services.interfaces.TestOptionService;

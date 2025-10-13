@@ -1,7 +1,7 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.models.TestGroupModel;
-import com.pocopi.api.models.TestProtocolModel;
+import com.pocopi.api.models.test.TestGroupModel;
+import com.pocopi.api.models.test.TestProtocolModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

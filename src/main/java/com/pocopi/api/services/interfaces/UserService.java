@@ -2,7 +2,7 @@ package com.pocopi.api.services.interfaces;
 
 import com.pocopi.api.dto.User.CreateUserRequest;
 import com.pocopi.api.dto.User.User;
-import com.pocopi.api.models.UserModel;
+import com.pocopi.api.models.user.UserModel;
 
 import java.util.List;
 

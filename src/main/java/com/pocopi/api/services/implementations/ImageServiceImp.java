@@ -3,7 +3,7 @@ package com.pocopi.api.services.implementations;
 import com.pocopi.api.config.ImageConfig;
 import com.pocopi.api.dto.Image.Image;
 import com.pocopi.api.dto.Image.UploadImageResponse;
-import com.pocopi.api.models.ImageModel;
+import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
 import com.pocopi.api.services.interfaces.ImageService;
 import org.springframework.stereotype.Service;

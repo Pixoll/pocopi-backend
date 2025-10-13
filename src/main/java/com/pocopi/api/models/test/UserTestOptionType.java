@@ -1,4 +1,4 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.test;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;

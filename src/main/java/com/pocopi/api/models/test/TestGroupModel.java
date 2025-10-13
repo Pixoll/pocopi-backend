@@ -1,5 +1,6 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.test;
 
+import com.pocopi.api.models.config.ConfigModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,13 +9,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "home_faq", uniqueConstraints = @UniqueConstraint(columnNames = {"config_version", "order"}))
+@Table(name = "test_group", uniqueConstraints = {@UniqueConstraint(columnNames = {"config_version", "label"})})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HomeFaqModel {
+public class TestGroupModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -27,16 +28,15 @@ public class HomeFaqModel {
     @JoinColumn(name = "config_version", nullable = false)
     private ConfigModel config;
 
-    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
-
-    @Size(min = 1, max = 100)
+    @Size(min = 1, max = 25)
     @NotNull
-    @Column(name = "question", nullable = false, length = 100)
-    private String question;
+    @Column(name = "label", nullable = false, length = 25)
+    private String label;
 
-    @Size(min = 1, max = 500)
-    @NotNull
-    @Column(name = "answer", nullable = false, length = 500)
-    private String answer;
+    @Column(name = "probability", nullable = false, columnDefinition = "int1 unsigned")
+    private byte probability;
+
+    @Size(min = 1, max = 2000)
+    @Column(name = "greeting", length = 2000)
+    private String greeting = null;
 }

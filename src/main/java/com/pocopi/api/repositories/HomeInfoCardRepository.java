@@ -1,6 +1,6 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.models.HomeInfoCardModel;
+import com.pocopi.api.models.config.HomeInfoCardModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

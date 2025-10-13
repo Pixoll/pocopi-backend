@@ -1,10 +1,10 @@
 package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.Form.FormAnswerRequest;
-import com.pocopi.api.models.FormQuestionModel;
-import com.pocopi.api.models.FormQuestionOptionModel;
-import com.pocopi.api.models.UserFormAnswerModel;
-import com.pocopi.api.models.UserModel;
+import com.pocopi.api.models.form.FormQuestionModel;
+import com.pocopi.api.models.form.FormQuestionOptionModel;
+import com.pocopi.api.models.form.UserFormAnswerModel;
+import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.FormQuestionOptionRepository;
 import com.pocopi.api.repositories.FormQuestionRepository;
 import com.pocopi.api.repositories.UserFormAnswerRepository;
@@ -12,8 +12,6 @@ import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.services.interfaces.FormService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class FormServiceImp implements FormService {

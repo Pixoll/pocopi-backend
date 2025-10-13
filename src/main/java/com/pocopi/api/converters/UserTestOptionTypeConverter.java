@@ -1,6 +1,6 @@
 package com.pocopi.api.converters;
 
-import com.pocopi.api.models.UserTestOptionType;
+import com.pocopi.api.models.test.UserTestOptionType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

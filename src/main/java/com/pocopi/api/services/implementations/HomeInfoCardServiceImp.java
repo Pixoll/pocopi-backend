@@ -2,8 +2,8 @@ package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.HomeInfoCard.PatchInformationCard;
 import com.pocopi.api.dto.Image.UploadImageResponse;
-import com.pocopi.api.models.HomeInfoCardModel;
-import com.pocopi.api.models.ImageModel;
+import com.pocopi.api.models.config.HomeInfoCardModel;
+import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.HomeInfoCardRepository;
 import com.pocopi.api.services.interfaces.HomeInfoCardService;
 import com.pocopi.api.services.interfaces.ImageService;

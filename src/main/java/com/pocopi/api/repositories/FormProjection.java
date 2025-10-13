@@ -1,6 +1,6 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.models.FormQuestionType;
+import com.pocopi.api.models.form.FormQuestionType;
 
 import java.util.stream.Stream;
 

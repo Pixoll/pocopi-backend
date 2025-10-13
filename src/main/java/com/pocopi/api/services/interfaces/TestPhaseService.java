@@ -1,7 +1,7 @@
 package com.pocopi.api.services.interfaces;
 
 import com.pocopi.api.dto.TestGroup.PatchPhase;
-import com.pocopi.api.models.TestProtocolModel;
+import com.pocopi.api.models.test.TestProtocolModel;
 
 import java.io.File;
 import java.util.List;

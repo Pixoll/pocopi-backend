@@ -1,6 +1,7 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.form;
 
 import com.pocopi.api.converters.FormQuestionTypeConverter;
+import com.pocopi.api.models.image.ImageModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

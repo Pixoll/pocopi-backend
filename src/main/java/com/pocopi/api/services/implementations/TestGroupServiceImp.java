@@ -1,11 +1,10 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.Image.UploadImageResponse;
 import com.pocopi.api.dto.TestGroup.*;
-import com.pocopi.api.models.*;
+import com.pocopi.api.models.test.TestGroupModel;
+import com.pocopi.api.models.test.TestProtocolModel;
 import com.pocopi.api.repositories.TestGroupData;
 import com.pocopi.api.repositories.TestGroupRepository;
-import com.pocopi.api.repositories.TestProtocolRepository;
 import com.pocopi.api.services.interfaces.ImageService;
 import com.pocopi.api.services.interfaces.TestGroupService;
 import com.pocopi.api.services.interfaces.TestProtocolService;
@@ -13,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 

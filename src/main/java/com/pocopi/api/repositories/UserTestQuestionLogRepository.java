@@ -1,6 +1,6 @@
 package com.pocopi.api.repositories;
 
-import com.pocopi.api.models.UserTestQuestionLogModel;
+import com.pocopi.api.models.test.UserTestQuestionLogModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

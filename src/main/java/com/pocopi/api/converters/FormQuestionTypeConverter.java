@@ -1,6 +1,6 @@
 package com.pocopi.api.converters;
 
-import com.pocopi.api.models.FormQuestionType;
+import com.pocopi.api.models.form.FormQuestionType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

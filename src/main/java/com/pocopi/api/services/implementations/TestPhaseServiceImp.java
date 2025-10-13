@@ -1,10 +1,9 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.Image.UploadImageResponse;
-import com.pocopi.api.dto.TestGroup.PatchOption;
 import com.pocopi.api.dto.TestGroup.PatchPhase;
-import com.pocopi.api.dto.TestGroup.PatchQuestion;
-import com.pocopi.api.models.*;
+import com.pocopi.api.models.test.TestPhaseModel;
+import com.pocopi.api.models.test.TestProtocolModel;
+import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.TestPhaseRepository;
 import com.pocopi.api.services.interfaces.TestPhaseService;
 import com.pocopi.api.services.interfaces.TestQuestionService;

@@ -1,4 +1,4 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.config;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -8,16 +8,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(
-    name = "form_question_slider_label",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"form_question_id", "number"})}
-)
+@Table(name = "home_faq", uniqueConstraints = @UniqueConstraint(columnNames = {"config_version", "order"}))
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FormQuestionSliderLabelModel {
+public class HomeFaqModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -27,14 +24,19 @@ public class FormQuestionSliderLabelModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "form_question_id", nullable = false)
-    private FormQuestionModel formQuestion;
+    @JoinColumn(name = "config_version", nullable = false)
+    private ConfigModel config;
 
-    @Column(name = "number", nullable = false, columnDefinition = "int2 unsigned")
-    private short number;
+    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
+    private byte order;
 
-    @Size(min = 1, max = 50)
+    @Size(min = 1, max = 100)
     @NotNull
-    @Column(name = "label", nullable = false, length = 50)
-    private String label;
+    @Column(name = "question", nullable = false, length = 100)
+    private String question;
+
+    @Size(min = 1, max = 500)
+    @NotNull
+    @Column(name = "answer", nullable = false, length = 500)
+    private String answer;
 }

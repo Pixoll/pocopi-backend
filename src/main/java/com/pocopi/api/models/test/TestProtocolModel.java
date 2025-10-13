@@ -1,5 +1,6 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.test;
 
+import com.pocopi.api.models.config.ConfigModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

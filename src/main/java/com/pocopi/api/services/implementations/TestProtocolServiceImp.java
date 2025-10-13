@@ -1,7 +1,8 @@
 package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.TestGroup.PatchProtocol;
-import com.pocopi.api.models.*;
+import com.pocopi.api.models.test.TestGroupModel;
+import com.pocopi.api.models.test.TestProtocolModel;
 import com.pocopi.api.repositories.TestProtocolRepository;
 import com.pocopi.api.services.interfaces.TestPhaseService;
 import com.pocopi.api.services.interfaces.TestProtocolService;

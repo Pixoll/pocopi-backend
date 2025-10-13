@@ -1,23 +1,19 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.test;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(
-    name = "form_question_option",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"form_question_id", "order"})}
-)
+@Table(name = "test_phase", uniqueConstraints = {@UniqueConstraint(columnNames = {"protocol_id", "order"})})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FormQuestionOptionModel {
+public class TestPhaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -27,18 +23,12 @@ public class FormQuestionOptionModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "form_question_id", nullable = false)
-    private FormQuestionModel formQuestion;
+    @JoinColumn(name = "protocol_id", nullable = false)
+    private TestProtocolModel protocol;
 
     @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
-    @Size(min = 1, max = 100)
-    @Column(name = "text", length = 100)
-    private String text = null;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "image_id")
-    private ImageModel image = null;
+    @Column(name = "randomize_questions")
+    private boolean randomizeQuestions = false;
 }

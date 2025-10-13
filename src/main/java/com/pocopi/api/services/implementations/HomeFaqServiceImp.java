@@ -1,7 +1,7 @@
 package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.HomeFaq.PatchFaq;
-import com.pocopi.api.models.HomeFaqModel;
+import com.pocopi.api.models.config.HomeFaqModel;
 import com.pocopi.api.repositories.HomeFaqRepository;
 import com.pocopi.api.services.interfaces.HomeFaqService;
 import org.springframework.stereotype.Service;

@@ -1,5 +1,6 @@
-package com.pocopi.api.models;
+package com.pocopi.api.models.test;
 
+import com.pocopi.api.models.image.ImageModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,13 +9,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_question", uniqueConstraints = {@UniqueConstraint(columnNames = {"phase_id", "order"})})
+@Table(name = "test_option", uniqueConstraints = {@UniqueConstraint(columnNames = {"question_id", "order"})})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TestQuestionModel {
+public class TestOptionModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -24,8 +25,8 @@ public class TestQuestionModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "phase_id", nullable = false)
-    private TestPhaseModel phase;
+    @JoinColumn(name = "question_id", nullable = false)
+    private TestQuestionModel question;
 
     @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
@@ -38,6 +39,6 @@ public class TestQuestionModel {
     @JoinColumn(name = "image_id")
     private ImageModel image = null;
 
-    @Column(name = "randomize_options")
-    private boolean randomizeOptions = false;
+    @Column(name = "correct", nullable = false)
+    private boolean correct;
 }
