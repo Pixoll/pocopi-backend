@@ -158,15 +158,19 @@ public class ImageServiceImp implements ImageService {
 
     private String buildPublicUrl(String relativePath) {
         String normalizedPath = relativePath.replaceFirst("^/", "");
+
         if (!normalizedPath.startsWith("images/")) {
             normalizedPath = "images/" + normalizedPath;
         }
+
+        System.out.println(normalizedPath);
 
         String baseUrl = imageConfig.getBaseUrl();
         baseUrl = baseUrl.replaceFirst("/$", "");
 
         return baseUrl + "/" + normalizedPath;
     }
+
     private Path resolveFullPath(String relativePath) {
         String normalizedPath = relativePath.replaceFirst("^images/", "");
         return Paths.get(imageConfig.getBasePath(), normalizedPath);
