@@ -12,4 +12,5 @@ public interface ConfigRepository extends JpaRepository<ConfigModel,String> {
     ConfigModel findLastConfig();
 
     ConfigModel getByVersion(int version);
+
 }

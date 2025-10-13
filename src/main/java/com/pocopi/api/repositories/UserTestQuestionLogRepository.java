@@ -167,7 +167,7 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                      JOIN test_protocol tp ON tp.id = tph.protocol_id
                      JOIN config c ON c.version = tp.config_version
             WHERE c.version = :configVersion
-                  AND ol.user_id = :userId
+                  AND utql.user_id = :userId
             GROUP BY utql.user_id, tq.phase_id, utql.question_id
         ),
         last_non_hover AS (
