@@ -18,7 +18,7 @@ public sealed interface PatchFormQuestion
 
         @AllArgsConstructor
         final class PatchSelectMultiple implements PatchFormQuestion {
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
             public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -45,7 +45,7 @@ public sealed interface PatchFormQuestion
 
         @AllArgsConstructor
         final class PatchSelectOne implements PatchFormQuestion {
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
             public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -66,7 +66,7 @@ public sealed interface PatchFormQuestion
 
         @AllArgsConstructor
         final class PatchSlider implements PatchFormQuestion {
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
             public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -96,7 +96,7 @@ public sealed interface PatchFormQuestion
 
         @AllArgsConstructor
         final class PatchTextLong implements PatchFormQuestion {
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
             public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -120,7 +120,7 @@ public sealed interface PatchFormQuestion
 
         @AllArgsConstructor
         final class PatchTextShort implements PatchFormQuestion {
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
             public Optional<Integer> id;
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

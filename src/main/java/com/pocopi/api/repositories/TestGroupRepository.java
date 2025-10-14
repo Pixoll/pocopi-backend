@@ -13,6 +13,8 @@ public interface TestGroupRepository extends JpaRepository<TestGroupModel, Integ
             tg.label as group_label,
             tg.probability,
             tg.greeting,
+            tp.id as protocol_id,
+            tp.label as protocol_label,
             tp.allow_previous_phase as allowPreviousPhase,
             tp.allow_previous_question as allowPreviousQuestion,
             tp.allow_skip_question as allowSkipQuestion,

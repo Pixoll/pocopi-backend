@@ -107,7 +107,9 @@ public class ConfigServiceImp implements ConfigService {
             if (homeInfoCardModel.getIcon().getPath() != null) {
                 iconByInfoCard = imageService.getImageByPath(homeInfoCardModel.getIcon().getPath());
             }
-            InformationCard informationCard = new InformationCard(homeInfoCardModel.getTitle(),
+            InformationCard informationCard = new InformationCard(
+                homeInfoCardModel.getId(),
+                homeInfoCardModel.getTitle(),
                 homeInfoCardModel.getDescription(),
                 homeInfoCardModel.getColor(),
                 Optional.ofNullable(iconByInfoCard)
@@ -116,11 +118,12 @@ public class ConfigServiceImp implements ConfigService {
         }
         List<Faq> faqs = new ArrayList<>();
         for (HomeFaqModel faq : homeFaqs) {
-            faqs.add(new Faq(faq.getQuestion(), faq.getAnswer()));
+            faqs.add(new Faq(faq.getId(),faq.getQuestion(), faq.getAnswer()));
         }
         Map<String, Group> groups = testGroupService.buildGroupResponses(configId);
 
         return new SingleConfigResponse(
+            configId,
             Optional.ofNullable(icon),
             configModel.getTitle(),
             Optional.ofNullable(configModel.getSubtitle()),
@@ -140,6 +143,7 @@ public class ConfigServiceImp implements ConfigService {
     public ConfigModel findLastConfig() {
         return configRepository.findLastConfig();
     }
+
     @Override
     public String processUpdatedConfig(PatchRequest request) {
         ConfigModel savedModel = configRepository.getByVersion(request.updateLastConfig().version());
@@ -159,7 +163,6 @@ public class ConfigServiceImp implements ConfigService {
 
         return "xd";
     }
-
 
     private Map<String, String> processFormQuestions(PatchForm updatedForm, List<File> images) {
         Map<String, String> results = new HashMap<>();

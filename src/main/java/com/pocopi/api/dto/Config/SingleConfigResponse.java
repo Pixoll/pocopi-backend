@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 
 public record SingleConfigResponse(
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Configuration version")
+    int id,
+
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Configuration icon image")
     Optional<Image> icon,
 

@@ -6,6 +6,12 @@ import java.util.List;
 
 public record Protocol(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int id,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    String label,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean allowPreviousPhase,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

@@ -6,6 +6,8 @@ public interface TestGroupData {
     String getGroupLabel();
     int getProbability();
     String getGreeting();
+    int getProtocolId();
+    String getProtocolLabel();
     boolean getAllowPreviousPhase();
     boolean getAllowPreviousQuestion();
     boolean getAllowSkipQuestion();

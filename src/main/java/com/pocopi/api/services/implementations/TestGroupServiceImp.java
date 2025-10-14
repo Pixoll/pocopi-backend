@@ -10,7 +10,6 @@ import com.pocopi.api.services.interfaces.TestGroupService;
 import com.pocopi.api.services.interfaces.TestProtocolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,7 +85,14 @@ public class TestGroupServiceImp implements TestGroupService {
                     })
                     .toList();
 
-                Protocol protocol = new Protocol(first.getAllowPreviousPhase(), first.getAllowPreviousQuestion(), first.getAllowSkipQuestion(), phases);
+                Protocol protocol = new Protocol(
+                    first.getProtocolId(),
+                    first.getProtocolLabel(),
+                    first.getAllowPreviousPhase(),
+                    first.getAllowPreviousQuestion(),
+                    first.getAllowSkipQuestion(),
+                    phases
+                );
                 return Map.entry(first.getGroupLabel(), new Group(
                     first.getGroupId(),
                     first.getProbability(),
