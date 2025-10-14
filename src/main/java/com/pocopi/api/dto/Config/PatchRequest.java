@@ -11,16 +11,16 @@ public record PatchRequest(
     Optional<File> appIcon,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by pre test form")
-    List<File> preTestFormQuestionOptionsFiles,
+    List<Optional<File>> preTestFormQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by post test form")
-    List<File> postTestFormQuestionOptionsFiles,
+    List<Optional<File>> postTestFormQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options each phase and protocol")
-    List<File> groupQuestionOptionsFiles,
+    List<Optional<File>> groupQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from information cards")
-    List<File> informationCardFiles,
+    List<Optional<File>> informationCardFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Last configuration updated")
     PatchLastConfig updateLastConfig

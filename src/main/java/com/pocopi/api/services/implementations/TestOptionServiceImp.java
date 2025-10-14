@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class TestOptionServiceImp implements TestOptionService {
@@ -32,7 +29,7 @@ public class TestOptionServiceImp implements TestOptionService {
     public Map<String, String> processOptions(
         TestQuestionModel question,
         List<PatchOption> options,
-        List<File> images,
+        List<Optional<File>> images,
         int imageIndex
     ) {
         Map<String, String> results = new HashMap<>();
@@ -44,6 +41,8 @@ public class TestOptionServiceImp implements TestOptionService {
         }
 
         int order = 0;
+        int currentImageIndex = imageIndex;
+
         for (PatchOption patchOption : options) {
             if (patchOption.id().isPresent()) {
                 int optionId = patchOption.id().get();
@@ -52,20 +51,22 @@ public class TestOptionServiceImp implements TestOptionService {
                 if (savedOption == null) {
                     results.put("question_" + question.getId() + "_option_" + optionId, "Option not found");
                     order++;
-                    imageIndex++;
+                    currentImageIndex++;
                     continue;
                 }
 
-                File optionImageFile = images != null && imageIndex < images.size()
-                    ? images.get(imageIndex)
-                    : null;
-                imageIndex++;
+                Optional<File> optionImageOptional = (images != null && currentImageIndex < images.size())
+                    ? images.get(currentImageIndex)
+                    : Optional.empty();
+                currentImageIndex++;
 
                 boolean textChanged = !Objects.equals(savedOption.getText(), patchOption.text());
                 boolean correctChanged = savedOption.isCorrect() != patchOption.correct();
                 boolean orderChanged = savedOption.getOrder() != order;
-                boolean deleteImage = optionImageFile != null && optionImageFile.length() == 0;
-                boolean replaceImage = optionImageFile != null && optionImageFile.length() > 0;
+
+                boolean deleteImage = optionImageOptional.isPresent() && optionImageOptional.get().length() == 0;
+                boolean replaceImage = optionImageOptional.isPresent() && optionImageOptional.get().length() > 0;
+                boolean imageUnchanged = optionImageOptional.isEmpty(); // Optional.empty() = sin cambios
 
                 if (textChanged || correctChanged || orderChanged || deleteImage || replaceImage) {
                     savedOption.setText(patchOption.text());
@@ -75,7 +76,7 @@ public class TestOptionServiceImp implements TestOptionService {
                     if (deleteImage) {
                         deleteImageFromOption(savedOption);
                     } else if (replaceImage) {
-                        updateOrCreateOptionImage(savedOption, optionImageFile);
+                        updateOrCreateOptionImage(savedOption, optionImageOptional.get());
                     }
 
                     testOptionRepository.save(savedOption);
@@ -87,7 +88,6 @@ public class TestOptionServiceImp implements TestOptionService {
                 processedOptions.put(optionId, true);
 
             } else {
-
                 TestOptionModel newOption = new TestOptionModel();
                 newOption.setText(patchOption.text());
                 newOption.setCorrect(patchOption.correct());
@@ -96,13 +96,13 @@ public class TestOptionServiceImp implements TestOptionService {
 
                 TestOptionModel savedOption = testOptionRepository.save(newOption);
 
-                File optionImageFile = images != null && imageIndex < images.size()
-                    ? images.get(imageIndex)
-                    : null;
-                imageIndex++;
+                Optional<File> optionImageOptional = (images != null && currentImageIndex < images.size())
+                    ? images.get(currentImageIndex)
+                    : Optional.empty();
+                currentImageIndex++;
 
-                if (optionImageFile != null && optionImageFile.length() > 0) {
-                    updateOrCreateOptionImage(savedOption, optionImageFile);
+                if (optionImageOptional.isPresent() && optionImageOptional.get().length() > 0) {
+                    updateOrCreateOptionImage(savedOption, optionImageOptional.get());
                 }
 
                 results.put("question_" + question.getId() + "_option_new_" + order, "Created with ID: " + savedOption.getId());
@@ -123,6 +123,7 @@ public class TestOptionServiceImp implements TestOptionService {
 
         return results;
     }
+
     @Override
     public void deleteWithImage(TestOptionModel option) {
         ImageModel image = option.getImage();
@@ -131,7 +132,6 @@ public class TestOptionServiceImp implements TestOptionService {
             imageService.deleteImage(image.getPath());
         }
     }
-
 
     @Override
     public List<TestOptionModel> findAllByQuestion(TestQuestionModel question) {

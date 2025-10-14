@@ -12,10 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class HomeInfoCardServiceImp implements HomeInfoCardService {
@@ -28,7 +25,7 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
     }
 
     @Override
-    public Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<File> updateImages) {
+    public Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<Optional<File>> updateImages) {
         Map<String, String> results = new HashMap<>();
         List<HomeInfoCardModel> allExistingCards = homeInfoCardRepository.findAll();
         Map<Integer, Boolean> processedCards = new HashMap<>();
@@ -40,7 +37,9 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
 
         int order = 0;
         for (PatchInformationCard patchCard : updateInformationCards) {
-            File imageFile = updateImages != null ? updateImages.get(order) : null;
+            Optional<File> imageOptional = (updateImages != null && order < updateImages.size())
+                ? updateImages.get(order)
+                : Optional.empty();
 
             if (patchCard.id().isPresent()) {
                 Integer cardId = patchCard.id().get();
@@ -55,8 +54,10 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
                 }
 
                 boolean infoChanged = checkChangeByInfoCard(existingCard, patchCard);
-                boolean deleteImage = imageFile != null && imageFile.length() == 0;
-                boolean replaceImage = imageFile != null && imageFile.length() > 0;
+
+                boolean deleteImage = imageOptional.isPresent() && imageOptional.get().length() == 0;
+                boolean replaceImage = imageOptional.isPresent() && imageOptional.get().length() > 0;
+                boolean imageUnchanged = imageOptional.isEmpty(); // Optional.empty() = sin cambios
 
                 if (infoChanged || deleteImage || replaceImage) {
                     existingCard.setTitle(patchCard.title());
@@ -72,17 +73,16 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
                         }
                     } else if (replaceImage) {
                         try {
-                            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+                            byte[] imageBytes = Files.readAllBytes(imageOptional.get().toPath());
                             ImageModel currentImage = existingCard.getIcon();
 
                             if (currentImage != null) {
                                 imageService.saveImageBytes(imageBytes, currentImage.getPath());
-
                             } else {
                                 UploadImageResponse response = imageService.createAndSaveImageBytes(
                                     imageBytes,
                                     category,
-                                    imageFile.getName(),
+                                    imageOptional.get().getName(),
                                     "Home info card: " + existingCard.getTitle()
                                 );
                                 String path = response.url().substring(response.url().indexOf("/images/") + 1);
@@ -108,13 +108,13 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
                 newCard.setColor(patchCard.color());
                 newCard.setOrder((byte) order);
 
-                if (imageFile != null && imageFile.length() > 0) {
+                if (imageOptional.isPresent() && imageOptional.get().length() > 0) {
                     try {
-                        byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+                        byte[] imageBytes = Files.readAllBytes(imageOptional.get().toPath());
                         UploadImageResponse response = imageService.createAndSaveImageBytes(
                             imageBytes,
                             category,
-                            imageFile.getName(),
+                            imageOptional.get().getName(),
                             "Home info card: " + newCard.getTitle()
                         );
                         String path = response.url().substring(response.url().indexOf("/images/") + 1);

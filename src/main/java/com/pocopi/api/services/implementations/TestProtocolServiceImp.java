@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class TestProtocolServiceImp implements TestProtocolService {
@@ -30,7 +27,7 @@ public class TestProtocolServiceImp implements TestProtocolService {
     public Map<String, String> processProtocol(
         TestGroupModel group,
         PatchProtocol updatedProtocol,
-        List<File> images,
+        List<Optional<File>> images,
         int imageIndex,
         Map<String, String> results
     ) {

@@ -114,7 +114,7 @@ public class TestGroupServiceImp implements TestGroupService {
         return testGroupRepository.save(testGroupModel);
     }
     @Override
-    public Map<String, String> processGroups(Map<String, PatchGroup> groups, List<File> images) {
+    public Map<String, String> processGroups(Map<String, PatchGroup> groups, List<Optional<File>> images) {
         Map<String, String> results = new HashMap<>();
         List<TestGroupModel> allExistingGroups = finAllTestGroups();
         Map<Integer, Boolean> processedGroups = new HashMap<>();

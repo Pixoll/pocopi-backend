@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class TestPhaseServiceImp implements TestPhaseService {
@@ -27,7 +28,7 @@ public class TestPhaseServiceImp implements TestPhaseService {
     public Map<String, String> processPhases(
         TestProtocolModel protocol,
         List<PatchPhase> phases,
-        List<File> images,
+        List<Optional<File>> images,
         int imageIndex
     ) {
         Map<String, String> results = new HashMap<>();

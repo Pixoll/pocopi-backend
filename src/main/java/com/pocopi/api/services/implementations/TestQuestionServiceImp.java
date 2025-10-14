@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class TestQuestionServiceImp implements TestQuestionService {
@@ -36,7 +33,7 @@ public class TestQuestionServiceImp implements TestQuestionService {
     public Map<String, String> processTestQuestions(
         TestPhaseModel phase,
         List<PatchQuestion> questions,
-        List<File> images,
+        List<Optional<File>> images,
         int imageIndex
     ) {
         Map<String, String> results = new HashMap<>();
@@ -48,6 +45,8 @@ public class TestQuestionServiceImp implements TestQuestionService {
         }
 
         int order = 0;
+        int currentImageIndex = imageIndex;
+
         for (PatchQuestion patchQuestion : questions) {
             if (patchQuestion.id().isPresent()) {
                 int questionId = patchQuestion.id().get();
@@ -56,19 +55,21 @@ public class TestQuestionServiceImp implements TestQuestionService {
                 if (savedQuestion == null) {
                     results.put("question_" + questionId, "Question not found");
                     order++;
-                    imageIndex++;
+                    currentImageIndex++;
                     continue;
                 }
 
-                File questionImageFile = images != null && imageIndex < images.size()
-                    ? images.get(imageIndex)
-                    : null;
-                imageIndex++;
+                Optional<File> questionImageOptional = (images != null && currentImageIndex < images.size())
+                    ? images.get(currentImageIndex)
+                    : Optional.empty();
+                currentImageIndex++;
 
                 boolean textChanged = !Objects.equals(savedQuestion.getText(), patchQuestion.text());
                 boolean orderChanged = savedQuestion.getOrder() != order;
-                boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
-                boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                boolean deleteImage = questionImageOptional.isPresent() && questionImageOptional.get().length() == 0;
+                boolean replaceImage = questionImageOptional.isPresent() && questionImageOptional.get().length() > 0;
+                boolean imageUnchanged = questionImageOptional.isEmpty();
 
                 if (textChanged || orderChanged || deleteImage || replaceImage) {
                     savedQuestion.setText(patchQuestion.text());
@@ -77,7 +78,7 @@ public class TestQuestionServiceImp implements TestQuestionService {
                     if (deleteImage) {
                         deleteImageFromQuestion(savedQuestion);
                     } else if (replaceImage) {
-                        updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                        updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                     }
 
                     testQuestionRepository.save(savedQuestion);
@@ -90,9 +91,11 @@ public class TestQuestionServiceImp implements TestQuestionService {
                     savedQuestion,
                     patchQuestion.options(),
                     images,
-                    imageIndex
+                    currentImageIndex
                 );
                 results.putAll(optionResults);
+
+                currentImageIndex += patchQuestion.options().size();
 
                 processedQuestions.put(questionId, true);
 
@@ -104,22 +107,24 @@ public class TestQuestionServiceImp implements TestQuestionService {
 
                 TestQuestionModel savedQuestion = testQuestionRepository.save(newQuestion);
 
-                File questionImageFile = images != null && imageIndex < images.size()
-                    ? images.get(imageIndex)
-                    : null;
-                imageIndex++;
+                Optional<File> questionImageOptional = (images != null && currentImageIndex < images.size())
+                    ? images.get(currentImageIndex)
+                    : Optional.empty();
+                currentImageIndex++;
 
-                if (questionImageFile != null && questionImageFile.length() > 0) {
-                    updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                if (questionImageOptional.isPresent() && questionImageOptional.get().length() > 0) {
+                    updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                 }
 
                 Map<String, String> optionResults = testOptionService.processOptions(
                     savedQuestion,
                     patchQuestion.options(),
                     images,
-                    imageIndex
+                    currentImageIndex
                 );
                 results.putAll(optionResults);
+
+                currentImageIndex += patchQuestion.options().size();
 
                 results.put("question_new_" + order, "Created with ID: " + savedQuestion.getId());
             }
@@ -139,7 +144,6 @@ public class TestQuestionServiceImp implements TestQuestionService {
 
         return results;
     }
-
 
     private void updateOrCreateQuestionImage(TestQuestionModel question, File imageFile) {
         try {
@@ -166,7 +170,6 @@ public class TestQuestionServiceImp implements TestQuestionService {
         }
     }
 
-
     private void deleteImageFromQuestion(TestQuestionModel question) {
         ImageModel oldImage = question.getImage();
         question.setImage(null);
@@ -191,7 +194,6 @@ public class TestQuestionServiceImp implements TestQuestionService {
             imageService.deleteImage(questionImage.getPath());
         }
     }
-
 
     @Override
     public List<TestQuestionModel> findAllByPhase(TestPhaseModel phase) {

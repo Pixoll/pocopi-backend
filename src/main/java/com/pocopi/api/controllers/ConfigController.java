@@ -1,6 +1,7 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.dto.Config.PatchRequest;
+import com.pocopi.api.dto.Config.PatchResponse;
 import com.pocopi.api.dto.Config.SingleConfigResponse;
 import com.pocopi.api.services.interfaces.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,8 @@ public class ConfigController {
     }
 
     @PatchMapping()
-    public ResponseEntity<String> updateLastestConfig(@RequestBody PatchRequest request) {
-        String response = configService.processUpdatedConfig(request);
+    public ResponseEntity<PatchResponse> updateLastestConfig(@RequestBody PatchRequest request) {
+        PatchResponse response = configService.processUpdatedConfig(request);
         return ResponseEntity.ok(response);
     }
 

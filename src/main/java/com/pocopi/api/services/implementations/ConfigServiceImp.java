@@ -2,6 +2,7 @@ package com.pocopi.api.services.implementations;
 
 import com.pocopi.api.dto.Config.PatchLastConfig;
 import com.pocopi.api.dto.Config.PatchRequest;
+import com.pocopi.api.dto.Config.PatchResponse;
 import com.pocopi.api.dto.Config.SingleConfigResponse;
 import com.pocopi.api.dto.Form.Form;
 import com.pocopi.api.dto.Form.PatchForm;
@@ -145,12 +146,8 @@ public class ConfigServiceImp implements ConfigService {
     }
 
     @Override
-    public String processUpdatedConfig(PatchRequest request) {
+    public PatchResponse processUpdatedConfig(PatchRequest request) {
         ConfigModel savedModel = configRepository.getByVersion(request.updateLastConfig().version());
-
-        if (savedModel == null) {
-            return "Config not found";
-        }
 
         Map<String, String> configUpdatesSummary = processConfigGeneralData(savedModel, request.updateLastConfig());
         Map<String, String> informationCardUpdatesSummary = homeInfoCardService.processCardInformation(request.updateLastConfig().informationCards(), request.informationCardFiles());
@@ -161,10 +158,17 @@ public class ConfigServiceImp implements ConfigService {
 
         Map<String, String> groupSummary = testGroupService.processGroups(request.updateLastConfig().groups(), request.groupQuestionOptionsFiles());
 
-        return "xd";
+        return new PatchResponse(
+            configUpdatesSummary,
+            informationCardUpdatesSummary,
+            faqUpdatedSummary,
+            preTestUpdatedSummary,
+            postTestUpdatedSummary,
+            groupSummary
+        );
     }
 
-    private Map<String, String> processFormQuestions(PatchForm updatedForm, List<File> images) {
+    private Map<String, String> processFormQuestions(PatchForm updatedForm, List<Optional<File>> images) {
         Map<String, String> results = new HashMap<>();
         List<FormQuestionModel> allExistingQuestions = formQuestionRepository.findAll();
         Map<Integer, Boolean> processedQuestions = new HashMap<>();
@@ -186,16 +190,20 @@ public class ConfigServiceImp implements ConfigService {
                         if (savedQuestion == null) {
                             results.put("question_" + questionId, "Question not found");
                             order++;
+                            imageIndex++;
                             continue;
                         }
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
                         boolean infoChanged = checkChangeByQuestion(savedQuestion, selectMultiple);
                         boolean orderChanged = savedQuestion.getOrder() != order;
-                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
-                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+
+                        boolean deleteImage = questionImageOptional.isPresent() && questionImageOptional.get().length() == 0;
+                        boolean replaceImage = questionImageOptional.isPresent() && questionImageOptional.get().length() > 0;
 
                         if (infoChanged || orderChanged || deleteImage || replaceImage) {
                             savedQuestion.setCategory(selectMultiple.category);
@@ -208,7 +216,7 @@ public class ConfigServiceImp implements ConfigService {
                             if (deleteImage) {
                                 deleteImageFromEntity(savedQuestion);
                             } else if (replaceImage) {
-                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                                updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                             }
 
                             formQuestionRepository.save(savedQuestion);
@@ -232,11 +240,13 @@ public class ConfigServiceImp implements ConfigService {
 
                         FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
-                        if (questionImageFile != null && questionImageFile.length() > 0) {
-                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        if (questionImageOptional.isPresent() && questionImageOptional.get().length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageOptional.get());
                         }
 
                         imageIndex = processQuestionOptions(savedNewQuestion, selectMultiple.options, images, imageIndex, results);
@@ -252,16 +262,19 @@ public class ConfigServiceImp implements ConfigService {
                         if (savedQuestion == null) {
                             results.put("question_" + questionId, "Question not found");
                             order++;
+                            imageIndex++;
                             continue;
                         }
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
                         boolean infoChanged = checkChangeByQuestion(savedQuestion, selectOne);
                         boolean orderChanged = savedQuestion.getOrder() != order;
-                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
-                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+                        boolean deleteImage = questionImageOptional.isPresent() && questionImageOptional.get().length() == 0;
+                        boolean replaceImage = questionImageOptional.isPresent() && questionImageOptional.get().length() > 0;
 
                         if (infoChanged || orderChanged || deleteImage || replaceImage) {
                             savedQuestion.setCategory(selectOne.category);
@@ -272,7 +285,7 @@ public class ConfigServiceImp implements ConfigService {
                             if (deleteImage) {
                                 deleteImageFromEntity(savedQuestion);
                             } else if (replaceImage) {
-                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                                updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                             }
 
                             formQuestionRepository.save(savedQuestion);
@@ -294,11 +307,13 @@ public class ConfigServiceImp implements ConfigService {
 
                         FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
-                        if (questionImageFile != null && questionImageFile.length() > 0) {
-                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        if (questionImageOptional.isPresent() && questionImageOptional.get().length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageOptional.get());
                         }
 
                         imageIndex = processQuestionOptions(savedNewQuestion, selectOne.options, images, imageIndex, results);
@@ -314,16 +329,19 @@ public class ConfigServiceImp implements ConfigService {
                         if (savedQuestion == null) {
                             results.put("question_" + questionId, "Question not found");
                             order++;
+                            imageIndex++;
                             continue;
                         }
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
                         boolean infoChanged = checkChangeByQuestion(savedQuestion, slider);
                         boolean orderChanged = savedQuestion.getOrder() != order;
-                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
-                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+                        boolean deleteImage = questionImageOptional.isPresent() && questionImageOptional.get().length() == 0;
+                        boolean replaceImage = questionImageOptional.isPresent() && questionImageOptional.get().length() > 0;
 
                         if (infoChanged || orderChanged || deleteImage || replaceImage) {
                             savedQuestion.setCategory(slider.category);
@@ -337,7 +355,7 @@ public class ConfigServiceImp implements ConfigService {
                             if (deleteImage) {
                                 deleteImageFromEntity(savedQuestion);
                             } else if (replaceImage) {
-                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                                updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                             }
 
                             formQuestionRepository.save(savedQuestion);
@@ -361,11 +379,13 @@ public class ConfigServiceImp implements ConfigService {
 
                         FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
-                        if (questionImageFile != null && questionImageFile.length() > 0) {
-                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        if (questionImageOptional.isPresent() && questionImageOptional.get().length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageOptional.get());
                         }
 
                         results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
@@ -380,16 +400,19 @@ public class ConfigServiceImp implements ConfigService {
                         if (savedQuestion == null) {
                             results.put("question_" + questionId, "Question not found");
                             order++;
+                            imageIndex++;
                             continue;
                         }
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
                         boolean infoChanged = checkChangeByQuestion(savedQuestion, textLong);
                         boolean orderChanged = savedQuestion.getOrder() != order;
-                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
-                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+                        boolean deleteImage = questionImageOptional.isPresent() && questionImageOptional.get().length() == 0;
+                        boolean replaceImage = questionImageOptional.isPresent() && questionImageOptional.get().length() > 0;
 
                         if (infoChanged || orderChanged || deleteImage || replaceImage) {
                             savedQuestion.setCategory(textLong.category);
@@ -402,7 +425,7 @@ public class ConfigServiceImp implements ConfigService {
                             if (deleteImage) {
                                 deleteImageFromEntity(savedQuestion);
                             } else if (replaceImage) {
-                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                                updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                             }
 
                             formQuestionRepository.save(savedQuestion);
@@ -425,11 +448,13 @@ public class ConfigServiceImp implements ConfigService {
 
                         FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
-                        if (questionImageFile != null && questionImageFile.length() > 0) {
-                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        if (questionImageOptional.isPresent() && questionImageOptional.get().length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageOptional.get());
                         }
 
                         results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
@@ -444,16 +469,19 @@ public class ConfigServiceImp implements ConfigService {
                         if (savedQuestion == null) {
                             results.put("question_" + questionId, "Question not found");
                             order++;
+                            imageIndex++;
                             continue;
                         }
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
                         boolean infoChanged = checkChangeByQuestion(savedQuestion, textShort);
                         boolean orderChanged = savedQuestion.getOrder() != order;
-                        boolean deleteImage = questionImageFile != null && questionImageFile.length() == 0;
-                        boolean replaceImage = questionImageFile != null && questionImageFile.length() > 0;
+                        boolean deleteImage = questionImageOptional.isPresent() && questionImageOptional.get().length() == 0;
+                        boolean replaceImage = questionImageOptional.isPresent() && questionImageOptional.get().length() > 0;
 
                         if (infoChanged || orderChanged || deleteImage || replaceImage) {
                             savedQuestion.setCategory(textShort.category);
@@ -466,7 +494,7 @@ public class ConfigServiceImp implements ConfigService {
                             if (deleteImage) {
                                 deleteImageFromEntity(savedQuestion);
                             } else if (replaceImage) {
-                                updateOrCreateQuestionImage(savedQuestion, questionImageFile);
+                                updateOrCreateQuestionImage(savedQuestion, questionImageOptional.get());
                             }
 
                             formQuestionRepository.save(savedQuestion);
@@ -489,11 +517,13 @@ public class ConfigServiceImp implements ConfigService {
 
                         FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
-                        File questionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                        Optional<File> questionImageOptional = imageIndex < images.size()
+                            ? images.get(imageIndex)
+                            : Optional.empty();
                         imageIndex++;
 
-                        if (questionImageFile != null && questionImageFile.length() > 0) {
-                            updateOrCreateQuestionImage(savedNewQuestion, questionImageFile);
+                        if (questionImageOptional.isPresent() && questionImageOptional.get().length() > 0) {
+                            updateOrCreateQuestionImage(savedNewQuestion, questionImageOptional.get());
                         }
 
                         results.put("question_new_" + order, "Created with ID: " + savedNewQuestion.getId());
@@ -519,7 +549,7 @@ public class ConfigServiceImp implements ConfigService {
 
     private int processQuestionOptions(FormQuestionModel question,
                                        List<PatchFormOption> patchOptions,
-                                       List<File> images,
+                                       List<Optional<File>> images,
                                        int currentImageIndex,
                                        Map<String, String> results) {
         List<FormQuestionOptionModel> allExistingOptions = formQuestionOptionRepository.findAllByFormQuestion_Id(question.getId());
@@ -544,13 +574,15 @@ public class ConfigServiceImp implements ConfigService {
                     continue;
                 }
 
-                File optionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                Optional<File> optionImageOptional = imageIndex < images.size()
+                    ? images.get(imageIndex)
+                    : Optional.empty();
                 imageIndex++;
 
                 boolean textChanged = !Objects.equals(savedOption.getText(), patchOption.text().orElse(null));
                 boolean orderChanged = savedOption.getOrder() != optionOrder;
-                boolean deleteImage = optionImageFile != null && optionImageFile.length() == 0;
-                boolean replaceImage = optionImageFile != null && optionImageFile.length() > 0;
+                boolean deleteImage = optionImageOptional.isPresent() && optionImageOptional.get().length() == 0;
+                boolean replaceImage = optionImageOptional.isPresent() && optionImageOptional.get().length() > 0;
 
                 if (textChanged || orderChanged || deleteImage || replaceImage) {
                     savedOption.setText(patchOption.text().orElse(null));
@@ -559,7 +591,7 @@ public class ConfigServiceImp implements ConfigService {
                     if (deleteImage) {
                         deleteImageFromEntity(savedOption);
                     } else if (replaceImage) {
-                        updateOrCreateOptionImage(savedOption, optionImageFile);
+                        updateOrCreateOptionImage(savedOption, optionImageOptional.get());
                     }
 
                     formQuestionOptionRepository.save(savedOption);
@@ -578,11 +610,13 @@ public class ConfigServiceImp implements ConfigService {
 
                 FormQuestionOptionModel savedNewOption = formQuestionOptionRepository.save(newOption);
 
-                File optionImageFile = images != null && imageIndex < images.size() ? images.get(imageIndex) : null;
+                Optional<File> optionImageOptional = imageIndex < images.size()
+                    ? images.get(imageIndex)
+                    : Optional.empty();
                 imageIndex++;
 
-                if (optionImageFile != null && optionImageFile.length() > 0) {
-                    updateOrCreateOptionImage(savedNewOption, optionImageFile);
+                if (optionImageOptional.isPresent() && optionImageOptional.get().length() > 0) {
+                    updateOrCreateOptionImage(savedNewOption, optionImageOptional.get());
                 }
 
                 results.put("question_" + question.getId() + "_option_new_" + optionOrder, "Created with ID: " + savedNewOption.getId());
