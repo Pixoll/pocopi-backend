@@ -13,7 +13,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class TestPhaseServiceImp implements TestPhaseService {
@@ -24,12 +23,13 @@ public class TestPhaseServiceImp implements TestPhaseService {
         this.testPhaseRepository = testPhaseRepository;
         this.testQuestionService = testQuestionService;
     }
+
     @Override
     public Map<String, String> processPhases(
         TestProtocolModel protocol,
         List<PatchPhase> phases,
-        List<Optional<File>> images,
-        int imageIndex
+        Map<Integer, File> images,
+        TestGroupServiceImp.ImageIndexTracker imageIndexTracker
     ) {
         Map<String, String> results = new HashMap<>();
         List<TestPhaseModel> allExistingPhases = testPhaseRepository.findAllByProtocol(protocol);
@@ -62,7 +62,7 @@ public class TestPhaseServiceImp implements TestPhaseService {
                     savedPhase,
                     patchPhase.questions(),
                     images,
-                    imageIndex
+                    imageIndexTracker
                 );
                 results.putAll(questionResults);
 
@@ -85,7 +85,7 @@ public class TestPhaseServiceImp implements TestPhaseService {
                     savedPhase,
                     patchPhase.questions(),
                     images,
-                    imageIndex
+                    imageIndexTracker
                 );
                 results.putAll(questionResults);
 

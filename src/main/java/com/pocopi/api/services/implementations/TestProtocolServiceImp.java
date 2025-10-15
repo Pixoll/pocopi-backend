@@ -27,8 +27,8 @@ public class TestProtocolServiceImp implements TestProtocolService {
     public Map<String, String> processProtocol(
         TestGroupModel group,
         PatchProtocol updatedProtocol,
-        List<Optional<File>> images,
-        int imageIndex,
+        Map<Integer, File> images,
+        TestGroupServiceImp.ImageIndexTracker imageIndexTracker,
         Map<String, String> results
     ) {
         Map<String, String> protocolResults = new HashMap<>();
@@ -56,7 +56,7 @@ public class TestProtocolServiceImp implements TestProtocolService {
                 savedProtocol,
                 updatedProtocol.phases(),
                 images,
-                imageIndex
+                imageIndexTracker
             );
             protocolResults.putAll(phaseResults);
 
@@ -80,7 +80,7 @@ public class TestProtocolServiceImp implements TestProtocolService {
                 savedProtocol,
                 updatedProtocol.phases(),
                 images,
-                imageIndex
+                imageIndexTracker
             );
             protocolResults.putAll(phaseResults);
 
@@ -90,8 +90,6 @@ public class TestProtocolServiceImp implements TestProtocolService {
         return protocolResults;
     }
 
-
-
     private boolean checkProtocolChanged(PatchProtocol protocol, TestProtocolModel savedProtocol) {
         return (
             protocol.allowPreviousPhase() != savedProtocol.isAllowPreviousPhase() ||
@@ -100,13 +98,14 @@ public class TestProtocolServiceImp implements TestProtocolService {
                 !Objects.equals(protocol.label(), savedProtocol.getLabel())
         );
     }
+
     @Override
-    public TestProtocolModel findByGroup(TestGroupModel group){
+    public TestProtocolModel findByGroup(TestGroupModel group) {
         return testProtocolRepository.findByGroup(group);
     }
 
     @Override
-    public void deleteWithPhases(TestProtocolModel protocol){
+    public void deleteWithPhases(TestProtocolModel protocol) {
         testProtocolRepository.deleteById(protocol.getId());
     }
 }

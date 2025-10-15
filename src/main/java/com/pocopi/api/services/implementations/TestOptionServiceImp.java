@@ -29,8 +29,8 @@ public class TestOptionServiceImp implements TestOptionService {
     public Map<String, String> processOptions(
         TestQuestionModel question,
         List<PatchOption> options,
-        List<Optional<File>> images,
-        int imageIndex
+        Map<Integer, File> images,
+        TestGroupServiceImp.ImageIndexTracker imageIndexTracker
     ) {
         Map<String, String> results = new HashMap<>();
         List<TestOptionModel> allExistingOptions = testOptionRepository.findAllByQuestion(question);
@@ -41,7 +41,6 @@ public class TestOptionServiceImp implements TestOptionService {
         }
 
         int order = 0;
-        int currentImageIndex = imageIndex;
 
         for (PatchOption patchOption : options) {
             if (patchOption.id().isPresent()) {
@@ -51,22 +50,20 @@ public class TestOptionServiceImp implements TestOptionService {
                 if (savedOption == null) {
                     results.put("question_" + question.getId() + "_option_" + optionId, "Option not found");
                     order++;
-                    currentImageIndex++;
+                    imageIndexTracker.increment();
                     continue;
                 }
 
-                Optional<File> optionImageOptional = (images != null && currentImageIndex < images.size())
-                    ? images.get(currentImageIndex)
-                    : Optional.empty();
-                currentImageIndex++;
+                File optionImage = images.get(imageIndexTracker.getIndex());
+                imageIndexTracker.increment();
 
                 boolean textChanged = !Objects.equals(savedOption.getText(), patchOption.text());
                 boolean correctChanged = savedOption.isCorrect() != patchOption.correct();
                 boolean orderChanged = savedOption.getOrder() != order;
 
-                boolean deleteImage = optionImageOptional.isPresent() && optionImageOptional.get().length() == 0;
-                boolean replaceImage = optionImageOptional.isPresent() && optionImageOptional.get().length() > 0;
-                boolean imageUnchanged = optionImageOptional.isEmpty(); // Optional.empty() = sin cambios
+                boolean hasImageChange = optionImage != null;
+                boolean deleteImage = hasImageChange && optionImage.length() == 0;
+                boolean replaceImage = hasImageChange && optionImage.length() > 0;
 
                 if (textChanged || correctChanged || orderChanged || deleteImage || replaceImage) {
                     savedOption.setText(patchOption.text());
@@ -75,8 +72,10 @@ public class TestOptionServiceImp implements TestOptionService {
 
                     if (deleteImage) {
                         deleteImageFromOption(savedOption);
+                        results.put("question_" + question.getId() + "_option_" + optionId + "_image", "Image deleted");
                     } else if (replaceImage) {
-                        updateOrCreateOptionImage(savedOption, optionImageOptional.get());
+                        updateOrCreateOptionImage(savedOption, optionImage);
+                        results.put("question_" + question.getId() + "_option_" + optionId + "_image", "Image updated");
                     }
 
                     testOptionRepository.save(savedOption);
@@ -96,13 +95,12 @@ public class TestOptionServiceImp implements TestOptionService {
 
                 TestOptionModel savedOption = testOptionRepository.save(newOption);
 
-                Optional<File> optionImageOptional = (images != null && currentImageIndex < images.size())
-                    ? images.get(currentImageIndex)
-                    : Optional.empty();
-                currentImageIndex++;
+                File optionImage = images.get(imageIndexTracker.getIndex());
+                imageIndexTracker.increment();
 
-                if (optionImageOptional.isPresent() && optionImageOptional.get().length() > 0) {
-                    updateOrCreateOptionImage(savedOption, optionImageOptional.get());
+                if (optionImage != null && optionImage.length() > 0) {
+                    updateOrCreateOptionImage(savedOption, optionImage);
+                    results.put("question_" + question.getId() + "_option_new_" + order + "_image", "Image added");
                 }
 
                 results.put("question_" + question.getId() + "_option_new_" + order, "Created with ID: " + savedOption.getId());

@@ -114,7 +114,7 @@ public class TestGroupServiceImp implements TestGroupService {
         return testGroupRepository.save(testGroupModel);
     }
     @Override
-    public Map<String, String> processGroups(Map<String, PatchGroup> groups, List<Optional<File>> images) {
+    public Map<String, String> processGroups(Map<String, PatchGroup> groups, Map<Integer, File> images) {
         Map<String, String> results = new HashMap<>();
         List<TestGroupModel> allExistingGroups = finAllTestGroups();
         Map<Integer, Boolean> processedGroups = new HashMap<>();
@@ -123,7 +123,7 @@ public class TestGroupServiceImp implements TestGroupService {
             processedGroups.put(group.getId(), false);
         }
 
-        int imageIndex = 0;
+        ImageIndexTracker imageIndexTracker = new ImageIndexTracker(0);
 
         for (Map.Entry<String, PatchGroup> entry : groups.entrySet()) {
             String groupKey = entry.getKey();
@@ -152,7 +152,7 @@ public class TestGroupServiceImp implements TestGroupService {
                     savedGroup,
                     updatedGroup.protocol(),
                     images,
-                    imageIndex,
+                    imageIndexTracker,
                     results
                 );
                 results.putAll(protocolResults);
@@ -177,7 +177,7 @@ public class TestGroupServiceImp implements TestGroupService {
                     savedGroup,
                     updatedGroup.protocol(),
                     images,
-                    imageIndex,
+                    imageIndexTracker,
                     results
                 );
                 results.putAll(protocolResults);
@@ -218,5 +218,25 @@ public class TestGroupServiceImp implements TestGroupService {
     @Override
     public void deleteTestGroup(TestGroupModel testGroupModel) {
         testGroupRepository.delete(testGroupModel);
+    }
+
+    public static class ImageIndexTracker {
+        private int index;
+
+        public ImageIndexTracker(int initialIndex) {
+            this.index = initialIndex;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void increment() {
+            index++;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
     }
 }

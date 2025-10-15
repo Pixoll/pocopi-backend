@@ -25,7 +25,7 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
     }
 
     @Override
-    public Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<Optional<File>> updateImages) {
+    public Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, Map<Integer, File> updateImages) {
         Map<String, String> results = new HashMap<>();
         List<HomeInfoCardModel> allExistingCards = homeInfoCardRepository.findAll();
         Map<Integer, Boolean> processedCards = new HashMap<>();
@@ -35,11 +35,12 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
             processedCards.put(card.getId(), false);
         }
 
+        int imageIndex = 0;
         int order = 0;
+
         for (PatchInformationCard patchCard : updateInformationCards) {
-            Optional<File> imageOptional = (updateImages != null && order < updateImages.size())
-                ? updateImages.get(order)
-                : Optional.empty();
+            File cardImage = updateImages.get(imageIndex);
+            imageIndex++;
 
             if (patchCard.id().isPresent()) {
                 Integer cardId = patchCard.id().get();
@@ -54,41 +55,25 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
                 }
 
                 boolean infoChanged = checkChangeByInfoCard(existingCard, patchCard);
+                boolean orderChanged = existingCard.getOrder() != order;
 
-                boolean deleteImage = imageOptional.isPresent() && imageOptional.get().length() == 0;
-                boolean replaceImage = imageOptional.isPresent() && imageOptional.get().length() > 0;
-                boolean imageUnchanged = imageOptional.isEmpty(); // Optional.empty() = sin cambios
+                boolean hasImageChange = cardImage != null;
+                boolean deleteImage = hasImageChange && cardImage.length() == 0;
+                boolean replaceImage = hasImageChange && cardImage.length() > 0;
 
-                if (infoChanged || deleteImage || replaceImage) {
+                if (infoChanged || orderChanged || deleteImage || replaceImage) {
                     existingCard.setTitle(patchCard.title());
                     existingCard.setDescription(patchCard.description());
                     existingCard.setColor(patchCard.color());
                     existingCard.setOrder((byte) order);
 
                     if (deleteImage) {
-                        ImageModel oldImage = existingCard.getIcon();
-                        existingCard.setIcon(null);
-                        if (oldImage != null) {
-                            imageService.deleteImage(oldImage.getPath());
-                        }
+                        deleteImageFromCard(existingCard);
+                        results.put("card_" + cardId + "_image", "Image deleted");
                     } else if (replaceImage) {
                         try {
-                            byte[] imageBytes = Files.readAllBytes(imageOptional.get().toPath());
-                            ImageModel currentImage = existingCard.getIcon();
-
-                            if (currentImage != null) {
-                                imageService.saveImageBytes(imageBytes, currentImage.getPath());
-                            } else {
-                                UploadImageResponse response = imageService.createAndSaveImageBytes(
-                                    imageBytes,
-                                    category,
-                                    imageOptional.get().getName(),
-                                    "Home info card: " + existingCard.getTitle()
-                                );
-                                String path = response.url().substring(response.url().indexOf("/images/") + 1);
-                                ImageModel newImage = imageService.getImageModelByPath(path);
-                                existingCard.setIcon(newImage);
-                            }
+                            updateOrCreateCardImage(existingCard, cardImage, category);
+                            results.put("card_" + cardId + "_image", "Image updated");
                         } catch (IOException e) {
                             results.put("card_" + cardId + "_image_error", "Failed to process image: " + e.getMessage());
                         }
@@ -99,6 +84,7 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
                 } else {
                     results.put("card_" + cardId, "No changes");
                 }
+
                 processedCards.put(cardId, true);
 
             } else {
@@ -108,18 +94,10 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
                 newCard.setColor(patchCard.color());
                 newCard.setOrder((byte) order);
 
-                if (imageOptional.isPresent() && imageOptional.get().length() > 0) {
+                if (cardImage != null && cardImage.length() > 0) {
                     try {
-                        byte[] imageBytes = Files.readAllBytes(imageOptional.get().toPath());
-                        UploadImageResponse response = imageService.createAndSaveImageBytes(
-                            imageBytes,
-                            category,
-                            imageOptional.get().getName(),
-                            "Home info card: " + newCard.getTitle()
-                        );
-                        String path = response.url().substring(response.url().indexOf("/images/") + 1);
-                        ImageModel newImage = imageService.getImageModelByPath(path);
-                        newCard.setIcon(newImage);
+                        updateOrCreateCardImage(newCard, cardImage, category);
+                        results.put("card_new_" + order + "_image", "Image added");
                     } catch (IOException e) {
                         results.put("card_new_" + order + "_image_error", "Failed to process image: " + e.getMessage());
                     }
@@ -136,11 +114,7 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
             if (!entry.getValue()) {
                 HomeInfoCardModel cardToDelete = homeInfoCardRepository.findById(entry.getKey()).orElse(null);
                 if (cardToDelete != null) {
-                    ImageModel imageToDelete = cardToDelete.getIcon();
-                    if (imageToDelete != null) {
-                        imageService.deleteImage(imageToDelete.getPath());
-                    }
-                    homeInfoCardRepository.deleteById(entry.getKey());
+                    deleteCardWithImage(cardToDelete);
                     results.put("card_" + entry.getKey(), "Deleted");
                 }
             }
@@ -152,6 +126,41 @@ public class HomeInfoCardServiceImp implements HomeInfoCardService {
     @Override
     public List<HomeInfoCardModel> findAllByConfigVersion(int configId) {
         return homeInfoCardRepository.findAllByConfigVersion(configId);
+    }
+
+    private void updateOrCreateCardImage(HomeInfoCardModel card, File imageFile, String category) throws IOException {
+        byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+        ImageModel currentImage = card.getIcon();
+
+        if (currentImage != null) {
+            imageService.saveImageBytes(imageBytes, currentImage.getPath());
+        } else {
+            UploadImageResponse response = imageService.createAndSaveImageBytes(
+                imageBytes,
+                category,
+                imageFile.getName(),
+                "Home info card: " + card.getTitle()
+            );
+            String path = response.url().substring(response.url().indexOf("/images/") + 1);
+            ImageModel newImage = imageService.getImageModelByPath(path);
+            card.setIcon(newImage);
+        }
+    }
+
+    private void deleteImageFromCard(HomeInfoCardModel card) {
+        ImageModel oldImage = card.getIcon();
+        card.setIcon(null);
+        if (oldImage != null) {
+            imageService.deleteImage(oldImage.getPath());
+        }
+    }
+
+    private void deleteCardWithImage(HomeInfoCardModel card) {
+        ImageModel imageToDelete = card.getIcon();
+        if (imageToDelete != null) {
+            imageService.deleteImage(imageToDelete.getPath());
+        }
+        homeInfoCardRepository.deleteById(card.getId());
     }
 
     private boolean checkChangeByInfoCard(HomeInfoCardModel savedCard, PatchInformationCard updated) {

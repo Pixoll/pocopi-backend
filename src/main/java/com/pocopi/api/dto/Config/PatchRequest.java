@@ -1,26 +1,26 @@
 package com.pocopi.api.dto.Config;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public record PatchRequest(
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Icon by config")
-    Optional<File> appIcon,
+    Optional<MultipartFile> appIcon,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by pre test form")
-    List<Optional<File>> preTestFormQuestionOptionsFiles,
+    Map<Integer, MultipartFile> preTestFormQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by post test form")
-    List<Optional<File>> postTestFormQuestionOptionsFiles,
+    Map<Integer, MultipartFile> postTestFormQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options each phase and protocol")
-    List<Optional<File>> groupQuestionOptionsFiles,
+    Map<Integer, MultipartFile> groupQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from information cards")
-    List<Optional<File>> informationCardFiles,
+    Map<Integer, MultipartFile> informationCardFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Last configuration updated")
     PatchLastConfig updateLastConfig

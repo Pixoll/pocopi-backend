@@ -3,19 +3,19 @@ package com.pocopi.api.services.interfaces;
 import com.pocopi.api.dto.TestGroup.PatchOption;
 import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.TestQuestionModel;
+import com.pocopi.api.services.implementations.TestGroupServiceImp;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public interface TestOptionService {
 
     Map<String, String> processOptions(
         TestQuestionModel question,
         List<PatchOption> options,
-        List<Optional<File>> images,
-        int imageIndex
+        Map<Integer, File> images,
+        TestGroupServiceImp.ImageIndexTracker imageIndexTracker
     );
     List<TestOptionModel> findAllByQuestion(TestQuestionModel question);
     void deleteById(int id);

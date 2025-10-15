@@ -6,9 +6,8 @@ import com.pocopi.api.models.config.HomeInfoCardModel;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public interface HomeInfoCardService {
-    Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, List<Optional<File>> updateImages);
+    Map<String, String> processCardInformation(List<PatchInformationCard> updateInformationCards, Map<Integer, File> updateImages);
     List<HomeInfoCardModel> findAllByConfigVersion(int configId);
 }

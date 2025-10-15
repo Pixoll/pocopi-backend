@@ -163,8 +163,6 @@ public class ImageServiceImp implements ImageService {
             normalizedPath = "images/" + normalizedPath;
         }
 
-        System.out.println(normalizedPath);
-
         String baseUrl = imageConfig.getBaseUrl();
         baseUrl = baseUrl.replaceFirst("/$", "");
 
