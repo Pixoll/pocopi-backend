@@ -39,20 +39,34 @@ public class FormResultsServiceImpl implements FormResultsService {
     }
 
     @Override
-    public UserFormResultsResponse getUserFormResults(int userId) {
+    public UserFormWithInfoResultsResponse getUserFormResults(int userId) {
+        // Obtenemos el usuario por su ID
         UserModel user = userRepository.getUserByUserId(userId);
         if (user == null) throw new IllegalArgumentException("Usuario no encontrado");
 
+        // Obtenemos la última configuración disponible
         ConfigModel config = configRepository.findLastConfig();
         if (config == null) throw new IllegalStateException("No configuration found");
 
-        List<FormModel> forms = formRepository.findAllByConfigVersion(config.getVersion());
+        // Verificamos que el grupo de test del usuario pertenezca a la última configuración
+        if (user.getGroup() == null || user.getGroup().getConfig() == null
+                || user.getGroup().getConfig().getVersion() != config.getVersion()) {
+            throw new IllegalArgumentException("El usuario no pertenece a un grupo de la última configuración.");
+        }
+
+        int groupId = user.getGroup().getId();
+        int configId = config.getVersion();
+
+        // Listamos todos los formularios asociados a esa configuración
+        List<FormModel> forms = formRepository.findAllByConfigVersion(configId);
         Set<Integer> formIds = forms.stream().map(FormModel::getId).collect(Collectors.toSet());
 
+        // Filtramos todas las respuestas del usuario que correspondan a los formularios de la última config
         List<UserFormAnswerModel> userAnswers = userFormAnswerRepository.findAllByUser_Id(userId).stream()
                 .filter(ans -> formIds.contains(ans.getQuestion().getForm().getId()))
                 .toList();
 
+        // Probablemente debas modificar tu DTO y tu mapper para aceptar/configurar estos nuevos campos:
         return formResultsMapper.toUserFormResultsResponse(user, userAnswers);
     }
 
@@ -63,7 +77,7 @@ public class FormResultsServiceImpl implements FormResultsService {
             throw new IllegalArgumentException("No users found for this group");
         }
 
-        List<UserFormResultsResponse> userResults = users.stream()
+        List<UserFormWithInfoResultsResponse> userResults = users.stream()
                 .map(user -> getUserFormResults(user.getId()))
                 .toList();
 

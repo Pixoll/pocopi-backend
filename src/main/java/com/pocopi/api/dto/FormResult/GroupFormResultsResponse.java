@@ -9,5 +9,5 @@ public record GroupFormResultsResponse(
         int groupId,
 
         @Schema(description = "Resultados de formularios de los usuarios del grupo", requiredMode = Schema.RequiredMode.REQUIRED)
-        List<UserFormResultsResponse> users
+        List<UserFormWithInfoResultsResponse> users
 ) {}

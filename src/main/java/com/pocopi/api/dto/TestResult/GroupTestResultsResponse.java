@@ -8,5 +8,5 @@ public record GroupTestResultsResponse(
         @Schema(description = "ID del grupo")
         int groupId,
         @Schema(description = "Resultados individuales de los usuarios")
-        List<UserTestResultsResponse> users
+        List<UserTestResultsWithInfoResponse> users
 ) {}

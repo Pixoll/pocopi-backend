@@ -1,6 +1,7 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.TestResult.UserTestResultsResponse;
+import com.pocopi.api.dto.Results.UserBasicInfoResponse;
+import com.pocopi.api.dto.TestResult.UserTestResultsWithInfoResponse;
 import com.pocopi.api.dto.TestResult.GroupTestResultsResponse;
 import com.pocopi.api.dto.TestResult.TestQuestionResult;
 import com.pocopi.api.models.user.UserModel;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TestResultsServiceImpl implements TestResultsService {
@@ -32,7 +32,7 @@ public class TestResultsServiceImpl implements TestResultsService {
     }
 
     @Override
-    public UserTestResultsResponse getUserTestResults(int userId) {
+    public UserTestResultsWithInfoResponse getUserTestResults(int userId) {
         UserModel user = userRepository.getUserByUserId(userId);
         if (user == null) throw new IllegalArgumentException("Usuario no encontrado");
 
@@ -50,7 +50,14 @@ public class TestResultsServiceImpl implements TestResultsService {
                 ((Number)row[8]).intValue()
         )).toList();
 
-        return new UserTestResultsResponse(userId, questionResults);
+        UserBasicInfoResponse userInfo = new UserBasicInfoResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getAge() == 0 ? null : (int) user.getAge()
+        );
+
+        return new UserTestResultsWithInfoResponse(userInfo, questionResults);
     }
 
     @Override
@@ -60,7 +67,7 @@ public class TestResultsServiceImpl implements TestResultsService {
             throw new IllegalArgumentException("No users found for this group");
         }
 
-        List<UserTestResultsResponse> userResults = users.stream()
+        List<UserTestResultsWithInfoResponse> userResults = users.stream()
                 .map(user -> getUserTestResults(user.getId()))
                 .toList();
 
