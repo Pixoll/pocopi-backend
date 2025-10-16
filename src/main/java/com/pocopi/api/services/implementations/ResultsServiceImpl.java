@@ -1,9 +1,12 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.Results.UserFullResultsResponse;
+import com.pocopi.api.dto.Results.UserAllResultsResponse;
 import com.pocopi.api.dto.Results.GroupFullResultsResponse;
 import com.pocopi.api.dto.FormResult.UserFormWithInfoResultsResponse;
+import com.pocopi.api.dto.FormResult.FormAnswers;
 import com.pocopi.api.dto.TestResult.UserTestResultsWithInfoResponse;
+import com.pocopi.api.dto.TestResult.TestQuestionResult;
+import com.pocopi.api.dto.Results.UserBasicInfoResponse;
 import com.pocopi.api.services.interfaces.FormResultsService;
 import com.pocopi.api.services.interfaces.TestResultsService;
 import com.pocopi.api.services.interfaces.ResultsService;
@@ -32,10 +35,33 @@ public class ResultsServiceImpl implements ResultsService {
     }
 
     @Override
-    public UserFullResultsResponse getUserFullResults(int userId) {
+    public UserAllResultsResponse getUserAllResults(int userId) {
+        UserModel user = userRepository.getUserByUserId(userId);
+        if (user == null) throw new IllegalArgumentException("Usuario no encontrado");
+
+        // Info usuario
+        UserBasicInfoResponse userInfo = new UserBasicInfoResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getAge() == 0 ? null : (int) user.getAge(),
+                user.getGroup() != null ? user.getGroup().getId() : -1
+        );
+
+        // Formularios
         UserFormWithInfoResultsResponse forms = formResultsService.getUserFormResults(userId);
+        List<FormAnswers> pre = forms.pre();
+        List<FormAnswers> post = forms.post();
+
+        // Tests
         UserTestResultsWithInfoResponse tests = testResultsService.getUserTestResults(userId);
-        return new UserFullResultsResponse(forms, tests);
+        List<TestQuestionResult> questions = tests.questions();
+
+        return new UserAllResultsResponse(
+                userInfo,
+                new UserAllResultsResponse.UserFormsPart(pre, post),
+                new UserAllResultsResponse.UserTestsPart(questions)
+        );
     }
 
     @Override
@@ -45,8 +71,8 @@ public class ResultsServiceImpl implements ResultsService {
             throw new IllegalArgumentException("No users found for this group");
         }
 
-        List<UserFullResultsResponse> userResults = users.stream()
-                .map(user -> getUserFullResults(user.getId()))
+        List<UserAllResultsResponse> userResults = users.stream()
+                .map(user -> getUserAllResults(user.getId()))
                 .toList();
 
         return new GroupFullResultsResponse(groupId, userResults);

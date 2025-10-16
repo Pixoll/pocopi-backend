@@ -54,7 +54,8 @@ public class TestResultsServiceImpl implements TestResultsService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getAge() == 0 ? null : (int) user.getAge()
+                user.getAge() == 0 ? null : (int) user.getAge(),
+                user.getGroup() != null ? user.getGroup().getId() : -1
         );
 
         return new UserTestResultsWithInfoResponse(userInfo, questionResults);

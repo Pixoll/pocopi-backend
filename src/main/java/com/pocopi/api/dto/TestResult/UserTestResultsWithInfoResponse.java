@@ -7,7 +7,7 @@ import java.util.List;
 
 @Schema(description = "Resultados de test de un usuario")
 public record UserTestResultsWithInfoResponse(
-        @Schema(description = "ID del usuario")
+        @Schema(description = "Información del usuario, incluyendo el ID de grupo de test")
         UserBasicInfoResponse user,
         @Schema(description = "Resultados por pregunta")
         List<TestQuestionResult> questions

@@ -9,6 +9,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface UserRepository extends JpaRepository<UserModel, Integer> {
+
+    List<UserModel> findAllByGroup_Config_Version(int configVersion);
+
     @Query(value = "SELECT * FROM user u WHERE u.group_id = :groupId", nativeQuery = true)
     List<UserModel> findAllByGroup_Id(@Param("groupId") int groupId);
 

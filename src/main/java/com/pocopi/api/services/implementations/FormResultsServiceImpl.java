@@ -66,7 +66,6 @@ public class FormResultsServiceImpl implements FormResultsService {
                 .filter(ans -> formIds.contains(ans.getQuestion().getForm().getId()))
                 .toList();
 
-        // Probablemente debas modificar tu DTO y tu mapper para aceptar/configurar estos nuevos campos:
         return formResultsMapper.toUserFormResultsResponse(user, userAnswers);
     }
 
