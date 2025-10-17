@@ -44,7 +44,8 @@ public class WebSecurityConfig {
                     "/api/config/latest",
                     "/api/auth/login",
                     "/api/auth/register",
-                    "/api/config"
+                    "/api/config",
+                    "/api/forms/answer"
                 ).permitAll()
                 .anyRequest().authenticated()
             );

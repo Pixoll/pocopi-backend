@@ -60,12 +60,29 @@ public class UserServiceImp implements UserService {
         }
 
         try {
+            String name = (request.anonymous() || request.name() == null || request.name().trim().isEmpty())
+                ? null
+                : request.name();
+
+            String email = (request.anonymous() || request.email() == null || request.email().trim().isEmpty())
+                ? null
+                : request.email();
+
+            Byte age = null;
+            if (!request.anonymous() && request.age() != null && !request.age().toString().trim().isEmpty()) {
+                try {
+                    age = Byte.parseByte(String.valueOf(request.age()));
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("Invalid age format");
+                }
+            }
+
             UserModel newUser = UserModel.builder()
                 .username(request.username())
                 .anonymous(request.anonymous())
-                .name(request.name())
-                .email(request.email())
-                .age(request.age())
+                .name(name)
+                .email(email)
+                .age(age)
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
@@ -111,22 +128,36 @@ public class UserServiceImp implements UserService {
 
     private void validateOnCreateUser(NewUser request, List<FieldErrorResponse> fieldErrors) {
         if (request.anonymous()) {
-            if (request.email() != null && !request.email().trim().isEmpty()) {
-                fieldErrors.add(new FieldErrorResponse("email", "Email must be null for anonymous users"));
+            if (request.name() != null && !request.name().trim().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("name", "Name must be empty for anonymous users"));
             }
-            return;
-        }
+            if (request.email() != null && !request.email().trim().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("email", "Email must be empty for anonymous users"));
+            }
+            if (request.age() != null && !request.age().toString().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("age", "Age must be empty for anonymous users"));
+            }
+        } else {
+            if (request.name() == null || request.name().trim().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("name", "Name is required for non-anonymous users"));
+            }
 
-        if (request.name() == null || request.name().trim().isEmpty()) {
-            fieldErrors.add(new FieldErrorResponse("name", "Name is required for non-anonymous users"));
-        }
+            if (request.email() == null || request.email().trim().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("email", "Email is required for non-anonymous users"));
+            }
 
-        if (request.email() == null || request.email().trim().isEmpty()) {
-            fieldErrors.add(new FieldErrorResponse("email", "Email is required for non-anonymous users"));
-        }
-
-        if (request.age() < 1 || request.age() > 120) {
-            fieldErrors.add(new FieldErrorResponse("age", "Invalid age"));
+            if (request.age() == null || request.age().toString().trim().isEmpty()) {
+                fieldErrors.add(new FieldErrorResponse("age", "Age is required for non-anonymous users"));
+            } else {
+                try {
+                    int ageValue = Integer.parseInt(String.valueOf(request.age()));
+                    if (ageValue < 1 || ageValue > 120) {
+                        fieldErrors.add(new FieldErrorResponse("age", "Age must be between 1 and 120"));
+                    }
+                } catch (NumberFormatException e) {
+                    fieldErrors.add(new FieldErrorResponse("age", "Age must be a valid number"));
+                }
+            }
         }
     }
 
@@ -149,7 +180,7 @@ public class UserServiceImp implements UserService {
             fieldErrors.add(new FieldErrorResponse("password", "Password cannot be empty"));
         }
 
-        if (request.email() != null && !request.email().trim().isEmpty()) {
+        if (!request.anonymous() && request.email() != null && !request.email().trim().isEmpty()) {
             if (!isValidEmail(request.email())) {
                 fieldErrors.add(new FieldErrorResponse("email", "Invalid email format"));
             }
