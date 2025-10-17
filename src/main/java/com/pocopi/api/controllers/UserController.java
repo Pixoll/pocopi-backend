@@ -1,6 +1,6 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.User.CreateUserRequest;
+import com.pocopi.api.dto.Auth.NewUser;
 import com.pocopi.api.dto.User.User;
 import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.services.interfaces.UserService;
@@ -47,7 +47,7 @@ public class UserController {
                             content = @Content(schema = @Schema(implementation = MultiFieldException.class)))
             }
     )
-    public ResponseEntity<String> createUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<String> createUser(@RequestBody NewUser request) {
         String response = userService.createUser(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

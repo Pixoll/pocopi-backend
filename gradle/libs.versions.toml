@@ -1,21 +1,26 @@
 [versions]
 asciidoctorVersion = "3.3.2"
 dotenvVersion = "3.2.0"
+jjwtVersion = "0.13.0"
 lombokVersion = "1.18.40"
 mysqlConnectorVersion = "9.4.0"
+openAPIVersion = "2.8.13"
 springFrameworkVersion = "3.5.5"
 springDepManagerVersion = "1.1.7"
-openAPIVersion = "2.8.13"
 
 [libraries]
 openApi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "openAPIVersion" }
 dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenvVersion" }
 junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+jjwt-api = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jjwtVersion" }
+jjwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwtVersion" }
+jjwt-jackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref = "jjwtVersion" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombokVersion" }
 mysql-connector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysqlConnectorVersion" }
 spring-boot-configuration-processor = { group = "org.springframework.boot", name = "spring-boot-configuration-processor" }
 spring-boot-devtools = { group = "org.springframework.boot", name = "spring-boot-devtools" }
 spring-boot-docker-compose = { group = "org.springframework.boot", name = "spring-boot-docker-compose" }
+spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
 spring-boot-starter-data-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-data-jdbc" }
 spring-boot-starter-data-jpa = { group = "org.springframework.boot", name = "spring-boot-starter-data-jpa" }
 spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }

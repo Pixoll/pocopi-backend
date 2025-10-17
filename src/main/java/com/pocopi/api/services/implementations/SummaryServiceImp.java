@@ -99,7 +99,6 @@ public class SummaryServiceImp implements SummaryService {
             user.getName(),
             user.getEmail(),
             user.getAge(),
-            user.getGroup().getLabel(),
             start,
             Math.toIntExact(end - start),
             questionsAnswered,

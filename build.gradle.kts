@@ -36,10 +36,10 @@ dependencies {
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.websocket)
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     developmentOnly(libs.spring.boot.devtools)
     developmentOnly(libs.spring.boot.docker.compose)
+    developmentOnly(libs.spring.boot.starter.actuator)
 
     annotationProcessor(libs.spring.boot.configuration.processor)
 
@@ -48,10 +48,17 @@ dependencies {
     testImplementation(libs.spring.security.test)
 
     // others
+
+    compileOnly(libs.jjwt.api)
     compileOnly(libs.lombok)
+
     annotationProcessor(libs.lombok)
+
     implementation(libs.dotenv)
     implementation(libs.openApi)
+
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
     runtimeOnly(libs.mysql.connector)
 
     // testing

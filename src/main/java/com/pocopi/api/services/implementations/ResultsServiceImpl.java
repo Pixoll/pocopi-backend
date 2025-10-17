@@ -25,9 +25,9 @@ public class ResultsServiceImpl implements ResultsService {
 
     @Autowired
     public ResultsServiceImpl(
-            FormResultsService formResultsService,
-            TestResultsService testResultsService,
-            UserRepository userRepository
+        FormResultsService formResultsService,
+        TestResultsService testResultsService,
+        UserRepository userRepository
     ) {
         this.formResultsService = formResultsService;
         this.testResultsService = testResultsService;
@@ -41,11 +41,10 @@ public class ResultsServiceImpl implements ResultsService {
 
         // Info usuario
         UserBasicInfoResponse userInfo = new UserBasicInfoResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getAge() == 0 ? null : (int) user.getAge(),
-                user.getGroup() != null ? user.getGroup().getId() : -1
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getAge() == 0 ? null : (int) user.getAge()
         );
 
         // Formularios
@@ -58,22 +57,22 @@ public class ResultsServiceImpl implements ResultsService {
         List<TestQuestionResult> questions = tests.questions();
 
         return new UserAllResultsResponse(
-                userInfo,
-                new UserAllResultsResponse.UserFormsPart(pre, post),
-                new UserAllResultsResponse.UserTestsPart(questions)
+            userInfo,
+            new UserAllResultsResponse.UserFormsPart(pre, post),
+            new UserAllResultsResponse.UserTestsPart(questions)
         );
     }
 
     @Override
     public GroupFullResultsResponse getGroupFullResults(int groupId) {
-        List<UserModel> users = userRepository.findAllByGroup_Id(groupId);
+        List<UserModel> users = userRepository.getAllUsers(); // TODO changed from getByGroupId
         if (users == null || users.isEmpty()) {
             throw new IllegalArgumentException("No users found for this group");
         }
 
         List<UserAllResultsResponse> userResults = users.stream()
-                .map(user -> getUserAllResults(user.getId()))
-                .toList();
+            .map(user -> getUserAllResults(user.getId()))
+            .toList();
 
         return new GroupFullResultsResponse(groupId, userResults);
     }

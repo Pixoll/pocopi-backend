@@ -1,12 +1,10 @@
 package com.pocopi.api.models.user;
 
-import com.pocopi.api.models.test.TestGroupModel;
+import com.pocopi.api.converters.RoleConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "user", indexes = {@Index(columnList = "group_id")})
@@ -26,10 +24,9 @@ public class UserModel {
     private String username;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "group_id", nullable = false)
-    private TestGroupModel group;
+    @Convert(converter = RoleConverter.class)
+    @Column(name = "role", nullable = false)
+    private Role role;
 
     @Column(name = "anonymous", nullable = false)
     private boolean anonymous;
@@ -43,7 +40,7 @@ public class UserModel {
     private String email = null;
 
     @Column(name = "age", columnDefinition = "int1 unsigned")
-    private byte age;
+    private Byte age;
 
     @Size(min = 60, max = 60)
     @NotNull
@@ -51,9 +48,8 @@ public class UserModel {
     private String password;
 
     @Builder
-    public UserModel(String username, TestGroupModel group, boolean anonymous, String name, String email, Byte age, String password) {
+    public UserModel(String username, boolean anonymous, String name, String email, Byte age, String password) {
         this.username = username;
-        this.group = group;
         this.anonymous = anonymous;
         this.name = name;
         this.email = email;

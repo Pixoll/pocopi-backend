@@ -1,13 +1,17 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.FormResult.*;
+import com.pocopi.api.dto.FormResult.GroupFormResultsResponse;
+import com.pocopi.api.dto.FormResult.UserFormWithInfoResultsResponse;
+import com.pocopi.api.mappers.FormResultsMapper;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.form.FormModel;
 import com.pocopi.api.models.form.UserFormAnswerModel;
 import com.pocopi.api.models.user.UserModel;
-import com.pocopi.api.repositories.*;
+import com.pocopi.api.repositories.ConfigRepository;
+import com.pocopi.api.repositories.FormRepository;
+import com.pocopi.api.repositories.UserFormAnswerRepository;
+import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.services.interfaces.FormResultsService;
-import com.pocopi.api.mappers.FormResultsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +29,11 @@ public class FormResultsServiceImpl implements FormResultsService {
 
     @Autowired
     public FormResultsServiceImpl(
-            UserRepository userRepository,
-            UserFormAnswerRepository userFormAnswerRepository,
-            FormRepository formRepository,
-            ConfigRepository configRepository,
-            FormResultsMapper formResultsMapper
+        UserRepository userRepository,
+        UserFormAnswerRepository userFormAnswerRepository,
+        FormRepository formRepository,
+        ConfigRepository configRepository,
+        FormResultsMapper formResultsMapper
     ) {
         this.userRepository = userRepository;
         this.userFormAnswerRepository = userFormAnswerRepository;
@@ -48,13 +52,6 @@ public class FormResultsServiceImpl implements FormResultsService {
         ConfigModel config = configRepository.findLastConfig();
         if (config == null) throw new IllegalStateException("No configuration found");
 
-        // Verificamos que el grupo de test del usuario pertenezca a la última configuración
-        if (user.getGroup() == null || user.getGroup().getConfig() == null
-                || user.getGroup().getConfig().getVersion() != config.getVersion()) {
-            throw new IllegalArgumentException("El usuario no pertenece a un grupo de la última configuración.");
-        }
-
-        int groupId = user.getGroup().getId();
         int configId = config.getVersion();
 
         // Listamos todos los formularios asociados a esa configuración
@@ -63,22 +60,22 @@ public class FormResultsServiceImpl implements FormResultsService {
 
         // Filtramos todas las respuestas del usuario que correspondan a los formularios de la última config
         List<UserFormAnswerModel> userAnswers = userFormAnswerRepository.findAllByUser_Id(userId).stream()
-                .filter(ans -> formIds.contains(ans.getQuestion().getForm().getId()))
-                .toList();
+            .filter(ans -> formIds.contains(ans.getQuestion().getForm().getId()))
+            .toList();
 
         return formResultsMapper.toUserFormResultsResponse(user, userAnswers);
     }
 
     @Override
     public GroupFormResultsResponse getGroupFormResults(int groupId) {
-        List<UserModel> users = userRepository.findAllByGroup_Id(groupId);
+        List<UserModel> users = userRepository.getAllUsers(); // TODO changed from getByGroupId
         if (users == null || users.isEmpty()) {
             throw new IllegalArgumentException("No users found for this group");
         }
 
         List<UserFormWithInfoResultsResponse> userResults = users.stream()
-                .map(user -> getUserFormResults(user.getId()))
-                .toList();
+            .map(user -> getUserFormResults(user.getId()))
+            .toList();
 
         return formResultsMapper.toGroupFormResultsResponse(groupId, userResults);
     }

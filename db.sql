@@ -24,6 +24,8 @@ drop table if exists test_phase;
 
 drop table if exists test_protocol;
 
+drop table if exists user_test_attempt;
+
 drop table if exists user;
 
 drop table if exists test_group;
@@ -404,24 +406,16 @@ delimiter ;
 create table user (
     id        int4 unsigned primary key not null auto_increment,
     username  varchar(32) unique        not null check (username != ''),
-    group_id  int4 unsigned             not null,
+    role      enum ('USER', 'ADMIN')    not null default 'USER',
     anonymous bool                      not null,
-    name      varchar(50)        default null,
-    email     varchar(50) unique default null,
-    age       int1 unsigned      default null check (age is null or age <= 120),
+    name      varchar(50)                        default null,
+    email     varchar(50) unique                 default null,
+    age       int1 unsigned                      default null check (age is null or age <= 120),
     password  char(60)                  not null check (password != ''),
-    index (group_id),
     check (
         (anonymous = true and name is null and email is null and age is null)
             or (anonymous = false and name is not null and email is not null and age is not null)
-        ),
-    foreign key (group_id) references test_group (id) on delete restrict
-);
-
-create table admin (
-    id       int4 unsigned primary key not null auto_increment,
-    username varchar(32) unique        not null check (username != ''),
-    password char(60)                  not null check (password != '')
+        )
 );
 
 create table user_form_answer (
@@ -579,6 +573,17 @@ begin
             'answer should not be present when question_id.type is neither text-short or text-long';
     end if;
 end;
+
+create table user_test_attempt (
+    id       int8 unsigned primary key not null auto_increment,
+    user_id  int4 unsigned             not null,
+    group_id int4 unsigned             not null,
+    start    datetime(3)               not null,
+    end      datetime(3) default null,
+    unique (user_id, group_id, start),
+    foreign key (user_id) references user (id) on delete cascade,
+    foreign key (group_id) references test_group (id) on delete restrict
+);
 
 create table user_test_question_log (
     id          int8 unsigned primary key not null auto_increment,
@@ -1409,164 +1414,3 @@ insert into test_option (question_id, `order`, text, image_id, correct)
            (26, 6, '6', default, false),
            (26, 7, '7', default, false),
            (26, 8, '8', default, false);
-
-insert into user (username, group_id, anonymous, name, email, age, password)
-    values ('12345678-9', 2, false, 'pepe papito', 'pepe@papito.cl', 31, '-');
-
-insert into user_form_answer (user_id, question_id, option_id, value, answer)
-    values (1, 16, null, 2, null),
-           (1, 17, null, 3, null),
-           (1, 18, null, 1, null),
-           (1, 19, null, 4, null),
-           (1, 20, null, 4, null),
-           (1, 21, null, 4, null),
-           (1, 22, null, 3, null),
-           (1, 23, null, 2, null),
-           (1, 24, null, 4, null),
-           (1, 25, null, 6, null),
-           (1, 1, default, null, 'iiiiiiiiii'),
-           (1, 2, 4, null, null),
-           (1, 3, 11, null, null),
-           (1, 4, 17, null, null),
-           (1, 5, 23, null, null),
-           (1, 6, null, 2, null),
-           (1, 7, null, 4, null),
-           (1, 8, null, 3, null),
-           (1, 9, null, 1, null),
-           (1, 10, null, 5, null),
-           (1, 11, null, 3, null),
-           (1, 12, null, 2, null),
-           (1, 13, null, 5, null),
-           (1, 14, null, 3, null),
-           (1, 15, null, 7, null);
-
-insert into user_test_question_log (user_id, question_id, timestamp, duration)
-    values (1, 14, from_unixtime(1758060432554 / 1000), 7354),
-           (1, 23, from_unixtime(1758060460247 / 1000), 1188),
-           (1, 23, from_unixtime(1758060462496 / 1000), 275),
-           (1, 24, from_unixtime(1758060462773 / 1000), 1758),
-           (1, 25, from_unixtime(1758060464535 / 1000), 1572),
-           (1, 26, from_unixtime(1758060466111 / 1000), 1156),
-           (1, 15, from_unixtime(1758060439912 / 1000), 1876),
-           (1, 16, from_unixtime(1758060441791 / 1000), 3388),
-           (1, 17, from_unixtime(1758060445183 / 1000), 2380),
-           (1, 18, from_unixtime(1758060447566 / 1000), 1454),
-           (1, 19, from_unixtime(1758060449023 / 1000), 1172),
-           (1, 19, from_unixtime(1758060450968 / 1000), 1339),
-           (1, 19, from_unixtime(1758060453944 / 1000), 355),
-           (1, 20, from_unixtime(1758060450199 / 1000), 765),
-           (1, 20, from_unixtime(1758060452312 / 1000), 1627),
-           (1, 20, from_unixtime(1758060454304 / 1000), 203),
-           (1, 21, from_unixtime(1758060454512 / 1000), 2939),
-           (1, 22, from_unixtime(1758060457455 / 1000), 2788),
-           (1, 22, from_unixtime(1758060461439 / 1000), 1053);
-
-insert into user_test_option_log (user_id, option_id, type, timestamp)
-    values (1, 106, 'hover', from_unixtime(1758060433259 / 1000)),
-           (1, 106, 'select', from_unixtime(1758060433540 / 1000)),
-           (1, 110, 'hover', from_unixtime(1758060433688 / 1000)),
-           (1, 106, 'hover', from_unixtime(1758060437744 / 1000)),
-           (1, 105, 'hover', from_unixtime(1758060437871 / 1000)),
-           (1, 110, 'hover', from_unixtime(1758060437955 / 1000)),
-           (1, 111, 'hover', from_unixtime(1758060437995 / 1000)),
-           (1, 106, 'hover', from_unixtime(1758060438115 / 1000)),
-           (1, 109, 'hover', from_unixtime(1758060438171 / 1000)),
-           (1, 110, 'hover', from_unixtime(1758060438243 / 1000)),
-           (1, 111, 'hover', from_unixtime(1758060438299 / 1000)),
-           (1, 107, 'hover', from_unixtime(1758060438351 / 1000)),
-           (1, 106, 'hover', from_unixtime(1758060438405 / 1000)),
-           (1, 110, 'hover', from_unixtime(1758060438443 / 1000)),
-           (1, 111, 'hover', from_unixtime(1758060438520 / 1000)),
-           (1, 107, 'hover', from_unixtime(1758060438600 / 1000)),
-           (1, 107, 'select', from_unixtime(1758060438819 / 1000)),
-           (1, 110, 'hover', from_unixtime(1758060438976 / 1000)),
-           (1, 110, 'hover', from_unixtime(1758060439267 / 1000)),
-           (1, 110, 'select', from_unixtime(1758060439428 / 1000)),
-           (1, 182, 'hover', from_unixtime(1758060460544 / 1000)),
-           (1, 182, 'select', from_unixtime(1758060460795 / 1000)),
-           (1, 191, 'hover', from_unixtime(1758060462992 / 1000)),
-           (1, 187, 'hover', from_unixtime(1758060463161 / 1000)),
-           (1, 187, 'select', from_unixtime(1758060463332 / 1000)),
-           (1, 186, 'hover', from_unixtime(1758060463531 / 1000)),
-           (1, 185, 'hover', from_unixtime(1758060463635 / 1000)),
-           (1, 185, 'select', from_unixtime(1758060463924 / 1000)),
-           (1, 190, 'hover', from_unixtime(1758060464048 / 1000)),
-           (1, 199, 'hover', from_unixtime(1758060464788 / 1000)),
-           (1, 199, 'select', from_unixtime(1758060465107 / 1000)),
-           (1, 194, 'hover', from_unixtime(1758060465307 / 1000)),
-           (1, 194, 'select', from_unixtime(1758060465563 / 1000)),
-           (1, 207, 'hover', from_unixtime(1758060466355 / 1000)),
-           (1, 203, 'hover', from_unixtime(1758060466494 / 1000)),
-           (1, 203, 'select', from_unixtime(1758060466675 / 1000)),
-           (1, 207, 'hover', from_unixtime(1758060466774 / 1000)),
-           (1, 114, 'hover', from_unixtime(1758060440209 / 1000)),
-           (1, 113, 'hover', from_unixtime(1758060440379 / 1000)),
-           (1, 114, 'hover', from_unixtime(1758060440494 / 1000)),
-           (1, 115, 'hover', from_unixtime(1758060440579 / 1000)),
-           (1, 119, 'hover', from_unixtime(1758060440747 / 1000)),
-           (1, 119, 'select', from_unixtime(1758060440915 / 1000)),
-           (1, 114, 'hover', from_unixtime(1758060441077 / 1000)),
-           (1, 114, 'select', from_unixtime(1758060441259 / 1000)),
-           (1, 118, 'hover', from_unixtime(1758060441332 / 1000)),
-           (1, 127, 'hover', from_unixtime(1758060441897 / 1000)),
-           (1, 123, 'hover', from_unixtime(1758060441957 / 1000)),
-           (1, 122, 'hover', from_unixtime(1758060442134 / 1000)),
-           (1, 121, 'hover', from_unixtime(1758060442207 / 1000)),
-           (1, 125, 'hover', from_unixtime(1758060442334 / 1000)),
-           (1, 127, 'hover', from_unixtime(1758060442499 / 1000)),
-           (1, 124, 'hover', from_unixtime(1758060442571 / 1000)),
-           (1, 123, 'hover', from_unixtime(1758060442735 / 1000)),
-           (1, 122, 'hover', from_unixtime(1758060442827 / 1000)),
-           (1, 122, 'select', from_unixtime(1758060443035 / 1000)),
-           (1, 123, 'hover', from_unixtime(1758060443160 / 1000)),
-           (1, 123, 'select', from_unixtime(1758060443387 / 1000)),
-           (1, 127, 'hover', from_unixtime(1758060443500 / 1000)),
-           (1, 126, 'hover', from_unixtime(1758060443699 / 1000)),
-           (1, 125, 'hover', from_unixtime(1758060443772 / 1000)),
-           (1, 121, 'hover', from_unixtime(1758060443923 / 1000)),
-           (1, 121, 'select', from_unixtime(1758060444107 / 1000)),
-           (1, 121, 'hover', from_unixtime(1758060444371 / 1000)),
-           (1, 121, 'deselect', from_unixtime(1758060444555 / 1000)),
-           (1, 131, 'hover', from_unixtime(1758060445467 / 1000)),
-           (1, 131, 'select', from_unixtime(1758060445747 / 1000)),
-           (1, 130, 'hover', from_unixtime(1758060445984 / 1000)),
-           (1, 129, 'hover', from_unixtime(1758060446075 / 1000)),
-           (1, 136, 'hover', from_unixtime(1758060446515 / 1000)),
-           (1, 135, 'hover', from_unixtime(1758060446699 / 1000)),
-           (1, 134, 'hover', from_unixtime(1758060446791 / 1000)),
-           (1, 134, 'select', from_unixtime(1758060447011 / 1000)),
-           (1, 142, 'hover', from_unixtime(1758060447798 / 1000)),
-           (1, 140, 'hover', from_unixtime(1758060448085 / 1000)),
-           (1, 140, 'select', from_unixtime(1758060448411 / 1000)),
-           (1, 143, 'hover', from_unixtime(1758060448516 / 1000)),
-           (1, 150, 'hover', from_unixtime(1758060451260 / 1000)),
-           (1, 146, 'hover', from_unixtime(1758060451363 / 1000)),
-           (1, 146, 'select', from_unixtime(1758060451659 / 1000)),
-           (1, 158, 'hover', from_unixtime(1758060452875 / 1000)),
-           (1, 157, 'hover', from_unixtime(1758060453027 / 1000)),
-           (1, 153, 'hover', from_unixtime(1758060453136 / 1000)),
-           (1, 153, 'select', from_unixtime(1758060453347 / 1000)),
-           (1, 167, 'hover', from_unixtime(1758060454800 / 1000)),
-           (1, 163, 'hover', from_unixtime(1758060454910 / 1000)),
-           (1, 163, 'select', from_unixtime(1758060455267 / 1000)),
-           (1, 162, 'hover', from_unixtime(1758060455523 / 1000)),
-           (1, 166, 'hover', from_unixtime(1758060455715 / 1000)),
-           (1, 166, 'hover', from_unixtime(1758060455869 / 1000)),
-           (1, 161, 'hover', from_unixtime(1758060455971 / 1000)),
-           (1, 165, 'hover', from_unixtime(1758060456115 / 1000)),
-           (1, 166, 'hover', from_unixtime(1758060456440 / 1000)),
-           (1, 161, 'hover', from_unixtime(1758060456539 / 1000)),
-           (1, 161, 'select', from_unixtime(1758060456819 / 1000)),
-           (1, 166, 'hover', from_unixtime(1758060456943 / 1000)),
-           (1, 174, 'hover', from_unixtime(1758060457831 / 1000)),
-           (1, 174, 'select', from_unixtime(1758060458043 / 1000)),
-           (1, 175, 'hover', from_unixtime(1758060458176 / 1000)),
-           (1, 172, 'hover', from_unixtime(1758060458291 / 1000)),
-           (1, 172, 'select', from_unixtime(1758060458627 / 1000)),
-           (1, 172, 'hover', from_unixtime(1758060458923 / 1000)),
-           (1, 172, 'deselect', from_unixtime(1758060459123 / 1000)),
-           (1, 175, 'hover', from_unixtime(1758060459287 / 1000)),
-           (1, 174, 'hover', from_unixtime(1758060461680 / 1000)),
-           (1, 170, 'hover', from_unixtime(1758060461868 / 1000)),
-           (1, 170, 'select', from_unixtime(1758060461987 / 1000)),
-           (1, 174, 'hover', from_unixtime(1758060462069 / 1000));

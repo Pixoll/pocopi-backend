@@ -1,13 +1,11 @@
 package com.pocopi.api.services.implementations;
 
-import com.pocopi.api.dto.User.CreateUserRequest;
+import com.pocopi.api.dto.Auth.NewUser;
 import com.pocopi.api.dto.User.User;
 import com.pocopi.api.dto.api.FieldErrorResponse;
 import com.pocopi.api.exception.MultiFieldException;
-import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;
-import com.pocopi.api.services.interfaces.TestGroupService;
 import com.pocopi.api.services.interfaces.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,22 +14,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
-    private final TestGroupService testGroupService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImp(UserRepository userRepository,
-                          PasswordEncoder passwordEncoder,
-                          TestGroupService testGroupService
-    ) {
+    public UserServiceImp(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.testGroupService = testGroupService;
     }
 
     @Override
@@ -47,18 +39,11 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional
-    public String createUser(CreateUserRequest request) throws MultiFieldException {
+    public String createUser(NewUser request) throws MultiFieldException {
         List<FieldErrorResponse> fieldErrors = new ArrayList<>();
 
-        TestGroupModel group = testGroupService.getTestGroup(request.groupId());
-        if (group == null) {
-            fieldErrors.add(new FieldErrorResponse("groupId", "Test group does not exist"));
-        }
-
-        if (request.username().isPresent()) {
-            if (userRepository.existsByUsername(request.username().get())) {
-                fieldErrors.add(new FieldErrorResponse("username", "Username already exists"));
-            }
+        if (userRepository.existsByUsername(request.username())) {
+            fieldErrors.add(new FieldErrorResponse("username", "Username already exists"));
         }
 
         if (request.email() != null && !request.email().trim().isEmpty()) {
@@ -68,30 +53,24 @@ public class UserServiceImp implements UserService {
         }
 
         validateOnCreateUser(request, fieldErrors);
-
-        if (request.age() < 1 || request.age() > 120) {
-            fieldErrors.add(new FieldErrorResponse("age", "Invalid age"));
-        }
-
         validateFieldLengths(request, fieldErrors);
 
         if (!fieldErrors.isEmpty()) {
             throw new MultiFieldException("Some error in fields", fieldErrors);
         }
+
         try {
             UserModel newUser = UserModel.builder()
-                .group(group)
-                .username(request.username().isPresent() ? request.username().get() : generateUniqueUsername())
+                .username(request.username())
                 .anonymous(request.anonymous())
                 .name(request.name())
                 .email(request.email())
-                .age((byte) request.age())
+                .age(request.age())
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
             userRepository.insertNewUser(
                 newUser.getUsername(),
-                newUser.getGroup().getId(),
                 newUser.isAnonymous(),
                 newUser.getName(),
                 newUser.getEmail(),
@@ -100,7 +79,6 @@ public class UserServiceImp implements UserService {
             );
 
             return "User created successfully";
-
         } catch (Exception e) {
             throw new RuntimeException("Failed to create user: " + e.getMessage());
         }
@@ -131,31 +109,33 @@ public class UserServiceImp implements UserService {
         return userRepository.getAllUserIds();
     }
 
-    private void validateOnCreateUser(CreateUserRequest request, List<FieldErrorResponse> fieldErrors) {
+    private void validateOnCreateUser(NewUser request, List<FieldErrorResponse> fieldErrors) {
         if (request.anonymous()) {
             if (request.email() != null && !request.email().trim().isEmpty()) {
                 fieldErrors.add(new FieldErrorResponse("email", "Email must be null for anonymous users"));
             }
+            return;
+        }
 
-        } else {
-            if (request.name() == null || request.name().trim().isEmpty()) {
-                fieldErrors.add(new FieldErrorResponse("name", "Name is required for non-anonymous users"));
-            }
-            if (request.email() == null || request.email().trim().isEmpty()) {
-                fieldErrors.add(new FieldErrorResponse("email", "Email is required for non-anonymous users"));
-            }
+        if (request.name() == null || request.name().trim().isEmpty()) {
+            fieldErrors.add(new FieldErrorResponse("name", "Name is required for non-anonymous users"));
+        }
+
+        if (request.email() == null || request.email().trim().isEmpty()) {
+            fieldErrors.add(new FieldErrorResponse("email", "Email is required for non-anonymous users"));
+        }
+
+        if (request.age() < 1 || request.age() > 120) {
+            fieldErrors.add(new FieldErrorResponse("age", "Invalid age"));
         }
     }
 
-    private void validateFieldLengths(CreateUserRequest request, List<FieldErrorResponse> fieldErrors) {
-        if (request.username().isPresent()) {
-            String username = request.username().get();
-            if (username.length() > 32) {
-                fieldErrors.add(new FieldErrorResponse("username", "Username cannot exceed 32 characters"));
-            }
-            if (username.trim().isEmpty()) {
-                fieldErrors.add(new FieldErrorResponse("username", "Username cannot be empty"));
-            }
+    private void validateFieldLengths(NewUser request, List<FieldErrorResponse> fieldErrors) {
+        if (request.username().length() > 32) {
+            fieldErrors.add(new FieldErrorResponse("username", "Username cannot exceed 32 characters"));
+        }
+        if (request.username().trim().isEmpty()) {
+            fieldErrors.add(new FieldErrorResponse("username", "Username cannot be empty"));
         }
 
         if (request.name() != null && request.name().length() > 50) {
@@ -178,13 +158,5 @@ public class UserServiceImp implements UserService {
 
     private boolean isValidEmail(String email) {
         return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    }
-
-    private String generateUniqueUsername() {
-        String username;
-        do {
-            username = "user_" + UUID.randomUUID().toString().substring(0, 8);
-        } while (userRepository.existsByUsername(username));
-        return username;
     }
 }

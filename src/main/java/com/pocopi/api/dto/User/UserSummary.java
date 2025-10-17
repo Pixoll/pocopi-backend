@@ -16,9 +16,6 @@ public record UserSummary(
     int age,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String group,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     long timestamp,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
