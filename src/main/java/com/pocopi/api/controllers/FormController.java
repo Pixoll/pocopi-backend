@@ -1,15 +1,17 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.Form.FormAnswerRequest;
-import com.pocopi.api.services.interfaces.FormService;
+import com.pocopi.api.dto.form.NewFormAnswers;
+import com.pocopi.api.services.FormService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/forms")
 public class FormController {
-
     private final FormService formService;
 
     @Autowired
@@ -18,7 +20,7 @@ public class FormController {
     }
 
     @PostMapping("/answer")
-    public ResponseEntity<?> submitFormAnswers(@RequestBody FormAnswerRequest request) {
+    public ResponseEntity<?> submitFormAnswers(@RequestBody NewFormAnswers request) {
         try {
             formService.saveUserFormAnswers(request);
             return ResponseEntity.ok().body("Respuestas guardadas");

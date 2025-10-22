@@ -6,23 +6,41 @@ import java.util.stream.Stream;
 
 public interface FormProjection {
     Integer getFormId();
+
     Integer getConfigVersion();
+
     Integer getQuestionId();
+
     String getQuestionTypeString();
+
     String getCategory();
+
     String getQuestionText();
+
     String getPlaceholder();
+
     Integer getMin();
+
     Integer getMax();
+
     Integer getStep();
+
     Integer getMinLength();
+
     Integer getMaxLength();
+
     Boolean getOther();
+
     String getQuestionImagePath();
+
     Integer getOptionId();
+
     String getOptionText();
+
     String getOptionImagePath();
+
     Integer getSliderValue();
+
     String getSliderLabel();
 
     default FormQuestionType getQuestionType() {

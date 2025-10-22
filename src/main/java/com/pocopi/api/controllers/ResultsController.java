@@ -1,17 +1,17 @@
 package com.pocopi.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.FormResult.GroupFormResultsResponse;
-import com.pocopi.api.dto.FormResult.UserFormWithInfoResultsResponse;
-import com.pocopi.api.dto.Results.GroupFullResultsResponse;
-import com.pocopi.api.dto.Results.UserAllResultsResponse;
-import com.pocopi.api.dto.TestResult.GroupTestResultsResponse;
-import com.pocopi.api.dto.TestResult.UserTestResultsWithInfoResponse;
+import com.pocopi.api.dto.form_result.FormAnswersByGroup;
+import com.pocopi.api.dto.form_result.FormAnswersByUser;
+import com.pocopi.api.dto.results.ResultsByGroup;
+import com.pocopi.api.dto.results.ResultsByUser;
+import com.pocopi.api.dto.test_resullt.TestResultByUser;
+import com.pocopi.api.dto.test_resullt.TestResultsByGroup;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;
-import com.pocopi.api.services.interfaces.FormResultsService;
-import com.pocopi.api.services.interfaces.ResultsService;
-import com.pocopi.api.services.interfaces.TestResultsService;
+import com.pocopi.api.services.FormResultsService;
+import com.pocopi.api.services.ResultsService;
+import com.pocopi.api.services.TestResultsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,7 +28,6 @@ import java.util.zip.GZIPOutputStream;
 @RestController
 @RequestMapping("/api/results")
 public class ResultsController {
-
     private final FormResultsService formResultsService;
     private final TestResultsService testResultsService;
     private final ResultsService resultsService;
@@ -51,36 +50,38 @@ public class ResultsController {
     }
 
     @GetMapping("/user/{userId}/forms")
-    public UserFormWithInfoResultsResponse getUserFormResults(@PathVariable int userId) {
+    public FormAnswersByUser getUserFormResults(@PathVariable int userId) {
         return formResultsService.getUserFormResults(userId);
     }
 
     @GetMapping("/user/{userId}/tests")
-    public UserTestResultsWithInfoResponse getUserTestResults(@PathVariable int userId) {
+    public TestResultByUser getUserTestResults(@PathVariable int userId) {
         return testResultsService.getUserTestResults(userId);
     }
 
     @GetMapping("/user/{userId}/all")
-    public UserAllResultsResponse getUserAllResults(@PathVariable int userId) {
+    public ResultsByUser getUserAllResults(@PathVariable int userId) {
         return resultsService.getUserAllResults(userId);
     }
 
     @GetMapping("/group/{groupId}/forms")
     public ResponseEntity<byte[]> getGroupFormResultsZip(@PathVariable int groupId) {
         try {
-            GroupFormResultsResponse groupResults = formResultsService.getGroupFormResults(groupId);
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(groupResults);
+            final FormAnswersByGroup groupResults = formResultsService.getGroupFormResults(groupId);
+            final byte[] jsonBytes = objectMapper.writeValueAsBytes(groupResults);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (final GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
                 gzipOut.write(jsonBytes);
             }
-            byte[] gzipBytes = baos.toByteArray();
+            final byte[] gzipBytes = baos.toByteArray();
 
-            HttpHeaders headers = new HttpHeaders();
+            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("application/gzip"));
-            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"group-form-results-" + groupId +
-                                                         ".json.gz\"");
+            headers.set(
+                HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"group-form-results-" + groupId + ".json.gz\""
+            );
             headers.setContentLength(gzipBytes.length);
 
             return ResponseEntity.ok().headers(headers).body(gzipBytes);
@@ -92,19 +93,21 @@ public class ResultsController {
     @GetMapping("/group/{groupId}/tests")
     public ResponseEntity<byte[]> getGroupTestResultsZip(@PathVariable int groupId) {
         try {
-            GroupTestResultsResponse groupResults = testResultsService.getGroupTestResults(groupId);
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(groupResults);
+            final TestResultsByGroup groupResults = testResultsService.getGroupTestResults(groupId);
+            final byte[] jsonBytes = objectMapper.writeValueAsBytes(groupResults);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (final GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
                 gzipOut.write(jsonBytes);
             }
-            byte[] gzipBytes = baos.toByteArray();
+            final byte[] gzipBytes = baos.toByteArray();
 
-            HttpHeaders headers = new HttpHeaders();
+            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("application/gzip"));
-            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"group-test-results-" + groupId +
-                                                         ".json.gz\"");
+            headers.set(
+                HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"group-test-results-" + groupId +
+                                                 ".json.gz\""
+            );
             headers.setContentLength(gzipBytes.length);
 
             return ResponseEntity.ok().headers(headers).body(gzipBytes);
@@ -116,19 +119,21 @@ public class ResultsController {
     @GetMapping("/group/{groupId}/all")
     public ResponseEntity<byte[]> getGroupFullResultsZip(@PathVariable int groupId) {
         try {
-            GroupFullResultsResponse groupResults = resultsService.getGroupFullResults(groupId);
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(groupResults);
+            final ResultsByGroup groupResults = resultsService.getGroupFullResults(groupId);
+            final byte[] jsonBytes = objectMapper.writeValueAsBytes(groupResults);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (final GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
                 gzipOut.write(jsonBytes);
             }
-            byte[] gzipBytes = baos.toByteArray();
+            final byte[] gzipBytes = baos.toByteArray();
 
-            HttpHeaders headers = new HttpHeaders();
+            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("application/gzip"));
-            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"group-full-results-" + groupId +
-                                                         ".json.gz\"");
+            headers.set(
+                HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"group-full-results-" + groupId +
+                                                 ".json.gz\""
+            );
             headers.setContentLength(gzipBytes.length);
 
             return ResponseEntity.ok().headers(headers).body(gzipBytes);
@@ -142,24 +147,26 @@ public class ResultsController {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
             // TODO changed from findAllByGroup_Config_Version(lastConfig.getVersion());
-            List<UserModel> users = userRepository.getAllUsers();
+            final List<UserModel> users = userRepository.getAllUsers();
 
-            List<UserAllResultsResponse> userResults = users.stream()
+            final List<ResultsByUser> userResults = users.stream()
                 .map(user -> resultsService.getUserAllResults(user.getId()))
                 .toList();
 
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(userResults);
+            final byte[] jsonBytes = objectMapper.writeValueAsBytes(userResults);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (final GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
                 gzipOut.write(jsonBytes);
             }
-            byte[] gzipBytes = baos.toByteArray();
+            final byte[] gzipBytes = baos.toByteArray();
 
-            HttpHeaders headers = new HttpHeaders();
+            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("application/gzip"));
-            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"all-users-latest-config-results.json" +
-                                                         ".gz\"");
+            headers.set(
+                HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"all-users-latest-config-results.json" +
+                                                 ".gz\""
+            );
             headers.setContentLength(gzipBytes.length);
 
             return ResponseEntity.ok().headers(headers).body(gzipBytes);
@@ -173,24 +180,26 @@ public class ResultsController {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
             // TODO changed from findAllByGroup_Config_Version(lastConfig.getVersion());
-            List<UserModel> users = userRepository.getAllUsers();
+            final List<UserModel> users = userRepository.getAllUsers();
 
-            List<UserFormWithInfoResultsResponse> userFormResults = users.stream()
+            final List<FormAnswersByUser> userFormResults = users.stream()
                 .map(user -> formResultsService.getUserFormResults(user.getId()))
                 .toList();
 
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(userFormResults);
+            final byte[] jsonBytes = objectMapper.writeValueAsBytes(userFormResults);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (final GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
                 gzipOut.write(jsonBytes);
             }
-            byte[] gzipBytes = baos.toByteArray();
+            final byte[] gzipBytes = baos.toByteArray();
 
-            HttpHeaders headers = new HttpHeaders();
+            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("application/gzip"));
-            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"all-users-latest-config-forms.json" +
-                                                         ".gz\"");
+            headers.set(
+                HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"all-users-latest-config-forms.json" +
+                                                 ".gz\""
+            );
             headers.setContentLength(gzipBytes.length);
 
             return ResponseEntity.ok().headers(headers).body(gzipBytes);
@@ -204,24 +213,26 @@ public class ResultsController {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
             // TODO changed from findAllByGroup_Config_Version(lastConfig.getVersion());
-            List<UserModel> users = userRepository.getAllUsers();
+            final List<UserModel> users = userRepository.getAllUsers();
 
-            List<UserTestResultsWithInfoResponse> userTestResults = users.stream()
+            final List<TestResultByUser> userTestResults = users.stream()
                 .map(user -> testResultsService.getUserTestResults(user.getId()))
                 .toList();
 
-            byte[] jsonBytes = objectMapper.writeValueAsBytes(userTestResults);
+            final byte[] jsonBytes = objectMapper.writeValueAsBytes(userTestResults);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (final GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
                 gzipOut.write(jsonBytes);
             }
-            byte[] gzipBytes = baos.toByteArray();
+            final byte[] gzipBytes = baos.toByteArray();
 
-            HttpHeaders headers = new HttpHeaders();
+            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("application/gzip"));
-            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"all-users-latest-config-tests.json" +
-                                                         ".gz\"");
+            headers.set(
+                HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"all-users-latest-config-tests.json" +
+                                                 ".gz\""
+            );
             headers.setContentLength(gzipBytes.length);
 
             return ResponseEntity.ok().headers(headers).body(gzipBytes);

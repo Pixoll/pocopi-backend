@@ -9,8 +9,7 @@ import java.util.List;
 
 @Repository
 public interface HomeFaqRepository extends JpaRepository<HomeFaqModel, Integer> {
-
-    @Query(value = "SELECT * from home_faq as h where h.config_version =:configVersion", nativeQuery = true)
+    @Query(value = "select * from home_faq as h where h.config_version = :configVersion", nativeQuery = true)
     List<HomeFaqModel> findAllByConfigVersion(int configVersion);
 
     HomeFaqModel getHomeFaqModelById(int id);

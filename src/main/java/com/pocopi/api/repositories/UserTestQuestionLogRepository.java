@@ -8,263 +8,272 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-
 @Repository
 public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQuestionLogModel, Long> {
-    @Query(value = """
-        SELECT utql.timestamp + 0 as start
-        FROM user_test_question_log utql
-                 JOIN test_question tq ON tq.id = utql.question_id
-                 JOIN test_phase tph ON tph.id = tq.phase_id
-                 JOIN test_protocol tp ON tp.id = tph.protocol_id
-                 JOIN config c ON c.version = tp.config_version
-        WHERE c.version = :configVersion
-          AND utql.user_id = :userId
-        ORDER BY utql.timestamp
-        LIMIT 1
-        """,
-        nativeQuery = true)
-    Long  findMostRecentlyStartTimeStamp(@Param("configVersion")int configVersion, @Param("userId") int userId);
+    @Query(
+        value = """
+            select utql.timestamp + 0 as start
+            from user_test_question_log utql
+                join test_question tq on tq.id = utql.question_id
+                join test_phase tph on tph.id = tq.phase_id
+                join test_protocol tp on tp.id = tph.protocol_id
+                join config c on c.version = tp.config_version
+            where c.version = :configVersion
+                and utql.user_id = :userId
+            order by utql.timestamp
+            limit 1
+            """,
+        nativeQuery = true
+    )
+    Long findMostRecentlyStartTimeStamp(@Param("configVersion") int configVersion, @Param("userId") int userId);
 
-    @Query(value = """
-        SELECT utql.timestamp + utql.duration as end
-        FROM user_test_question_log utql
-                 JOIN test_question tq ON tq.id = utql.question_id
-                 JOIN test_phase tph ON tph.id = tq.phase_id
-                 JOIN test_protocol tp ON tp.id = tph.protocol_id
-                 JOIN config c ON c.version = tp.config_version
-        WHERE c.version = :configVersion
-          AND utql.user_id = :userId
-        ORDER BY utql.timestamp DESC
-        LIMIT 1
-        """,
-        nativeQuery = true)
-    Long  findMostRecentlyEndTimeStamp(@Param("configVersion")int configVersion, @Param("userId") int userId);
+    @Query(
+        value = """
+            select utql.timestamp + utql.duration as end
+            from user_test_question_log utql
+                join test_question tq on tq.id = utql.question_id
+                join test_phase tph on tph.id = tq.phase_id
+                join test_protocol tp on tp.id = tph.protocol_id
+                join config c on c.version = tp.config_version
+            where c.version = :configVersion
+                and utql.user_id = :userId
+            order by utql.timestamp desc
+            limit 1
+            """,
+        nativeQuery = true
+    )
+    Long findMostRecentlyEndTimeStamp(@Param("configVersion") int configVersion, @Param("userId") int userId);
 
-    @Query(value = """
-        WITH timelog AS (
-            SELECT
-                utql.user_id,
-                tq.phase_id,
-                utql.question_id,
-                MIN(utql.timestamp) AS startTimestamp,
-                MAX(DATE_ADD(utql.timestamp, INTERVAL utql.duration SECOND)) AS endTimestamp
-            FROM user_test_question_log utql
-                     JOIN test_question tq ON tq.id = utql.question_id
-                     JOIN test_phase tph ON tph.id = tq.phase_id
-                     JOIN test_protocol tp ON tp.id = tph.protocol_id
-                     JOIN config c ON c.version = tp.config_version
-            WHERE c.version = :configVersion
-            GROUP BY utql.user_id, tq.phase_id, utql.question_id
-        ),
-        last_non_hover AS (
-            SELECT
-                ol.user_id,
-                o.question_id,
-                ol.option_id,
-                ol.type,
-                ROW_NUMBER() OVER (PARTITION BY ol.user_id, o.question_id ORDER BY ol.timestamp DESC) AS rn,
-                o.correct
-            FROM user_test_option_log ol
-                     JOIN test_option o ON o.id = ol.option_id
-                     JOIN test_question q ON q.id = o.question_id
-                     JOIN test_phase ph ON ph.id = q.phase_id
-                     JOIN test_protocol pr ON pr.id = ph.protocol_id
-                     JOIN config c ON c.version = pr.config_version
-            WHERE c.version = :configVersion
-              AND ol.type IN ('select','deselect')
-        ),
-        final_selected AS (
-            SELECT
-                user_id,
-                question_id,
-                option_id,
-                correct
-            FROM last_non_hover
-            WHERE rn = 1
-              AND type = 'select'
-        ),
-        correct_options AS (
-            SELECT
-                question_id,
-                SUM(correct) AS correct_count
-            FROM test_option
-            GROUP BY question_id
-        ),
-        select_events AS (
-            SELECT
-                ol.user_id,
-                o.question_id,
-                ol.option_id,
-                LAG(ol.option_id) OVER (PARTITION BY ol.user_id, o.question_id ORDER BY ol.timestamp) AS prev_option
-            FROM user_test_option_log ol
-                     JOIN test_option o ON o.id = ol.option_id
-                     JOIN test_question q ON q.id = o.question_id
-                     JOIN test_phase ph ON ph.id = q.phase_id
-                     JOIN test_protocol pr ON pr.id = ph.protocol_id
-                     JOIN config c ON c.version = pr.config_version
-            WHERE c.version = :configVersion
-              AND ol.type = 'select'
-        ),
-        option_changes AS (
-            SELECT
-                user_id,
-                question_id,
-                SUM(IF(prev_option IS NOT NULL AND option_id <> prev_option, 1, 0)) AS totalOptionChanges
-            FROM select_events
-            GROUP BY user_id, question_id
-        ),
-        hover_counts AS (
-            SELECT
-                ol.user_id,
-                o.question_id,
-                COUNT(*) AS totalOptionHovers
-            FROM user_test_option_log ol
-                     JOIN test_option o ON o.id = ol.option_id
-                     JOIN test_question q ON q.id = o.question_id
-                     JOIN test_phase ph ON ph.id = q.phase_id
-                     JOIN test_protocol pr ON pr.id = ph.protocol_id
-                     JOIN config c ON c.version = pr.config_version
-            WHERE c.version = :configVersion
-              AND ol.type = 'hover'
-            GROUP BY ol.user_id, o.question_id
-        )
-        SELECT
-            t.user_id,
-            t.phase_id,
-            t.question_id,
-            UNIX_TIMESTAMP(t.startTimestamp)*1000                            AS startTimestamp,
-            UNIX_TIMESTAMP(t.endTimestamp)*1000                              AS endTimestamp,
-            IF(COALESCE(fc.correct_count, 0) = COUNT(f.option_id)
-                   AND SUM(f.correct) = COALESCE(fc.correct_count, 0), 1, 0) AS correct,
-            IF(COUNT(f.option_id) = 0, 1, 0)                                 AS skipped,
-            COALESCE(oc.totalOptionChanges,0)                                AS totalOptionChanges,
-            COALESCE(hc.totalOptionHovers,0)                                 AS totalOptionHovers
-        FROM timelog t
-                 LEFT JOIN final_selected f ON f.question_id = t.question_id AND f.user_id = t.user_id
-                 LEFT JOIN correct_options fc ON fc.question_id = t.question_id
-                 LEFT JOIN option_changes oc ON oc.question_id = t.question_id AND oc.user_id = t.user_id
-                 LEFT JOIN hover_counts hc ON hc.question_id = t.question_id AND hc.user_id = t.user_id
-        GROUP BY t.user_id, t.phase_id, t.question_id, t.startTimestamp, t.endTimestamp,
-                 fc.correct_count, oc.totalOptionChanges, hc.totalOptionHovers
-        ORDER BY t.user_id, t.phase_id, t.question_id
-        """,
-        nativeQuery = true)
+    @Query(
+        value = """
+            with timelog as (
+                select
+                    utql.user_id,
+                    tq.phase_id,
+                    utql.question_id,
+                    min(utql.timestamp) as starttimestamp,
+                    max(date_add(utql.timestamp, interval utql.duration second)) as endtimestamp
+                from user_test_question_log utql
+                    join test_question tq on tq.id = utql.question_id
+                    join test_phase tph on tph.id = tq.phase_id
+                    join test_protocol tp on tp.id = tph.protocol_id
+                    join config c on c.version = tp.config_version
+                where c.version = :configVersion
+                group by utql.user_id, tq.phase_id, utql.question_id
+            ),
+            last_non_hover as (
+                select
+                    ol.user_id,
+                    o.question_id,
+                    ol.option_id,
+                    ol.type,
+                    row_number() over (partition by ol.user_id, o.question_id order by ol.timestamp desc) as rn,
+                    o.correct
+                from user_test_option_log ol
+                    join test_option o on o.id = ol.option_id
+                    join test_question q on q.id = o.question_id
+                    join test_phase ph on ph.id = q.phase_id
+                    join test_protocol pr on pr.id = ph.protocol_id
+                    join config c on c.version = pr.config_version
+                where c.version = :configVersion
+                  and ol.type in ('select','deselect')
+            ),
+            final_selected as (
+                select
+                    user_id,
+                    question_id,
+                    option_id,
+                    correct
+                from last_non_hover
+                where rn = 1
+                    and type = 'select'
+            ),
+            correct_options as (
+                select
+                    question_id,
+                    sum(correct) as correct_count
+                from test_option
+                group by question_id
+            ),
+            select_events as (
+                select
+                    ol.user_id,
+                    o.question_id,
+                    ol.option_id,
+                    lag(ol.option_id) over (partition by ol.user_id, o.question_id order by ol.timestamp) as prev_option
+                from user_test_option_log ol
+                    join test_option o on o.id = ol.option_id
+                    join test_question q on q.id = o.question_id
+                    join test_phase ph on ph.id = q.phase_id
+                    join test_protocol pr on pr.id = ph.protocol_id
+                    join config c on c.version = pr.config_version
+                where c.version = :configVersion
+                    and ol.type = 'select'
+            ),
+            option_changes as (
+                select
+                    user_id,
+                    question_id,
+                    sum(if(prev_option is not null and option_id <> prev_option, 1, 0)) as totaloptionchanges
+                from select_events
+                group by user_id, question_id
+            ),
+            hover_counts as (
+                select
+                    ol.user_id,
+                    o.question_id,
+                    count(*) as totaloptionhovers
+                from user_test_option_log ol
+                    join test_option o on o.id = ol.option_id
+                    join test_question q on q.id = o.question_id
+                    join test_phase ph on ph.id = q.phase_id
+                    join test_protocol pr on pr.id = ph.protocol_id
+                    join config c on c.version = pr.config_version
+                where c.version = :configVersion
+                    and ol.type = 'hover'
+                group by ol.user_id, o.question_id
+            )
+            select
+                t.user_id,
+                t.phase_id,
+                t.question_id,
+                unix_timestamp(t.starttimestamp)*1000                            as starttimestamp,
+                unix_timestamp(t.endtimestamp)*1000                              as endtimestamp,
+                if(coalesce(fc.correct_count, 0) = count(f.option_id)
+                       and sum(f.correct) = coalesce(fc.correct_count, 0), 1, 0) as correct,
+                if(count(f.option_id) = 0, 1, 0)                                 as skipped,
+                coalesce(oc.totaloptionchanges,0)                                as totaloptionchanges,
+                coalesce(hc.totaloptionhovers,0)                                 as totaloptionhovers
+            from timelog t
+                left join final_selected f on f.question_id = t.question_id and f.user_id = t.user_id
+                left join correct_options fc on fc.question_id = t.question_id
+                left join option_changes oc on oc.question_id = t.question_id and oc.user_id = t.user_id
+                left join hover_counts hc on hc.question_id = t.question_id and hc.user_id = t.user_id
+            group by t.user_id, t.phase_id, t.question_id, t.starttimestamp, t.endtimestamp,
+                fc.correct_count, oc.totaloptionchanges, hc.totaloptionhovers
+            order by t.user_id, t.phase_id, t.question_id
+            """,
+        nativeQuery = true
+    )
     List<Object[]> findAllQuestionEvents(@Param("configVersion") int configVersion);
 
-
-    @Query(value = """
-        WITH timelog AS (
-            SELECT
-                utql.user_id,
-                tq.phase_id,
-                utql.question_id,
-                MIN(utql.timestamp) AS startTimestamp,
-                MAX(DATE_ADD(utql.timestamp, INTERVAL utql.duration SECOND)) AS endTimestamp
-            FROM user_test_question_log utql
-                     JOIN test_question tq ON tq.id = utql.question_id
-                     JOIN test_phase tph ON tph.id = tq.phase_id
-                     JOIN test_protocol tp ON tp.id = tph.protocol_id
-                     JOIN config c ON c.version = tp.config_version
-            WHERE c.version = :configVersion
-                  AND utql.user_id = :userId
-            GROUP BY utql.user_id, tq.phase_id, utql.question_id
-        ),
-        last_non_hover AS (
-            SELECT
-                ol.user_id,
-                o.question_id,
-                ol.option_id,
-                ol.type,
-                ROW_NUMBER() OVER (PARTITION BY ol.user_id, o.question_id ORDER BY ol.timestamp DESC) AS rn,
-                o.correct
-            FROM user_test_option_log ol
-                     JOIN test_option o ON o.id = ol.option_id
-                     JOIN test_question q ON q.id = o.question_id
-                     JOIN test_phase ph ON ph.id = q.phase_id
-                     JOIN test_protocol pr ON pr.id = ph.protocol_id
-                     JOIN config c ON c.version = pr.config_version
-            WHERE c.version = :configVersion
-                AND ol.user_id = :userId
-                AND ol.type IN ('select','deselect')
-        ),
-        final_selected AS (
-            SELECT
-                user_id,
-                question_id,
-                option_id,
-                correct
-            FROM last_non_hover
-            WHERE rn = 1
-              AND type = 'select'
-        ),
-        correct_options AS (
-            SELECT
-                question_id,
-                SUM(correct) AS correct_count
-            FROM test_option
-            GROUP BY question_id
-        ),
-        select_events AS (
-            SELECT
-                ol.user_id,
-                o.question_id,
-                ol.option_id,
-                LAG(ol.option_id) OVER (PARTITION BY ol.user_id, o.question_id ORDER BY ol.timestamp) AS prev_option
-            FROM user_test_option_log ol
-                     JOIN test_option o ON o.id = ol.option_id
-                     JOIN test_question q ON q.id = o.question_id
-                     JOIN test_phase ph ON ph.id = q.phase_id
-                     JOIN test_protocol pr ON pr.id = ph.protocol_id
-                     JOIN config c ON c.version = pr.config_version
-            WHERE c.version = :configVersion
-                AND ol.user_id = :userId
-                AND ol.type = 'select'
-        ),
-        option_changes AS (
-            SELECT
-                user_id,
-                question_id,
-                SUM(IF(prev_option IS NOT NULL AND option_id <> prev_option, 1, 0)) AS totalOptionChanges
-            FROM select_events
-            GROUP BY user_id, question_id
-        ),
-        hover_counts AS (
-            SELECT
-                ol.user_id,
-                o.question_id,
-                COUNT(*) AS totalOptionHovers
-            FROM user_test_option_log ol
-                     JOIN test_option o ON o.id = ol.option_id
-                     JOIN test_question q ON q.id = o.question_id
-                     JOIN test_phase ph ON ph.id = q.phase_id
-                     JOIN test_protocol pr ON pr.id = ph.protocol_id
-                     JOIN config c ON c.version = pr.config_version
-            WHERE c.version = :configVersion
-              AND ol.user_id = :userId
-              AND ol.type = 'hover'
-            GROUP BY ol.user_id, o.question_id
-        )
-        SELECT
-            t.user_id,
-            t.phase_id,
-            t.question_id,
-            UNIX_TIMESTAMP(t.startTimestamp)*1000                            AS startTimestamp,
-            UNIX_TIMESTAMP(t.endTimestamp)*1000                              AS endTimestamp,
-            IF(COALESCE(fc.correct_count, 0) = COUNT(f.option_id)
-                   AND SUM(f.correct) = COALESCE(fc.correct_count, 0), 1, 0) AS correct,
-            IF(COUNT(f.option_id) = 0, 1, 0)                                 AS skipped,
-            COALESCE(oc.totalOptionChanges,0)                                AS totalOptionChanges,
-            COALESCE(hc.totalOptionHovers,0)                                 AS totalOptionHovers
-        FROM timelog t
-                 LEFT JOIN final_selected f ON f.question_id = t.question_id AND f.user_id = t.user_id
-                 LEFT JOIN correct_options fc ON fc.question_id = t.question_id
-                 LEFT JOIN option_changes oc ON oc.question_id = t.question_id AND oc.user_id = t.user_id
-                 LEFT JOIN hover_counts hc ON hc.question_id = t.question_id AND hc.user_id = t.user_id
-        GROUP BY t.user_id, t.phase_id, t.question_id, t.startTimestamp, t.endTimestamp,
-                 fc.correct_count, oc.totalOptionChanges, hc.totalOptionHovers
-        ORDER BY t.user_id, t.phase_id, t.question_id
-        """,
-        nativeQuery = true)
-    List<Object[]> findAllQuestionEventsInfoByUserId(@Param("configVersion") int configVersion, @Param("userId") int userId);
+    @Query(
+        value = """
+            with timelog as (
+                select
+                    utql.user_id,
+                    tq.phase_id,
+                    utql.question_id,
+                    min(utql.timestamp) as starttimestamp,
+                    max(date_add(utql.timestamp, interval utql.duration second)) as endtimestamp
+                from user_test_question_log utql
+                    join test_question tq on tq.id = utql.question_id
+                    join test_phase tph on tph.id = tq.phase_id
+                    join test_protocol tp on tp.id = tph.protocol_id
+                    join config c on c.version = tp.config_version
+                where c.version = :configVersion
+                    and utql.user_id = :userId
+                group by utql.user_id, tq.phase_id, utql.question_id
+            ),
+            last_non_hover as (
+                select
+                    ol.user_id,
+                    o.question_id,
+                    ol.option_id,
+                    ol.type,
+                    row_number() over (partition by ol.user_id, o.question_id order by ol.timestamp desc) as rn,
+                    o.correct
+                from user_test_option_log ol
+                    join test_option o on o.id = ol.option_id
+                    join test_question q on q.id = o.question_id
+                    join test_phase ph on ph.id = q.phase_id
+                    join test_protocol pr on pr.id = ph.protocol_id
+                    join config c on c.version = pr.config_version
+                where c.version = :configVersion
+                    and ol.user_id = :userId
+                    and ol.type in ('select','deselect')
+            ),
+            final_selected as (
+                select
+                    user_id,
+                    question_id,
+                    option_id,
+                    correct
+                from last_non_hover
+                where rn = 1
+                    and type = 'select'
+            ),
+            correct_options as (
+                select
+                    question_id,
+                    sum(correct) as correct_count
+                from test_option
+                group by question_id
+            ),
+            select_events as (
+                select
+                    ol.user_id,
+                    o.question_id,
+                    ol.option_id,
+                    lag(ol.option_id) over (partition by ol.user_id, o.question_id order by ol.timestamp) as prev_option
+                from user_test_option_log ol
+                    join test_option o on o.id = ol.option_id
+                    join test_question q on q.id = o.question_id
+                    join test_phase ph on ph.id = q.phase_id
+                    join test_protocol pr on pr.id = ph.protocol_id
+                    join config c on c.version = pr.config_version
+                where c.version = :configVersion
+                    and ol.user_id = :userId
+                    and ol.type = 'select'
+            ),
+            option_changes as (
+                select
+                    user_id,
+                    question_id,
+                    sum(if(prev_option is not null and option_id <> prev_option, 1, 0)) as totaloptionchanges
+                from select_events
+                group by user_id, question_id
+            ),
+            hover_counts as (
+                select
+                    ol.user_id,
+                    o.question_id,
+                    count(*) as totaloptionhovers
+                from user_test_option_log ol
+                    join test_option o on o.id = ol.option_id
+                    join test_question q on q.id = o.question_id
+                    join test_phase ph on ph.id = q.phase_id
+                    join test_protocol pr on pr.id = ph.protocol_id
+                    join config c on c.version = pr.config_version
+                where c.version = :configVersion
+                    and ol.user_id = :userId
+                    and ol.type = 'hover'
+                group by ol.user_id, o.question_id
+            )
+            select
+                t.user_id,
+                t.phase_id,
+                t.question_id,
+                unix_timestamp(t.starttimestamp)*1000                            as starttimestamp,
+                unix_timestamp(t.endtimestamp)*1000                              as endtimestamp,
+                if(coalesce(fc.correct_count, 0) = count(f.option_id)
+                       and sum(f.correct) = coalesce(fc.correct_count, 0), 1, 0) as correct,
+                if(count(f.option_id) = 0, 1, 0)                                 as skipped,
+                coalesce(oc.totaloptionchanges,0)                                as totaloptionchanges,
+                coalesce(hc.totaloptionhovers,0)                                 as totaloptionhovers
+            from timelog t
+                left join final_selected f on f.question_id = t.question_id and f.user_id = t.user_id
+                left join correct_options fc on fc.question_id = t.question_id
+                left join option_changes oc on oc.question_id = t.question_id and oc.user_id = t.user_id
+                left join hover_counts hc on hc.question_id = t.question_id and hc.user_id = t.user_id
+            group by t.user_id, t.phase_id, t.question_id, t.starttimestamp, t.endtimestamp,
+                fc.correct_count, oc.totaloptionchanges, hc.totaloptionhovers
+            order by t.user_id, t.phase_id, t.question_id
+            """,
+        nativeQuery = true
+    )
+    List<Object[]> findAllQuestionEventsInfoByUserId(
+        @Param("configVersion") int configVersion,
+        @Param("userId") int userId
+    );
 }

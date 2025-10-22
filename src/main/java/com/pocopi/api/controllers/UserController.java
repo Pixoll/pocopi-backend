@@ -1,9 +1,9 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.Auth.NewUser;
-import com.pocopi.api.dto.User.User;
-import com.pocopi.api.exception.MultiFieldException;
-import com.pocopi.api.services.interfaces.UserService;
+import com.pocopi.api.dto.api.ApiHttpError;
+import com.pocopi.api.dto.auth.NewUser;
+import com.pocopi.api.dto.user.User;
+import com.pocopi.api.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,28 +27,38 @@ public class UserController {
 
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
-        List<User> response = userService.getAll();
+        final List<User> response = userService.getAll();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
-        User response = userService.getByUsername(username);
+    public ResponseEntity<User> getUser(
+        @PathVariable String username
+    ) {
+        final User response = userService.getByUsername(username);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping
     @Operation(
-            summary = "Create new user",
-            description = "Creates a new user and returns success message",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "User created successfully"),
-                    @ApiResponse(responseCode = "400", description = "Validation error",
-                            content = @Content(schema = @Schema(implementation = MultiFieldException.class)))
-            }
+        summary = "Create new user",
+        description = "Creates a new user and returns success message",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "User created successfully"
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Validation error",
+                content = @Content(schema = @Schema(implementation = ApiHttpError.class))
+            )
+        }
     )
-    public ResponseEntity<String> createUser(@RequestBody NewUser request) {
-        String response = userService.createUser(request);
+    public ResponseEntity<String> createUser(
+        @RequestBody NewUser request
+    ) {
+        final String response = userService.createUser(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

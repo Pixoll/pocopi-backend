@@ -9,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface HomeInfoCardRepository extends JpaRepository<HomeInfoCardModel, Integer> {
-
-    @Query(value = "SELECT * from home_info_card as h where h.config_version =:configVersion", nativeQuery = true)
+    @Query(value = "select * from home_info_card as h where h.config_version = :configVersion", nativeQuery = true)
     List<HomeInfoCardModel> findAllByConfigVersion(int configVersion);
 }

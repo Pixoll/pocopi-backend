@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface TranslationRepository extends JpaRepository<TranslationModel, Integer> {
-    @Query(value = "SELECT * from translation as t where t.config_version =:configVersion", nativeQuery = true)
+    @Query(value = "select * from translation as t where t.config_version = :configVersion", nativeQuery = true)
     List<TranslationModel> findAllByConfigVersion(int configVersion);
 }

@@ -1,10 +1,10 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.jwt.JwtUtil;
-import com.pocopi.api.dto.Auth.Credentials;
-import com.pocopi.api.dto.Auth.NewUser;
-import com.pocopi.api.dto.Auth.Token;
-import com.pocopi.api.services.interfaces.UserService;
+import com.pocopi.api.dto.auth.Credentials;
+import com.pocopi.api.dto.auth.NewUser;
+import com.pocopi.api.dto.auth.Token;
+import com.pocopi.api.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +37,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Token> login(@RequestBody Credentials credentials) {
-        Authentication authentication = authenticationManager.authenticate(
+        final Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 credentials.username(),
                 credentials.password()
             )
         );
+
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         final String token = jwtUtils.generateToken(userDetails.getUsername());
 

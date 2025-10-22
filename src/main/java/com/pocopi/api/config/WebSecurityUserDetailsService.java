@@ -21,7 +21,7 @@ public class WebSecurityUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserModel user = userRepository.findByUsername(username);
+        final UserModel user = userRepository.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User Not Found with username: " + username);
         }

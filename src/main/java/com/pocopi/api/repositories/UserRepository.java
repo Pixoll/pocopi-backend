@@ -27,8 +27,10 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
     @Modifying
     @Query(
-        value = "insert into user (username, anonymous, name, email, age, password)"
-                + "values (:username, :anonymous, :name, :email, :age, :password)",
+        value = """
+            insert into user (username, anonymous, name, email, age, password)
+            values (:username, :anonymous, :name, :email, :age, :password)
+            """,
         nativeQuery = true
     )
     void insertNewUser(
