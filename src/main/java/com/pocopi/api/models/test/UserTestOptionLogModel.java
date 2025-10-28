@@ -1,7 +1,6 @@
 package com.pocopi.api.models.test;
 
 import com.pocopi.api.converters.FormTypeConverter;
-import com.pocopi.api.models.user.UserModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -13,7 +12,7 @@ import java.time.Instant;
 @Entity
 @Table(
     name = "user_test_option_log",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "option_id", "type", "timestamp"})}
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"attempt_id", "option_id", "type", "timestamp"})}
 )
 @Getter
 @Setter
@@ -30,8 +29,8 @@ public class UserTestOptionLogModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserModel user;
+    @JoinColumn(name = "attempt_id", nullable = false)
+    private UserTestAttemptModel attempt;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

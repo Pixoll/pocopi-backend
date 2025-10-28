@@ -1,6 +1,5 @@
 package com.pocopi.api.models.form;
 
-import com.pocopi.api.models.user.UserModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,7 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "user_form_answer", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "question_id"})})
+@Table(name = "user_form_answer", indexes = {@Index(columnList = "user_id, question_id")})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,8 +24,8 @@ public class UserFormAnswerModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserModel user;
+    @JoinColumn(name = "form_sub_id", nullable = false)
+    private UserFormSubmissionModel formSubmission;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

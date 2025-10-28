@@ -1,5 +1,6 @@
 package com.pocopi.api.models.test;
 
+import com.pocopi.api.models.user.UserModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -10,15 +11,15 @@ import java.time.Instant;
 
 @Entity
 @Table(
-    name = "user_test_question_log",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"attempt_id", "question_id", "timestamp"})}
+    name = "user_test_attempt",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "group_id", "start"})}
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserTestQuestionLogModel {
+public class UserTestAttemptModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int8 unsigned")
@@ -28,19 +29,19 @@ public class UserTestQuestionLogModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "attempt_id", nullable = false)
-    private UserTestAttemptModel attempt;
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserModel user;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "question_id", nullable = false)
-    private TestQuestionModel question;
+    @JoinColumn(name = "group_id", nullable = false)
+    private TestGroupModel group;
 
     @NotNull
-    @Column(name = "timestamp", nullable = false)
-    private Instant timestamp;
+    @Column(name = "start", nullable = false)
+    private Instant start;
 
-    @Column(name = "duration", nullable = false, columnDefinition = "int4 unsigned")
-    private int duration;
+    @Column(name = "end")
+    private Instant end;
 }

@@ -4,6 +4,8 @@ drop table if exists home_faq;
 
 drop table if exists user_form_answer;
 
+drop table if exists user_form_submission;
+
 drop table if exists form_question_option;
 
 drop table if exists form_question_slider_label;
@@ -30,7 +32,9 @@ drop table if exists user;
 
 drop table if exists test_group;
 
-drop table if exists translation;
+drop table if exists translation_value;
+
+drop table if exists translation_key;
 
 drop table if exists config;
 
@@ -55,13 +59,25 @@ create table config (
     foreign key (icon_id) references image (id) on delete restrict
 );
 
-create table translation (
-    id             int4 unsigned primary key not null auto_increment,
+create table translation_key (
+    id          int4 unsigned primary key not null auto_increment,
+    `key`       varchar(50) unique        not null check (`key` != ''),
+    description varchar(500)              not null check (description != ''),
+    arguments   json                      not null check (json_schema_valid('{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }', arguments))
+);
+
+create table translation_value (
+    id             int8 unsigned primary key not null auto_increment,
     config_version int4 unsigned             not null,
-    `key`          varchar(50)               not null check (`key` != ''),
+    key_id         int4 unsigned             not null,
     value          varchar(200)              not null check (value != ''),
-    unique (config_version, `key`),
-    foreign key (config_version) references config (version) on delete cascade
+    foreign key (config_version) references config (version) on delete cascade,
+    foreign key (key_id) references translation_key (id) on delete cascade
 );
 
 create table home_info_card (
@@ -201,7 +217,7 @@ begin
         set msg = concat(
             'form_question_id must be that of a form question with type select-one or select-multiple. got type ',
             q_type);
-        signal sqlstate '45000' set message_text = '';
+        signal sqlstate '45000' set message_text = msg;
     end if;
 end;
 
@@ -228,7 +244,7 @@ begin
             set msg = concat(
                 'form_question_id must be that of a form question with type select-one or select-multiple. got type ',
                 q_type);
-            signal sqlstate '45000' set message_text = '';
+            signal sqlstate '45000' set message_text = msg;
         end if;
     end if;
 end;
@@ -259,7 +275,7 @@ begin
     if (q_type != 'slider') then
         set msg = concat(
             'form_question_id must be that of a form question with type slider. got type ', q_type);
-        signal sqlstate '45000' set message_text = '';
+        signal sqlstate '45000' set message_text = msg;
     end if;
 end;
 
@@ -281,7 +297,7 @@ begin
         if (q_type != 'slider') then
             set msg = concat(
                 'form_question_id must be that of a form question with type slider. got type ', q_type);
-            signal sqlstate '45000' set message_text = '';
+            signal sqlstate '45000' set message_text = msg;
         end if;
     end if;
 end;
@@ -313,6 +329,48 @@ create table test_protocol (
     foreign key (config_version) references config (version) on delete cascade,
     foreign key (group_id) references test_group (id) on delete set null
 );
+
+delimiter $$
+create trigger before_insert_test_protocol
+    before insert
+    on test_protocol
+    for each row
+begin
+    declare config_version int4 unsigned;
+
+    if (new.group_id is not null) then
+        set config_version = (select g.config_version from test_group as g where g.id = new.group_id);
+
+        if (config_version != new.config_version) then
+            signal sqlstate '45000' set message_text =
+                'group_id.config_version must match test_protocol.config_version';
+        end if;
+    end if;
+end;
+
+$$
+delimiter ;
+
+delimiter $$
+create trigger before_update_test_protocol
+    before update
+    on test_protocol
+    for each row
+begin
+    declare config_version int4 unsigned;
+
+    if (new.group_id is not null and old.group_id != new.group_id) then
+        set config_version = (select g.config_version from test_group as g where g.id = new.group_id);
+
+        if (config_version != new.config_version) then
+            signal sqlstate '45000' set message_text =
+                'group_id.config_version must match test_protocol.config_version';
+        end if;
+    end if;
+end;
+
+$$
+delimiter ;
 
 create table test_phase (
     id                  int4 unsigned primary key not null auto_increment,
@@ -413,20 +471,42 @@ create table user (
     age       int1 unsigned                      default null check (age is null or age <= 120),
     password  char(60)                  not null check (password != ''),
     check (
-        (anonymous = true and name is null and email is null and age is null)
-            or (anonymous = false and name is not null and email is not null and age is not null)
+        (anonymous and name is null and email is null and age is null)
+            or (not anonymous and name is not null and email is not null and age is not null)
         )
 );
 
+create table user_form_submission (
+    id        int4 unsigned primary key not null auto_increment,
+    user_id   int4 unsigned             not null,
+    form_id   int4 unsigned             not null,
+    timestamp datetime(3)               not null,
+    unique (user_id, form_id, timestamp),
+    foreign key (user_id) references user (id) on delete cascade,
+    foreign key (form_id) references form (id) on delete restrict
+);
+
+delimiter $$
+create trigger before_update_user_form_submission
+    before update
+    on user_form_submission
+    for each row
+begin
+    signal sqlstate '45000' set message_text = 'user_form_submission\'s rows cannot be updated';
+end;
+
+$$
+delimiter ;
+
 create table user_form_answer (
     id          int4 unsigned primary key not null auto_increment,
-    user_id     int4 unsigned             not null,
+    form_sub_id int4 unsigned             not null,
     question_id int4 unsigned             not null,
     option_id   int4 unsigned default null,
     value       int2 unsigned default null,
     answer      varchar(1000) default null check (answer is null or answer != ''),
-    unique (user_id, question_id),
-    foreign key (user_id) references user (id) on delete cascade,
+    index (form_sub_id, question_id),
+    foreign key (form_sub_id) references user_form_submission (id) on delete cascade,
     foreign key (question_id) references form_question (id) on delete restrict,
     foreign key (option_id) references form_question_option (id) on delete restrict
 );
@@ -437,16 +517,50 @@ create trigger before_insert_user_form_answer
     on user_form_answer
     for each row
 begin
+    declare conflict boolean;
+    declare form_id int4 unsigned;
     declare q_type varchar(20);
     declare is_other bool;
     declare min int2 unsigned;
     declare max int2 unsigned;
 
-    set q_type = (select q.type from form_question as q where q.id = new.question_id);
+    select q.form_id, q.type, ifnull(q.other, false), q.min, q.max
+        into form_id, q_type, is_other, min, max
+        from form_question as q
+        where q.id = new.question_id;
+
+    if (q_type != 'select-multiple') then
+        set conflict = (select true
+                            from user_form_answer as fa
+                            where fa.form_sub_id = new.form_sub_id
+                              and fa.question_id = new.question_id);
+
+        if (conflict) then
+            signal sqlstate '45000' set message_text =
+                'questions of type other than select-multiple cannot have more than one answer';
+        end if;
+    end if;
+
+    set conflict = (select s.form_id != form_id from user_form_submission as s where s.id = new.form_sub_id);
+
+    if (conflict) then
+        signal sqlstate '45000' set message_text =
+            'question_id.form_id must match form_sub_id.form_id';
+    end if;
+
+    if (new.option_id is not null) then
+        set conflict = (select q.form_id != form_id
+                            from form_question_option    as o
+                                inner join form_question as q on q.id = o.form_question_id
+                            where o.id = new.option_id);
+
+        if (conflict) then
+            signal sqlstate '45000' set message_text =
+                'option_id.form_question_id.form_id must match form_sub_id.form_id';
+        end if;
+    end if;
 
     if (q_type in ('select-one', 'select-multiple')) then
-        set is_other = (select ifnull(q.other, false) from form_question as q where q.id = new.question_id);
-
         if is_other then
             if (new.answer is null) then
                 signal sqlstate '45000' set message_text =
@@ -477,9 +591,6 @@ begin
         if (new.value is null) then
             signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
         end if;
-
-        set min = (select q.min from form_question as q where q.id = new.question_id);
-        set max = (select q.max from form_question as q where q.id = new.question_id);
 
         if (new.value < min or new.value > max) then
             signal sqlstate '45000' set message_text = 'value must be between the min and max specified in question_id';
@@ -510,69 +621,11 @@ create trigger before_update_user_form_answer
     on user_form_answer
     for each row
 begin
-    declare q_type varchar(20);
-    declare is_other bool;
-    declare min int2 unsigned;
-    declare max int2 unsigned;
-
-    set q_type = (select q.type from form_question as q where q.id = new.question_id);
-
-    if (q_type in ('select-one', 'select-multiple')) then
-        set is_other = (select ifnull(q.other, false) from form_question as q where q.id = new.question_id);
-
-        if is_other then
-            if (new.answer is null) then
-                signal sqlstate '45000' set message_text =
-                    'answer must be present when question_id.type is select-one or select-multiple and question_id.other is true';
-            end if;
-
-            if (new.option_id is not null) then
-                signal sqlstate '45000' set message_text =
-                    'option_id should not be present when question_id.type is select-one or select-multiple and question_id.other is true';
-            end if;
-        else
-            if (new.option_id is null) then
-                signal sqlstate '45000' set message_text =
-                    'option_id must be present when question_id.type is select-one or select-multiple and question_id.other is false';
-            end if;
-
-            if (new.answer is not null) then
-                signal sqlstate '45000' set message_text =
-                    'answer should not be present when question_id.type is select-one or select-multiple and question_id.other is false';
-            end if;
-        end if;
-    elseif (new.option_id is not null) then
-        signal sqlstate '45000' set message_text =
-            'option_id should not be present when question_id.type is neither select-one or select-multiple';
-    end if;
-
-    if (q_type = 'slider') then
-        if (new.value is null) then
-            signal sqlstate '45000' set message_text = 'value must be present when question_id.type is slider';
-        end if;
-
-        set min = (select q.min from form_question as q where q.id = new.question_id);
-        set max = (select q.max from form_question as q where q.id = new.question_id);
-
-        if (new.value < min or new.value > max) then
-            signal sqlstate '45000' set message_text = 'value must be between the min and max specified in question_id';
-        end if;
-    end if;
-
-    if (q_type != 'slider' and new.value is not null) then
-        signal sqlstate '45000' set message_text = 'value should not be present when question_id.type is not slider';
-    end if;
-
-    if (q_type in ('text-short', 'text-long') and new.answer is null) then
-        signal sqlstate '45000' set message_text =
-            'answer must be present when question_id.type is text-short or text-long';
-    end if;
-
-    if (q_type not in ('text-short', 'text-long', 'select-one', 'select-multiple') and new.answer is not null) then
-        signal sqlstate '45000' set message_text =
-            'answer should not be present when question_id.type is neither text-short or text-long';
-    end if;
+    signal sqlstate '45000' set message_text = 'user_form_answer\'s rows cannot be updated';
 end;
+
+$$
+delimiter ;
 
 create table user_test_attempt (
     id       int8 unsigned primary key not null auto_increment,
@@ -585,27 +638,111 @@ create table user_test_attempt (
     foreign key (group_id) references test_group (id) on delete restrict
 );
 
+delimiter $$
+create trigger before_update_user_test_attempt
+    before update
+    on user_test_attempt
+    for each row
+begin
+    signal sqlstate '45000' set message_text = 'user_test_attempt\'s rows cannot be updated';
+end;
+
 create table user_test_question_log (
     id          int8 unsigned primary key not null auto_increment,
-    user_id     int4 unsigned             not null,
+    attempt_id  int8 unsigned             not null,
     question_id int4 unsigned             not null,
     timestamp   datetime(3)               not null,
     duration    int4 unsigned             not null,
-    unique (user_id, question_id, timestamp),
-    foreign key (user_id) references user (id) on delete cascade,
+    unique (attempt_id, question_id, timestamp),
+    foreign key (attempt_id) references user_test_attempt (id) on delete cascade,
     foreign key (question_id) references test_question (id) on delete restrict
 );
 
+delimiter $$
+create trigger before_insert_user_test_question_log
+    before insert
+    on user_test_question_log
+    for each row
+begin
+    declare conflict boolean;
+    declare group_id int4 unsigned;
+
+    set group_id = (select a.group_id from user_test_attempt as a where a.id = new.attempt_id);
+    set conflict = (select pr.group_id = group_id
+                        from test_question           as q
+                            inner join test_phase    as ph on ph.id = q.phase_id
+                            inner join test_protocol as pr on pr.id = ph.protocol_id
+                        where q.id = new.question_id);
+
+    if (conflict) then
+        signal sqlstate '45000' set message_text =
+            'question_id.phase_id.protocol_id.group_id must match attempt_id.group_id';
+    end if;
+end;
+
+$$
+delimiter ;
+
+delimiter $$
+create trigger before_update_user_test_question_log
+    before update
+    on user_test_question_log
+    for each row
+begin
+    signal sqlstate '45000' set message_text = 'user_test_question_log\'s rows cannot be updated';
+end;
+
+$$
+delimiter ;
+
 create table user_test_option_log (
-    id        int8 unsigned primary key            not null auto_increment,
-    user_id   int4 unsigned                        not null,
-    option_id int4 unsigned                        not null,
-    type      enum ('deselect', 'select', 'hover') not null,
-    timestamp datetime(3)                          not null,
-    unique (user_id, option_id, type, timestamp),
-    foreign key (user_id) references user (id) on delete cascade,
+    id         int8 unsigned primary key            not null auto_increment,
+    attempt_id int8 unsigned                        not null,
+    option_id  int4 unsigned                        not null,
+    type       enum ('deselect', 'select', 'hover') not null,
+    timestamp  datetime(3)                          not null,
+    unique (attempt_id, option_id, type, timestamp),
+    foreign key (attempt_id) references user_test_attempt (id) on delete cascade,
     foreign key (option_id) references test_option (id) on delete restrict
 );
+
+delimiter $$
+create trigger before_insert_user_test_option_log
+    before insert
+    on user_test_option_log
+    for each row
+begin
+    declare conflict boolean;
+    declare group_id int4 unsigned;
+
+    set group_id = (select a.group_id from user_test_attempt as a where a.id = new.attempt_id);
+    set conflict = (select pr.group_id = group_id
+                        from test_option             as o
+                            inner join test_question as q on o.question_id = q.id
+                            inner join test_phase    as ph on ph.id = q.phase_id
+                            inner join test_protocol as pr on pr.id = ph.protocol_id
+                        where o.id = new.option_id);
+
+    if (conflict) then
+        signal sqlstate '45000' set message_text =
+            'option_id.question_id.phase_id.protocol_id.group_id must match attempt_id.group_id';
+    end if;
+end;
+
+$$
+delimiter ;
+
+delimiter $$
+create trigger before_update_user_test_option_log
+    before update
+    on user_test_option_log
+    for each row
+begin
+    signal sqlstate '45000' set message_text = 'user_test_option_log\'s rows cannot be updated';
+end;
+
+$$
+delimiter ;
 
 insert into image (path, alt)
     values ('images/icons/app.png', 'App Icon'),
@@ -646,106 +783,250 @@ insert into config (icon_id, title, subtitle, description, informed_consent, ano
             'By agreeing to participate in this study, you acknowledge that:\n- Your participation is completely voluntary.\n- The data provided will be treated with confidentiality.\n- The information collected will be used solely for academic purposes.\n- You can leave the test at any time if you wish.\n\nThe test has no time limit, but it is recommended to complete it without interruptions. If you have any questions about the study, you can contact the research team at [research@example.com](mailto:research@example.com).\n',
             default);
 
-insert into translation (config_version, `key`, value)
-    values (1, 'home.dashboardButtonHint', 'Panel de Administración'),
-           (1, 'home.themeSwitchButtonHint', 'Cambiar a modo {0}'),
-           (1, 'home.participant', 'Participante: {0} ({1})'),
-           (1, 'home.aboutThisTest', 'Sobre este test'),
-           (1, 'home.informedConsent', 'Consentimiento Informado'),
-           (1, 'home.iAcceptInformedConsent', 'He leído y acepto el consentimiento informado'),
-           (1, 'home.startTest', 'Iniciar Test'),
-           (1, 'home.register', 'Registrarse'),
-           (1, 'home.frequentlyAskedQuestions', 'Preguntas Frecuentes'),
-           (1, 'home.pleaseEnterValid', 'Por favor ingrese un {0} válido.'),
-           (1, 'home.participantInformation', 'Información del Participante'),
+insert into translation_key (`key`, description, arguments)
+    values ('home.dashboardButtonHint',
+            'Tooltip to show when hovering over the dashboard button in the home page.',
+            json_array()),
+           ('home.themeSwitchButtonHint',
+            'Tooltip to show when hovering over the theme toggle button in the home page.',
+            json_array('Either "dark" or "light".')),
+           ('home.participant',
+            'The name and username/id of the participant. Displayed on the home page.',
+            json_array('The name of the participant.', 'The username/id of the participant.')),
+           ('home.aboutThisTest', 'Heading for the test description section of the home page.', json_array()),
+           ('home.informedConsent', 'Heading for the informed consent section of the home page.', json_array()),
+           ('home.iAcceptInformedConsent', 'Label for the checkbox to accept the informed consent.', json_array()),
+           ('home.startTest', 'Button text to start the test.', json_array()),
+           ('home.register', 'Button text to open the registration modal.', json_array()),
+           ('home.frequentlyAskedQuestions', 'Heading for the FAQ section.', json_array()),
+           ('home.pleaseEnterValid',
+            'Validation error message for invalid input fields.',
+            json_array('The label of the invalid field.')),
+           ('home.participantInformation',
+            'Heading for the participant information section in the registration modal.',
+            json_array()),
+           ('home.registrationModalMessage', 'Privacy message displayed in the registration modal.', json_array()),
+           ('home.fullName', 'Label for the full name input field.', json_array()),
+           ('home.identificationNumber', 'Label for the username/id input field.', json_array()),
+           ('home.age', 'Label for the age input field.', json_array()),
+           ('home.email', 'Label for the email input field.', json_array()),
+           ('home.cancel', 'Button text to cancel the registration modal.', json_array()),
+           ('home.saveInformation',
+            'Button text to save the participant information in the registration modal.',
+            json_array()),
+           ('form.otherPlaceholder', 'Placeholder text for "other" or custom input fields in forms.', json_array()),
+           ('form.youMustAnswerEverything',
+            'Validation message shown when not all required questions have been answered.',
+            json_array()),
+           ('form.sendAnswers', 'Button text to submit form answers.', json_array()),
+           ('form.sendingAnswers', 'Loading message displayed while submitting form answers.', json_array()),
+           ('preTest.title', 'Title for the pre-test form page.', json_array()),
+           ('postTest.title', 'Title for the post-test form page.', json_array()),
+           ('greeting.title', 'Title for the greeting/information page before starting the test.', json_array()),
+           ('greeting.startTest', 'Button text to start the test from the greeting page.', json_array()),
+           ('test.progress', 'Label for the progress indicator during the test.', json_array()),
+           ('test.phaseQuestion',
+            'Label showing the current phase and question number during the test.',
+            json_array('The current phase.', 'The total number of phases.', 'The current question',
+                       'The total number of questions in the current phase.')),
+           ('test.previousPhase', 'Button text to go back to the previous phase.', json_array()),
+           ('test.previousQuestion', 'Button text to go to the previous question.', json_array()),
+           ('test.nextQuestion', 'Button text to go to the next question.', json_array()),
+           ('test.backToSummary', 'Button text to return to the summary page.', json_array()),
+           ('summary.phaseSummary', 'Heading for the phase summary page.', json_array('The current phase.')),
+           ('summary.testSummary', 'Resumen del Test', json_array()),
+           ('summary.nextPhase', 'Continuar a la siguiente fase', json_array()),
+           ('summary.endTest', 'Terminar test', json_array()),
+           ('summary.phase', 'Fase', json_array()),
+           ('summary.question', 'Pregunta', json_array()),
+           ('summary.status', 'Estado', json_array()),
+           ('summary.answered', 'Respondida', json_array()),
+           ('summary.notAnswered', 'Sin responder', json_array()),
+           ('completion.testCompleted', '¡Test Completado!', json_array()),
+           ('completion.successfullySubmitted', 'Success message shown after test submission.', json_array()),
+           ('completion.thankYou',
+            'Thank you message displayed to the participant on the completion page.',
+            json_array('The name or username/id of the participant.')),
+           ('completion.successfullyCompleted',
+            'Success message indicating the test has been successfully submitted.',
+            json_array('The name of the application, obtained from the title of the latest configuration.')),
+           ('completion.userInfo', 'Heading for the user information section on the completion page.', json_array()),
+           ('completion.name', 'Label for the participant name on the completion page.', json_array()),
+           ('completion.identification', 'Label for the participant username/id on the completion page.', json_array()),
+           ('completion.email', 'Label for the participant email on the completion page.', json_array()),
+           ('completion.results', 'Heading for the test results section on the completion page.', json_array()),
+           ('completion.viewResults', 'Button text to show the test results.', json_array()),
+           ('completion.hideResults', 'Button text to hide the test results.', json_array()),
+           ('completion.gettingResults', 'Loading message while fetching test results.', json_array()),
+           ('completion.failedToGetResults',
+            'Error message shown when test results cannot be retrieved.',
+            json_array()),
+           ('completion.noResultsFound', 'Message shown when no results are available.', json_array()),
+           ('completion.correctAnswers', 'Label for the number of correct answers in the results.', json_array()),
+           ('completion.correctOfTotal',
+            'Text showing the number of correct answers out of total questions.',
+            json_array('How many questions the participant answered correctly.', 'The total number of questions.')),
+           ('completion.skippedQuestions', 'Label for the number of skipped questions in the results.', json_array()),
+           ('completion.accuracyPercent', 'Label for the accuracy percentage in the results.', json_array()),
+           ('completion.timeTaken', 'Label for the total time taken to complete the test.', json_array()),
+           ('completion.timeSeconds',
+            'Text displaying the time taken in seconds.',
+            json_array('How long the participant took to answer the test, in seconds.')),
+           ('completion.resultsRecorded',
+            'Confirmation message that results have been saved, with privacy notice.',
+            json_array()),
+           ('completion.backToHome', 'Button text to return to the home page from the completion page.', json_array()),
+           ('dashboard.loadingResults',
+            'Loading message displayed while fetching test results in the dashboard.',
+            json_array()),
+           ('dashboard.analytics',
+            'Title for the analytics/dashboard page.',
+            json_array('The name of the application, obtained from the title of the latest configuration.')),
+           ('dashboard.backToHome', 'Button text to return to the home page from the dashboard.', json_array()),
+           ('dashboard.viewAndExportResults',
+            'Description text explaining the purpose of the dashboard.',
+            json_array()),
+           ('dashboard.participantsList', 'Heading for the participants list section.', json_array()),
+           ('dashboard.testResults', 'Heading for the test results section.', json_array()),
+           ('dashboard.exportCsv', 'Button text to export results as a CSV file.', json_array()),
+           ('dashboard.noResults', 'Message shown when there are no test results available yet.', json_array()),
+           ('dashboard.participant', 'Column header for participant name in the results table.', json_array()),
+           ('dashboard.group', 'Column header for group in the results table.', json_array()),
+           ('dashboard.date', 'Column header for date in the results table.', json_array()),
+           ('dashboard.timeTaken', 'Column header for time taken (in seconds) in the results table.', json_array()),
+           ('dashboard.correct', 'Column header for number of correct answers in the results table.', json_array()),
+           ('dashboard.answered', 'Column header for number of answered questions in the results table.', json_array()),
+           ('dashboard.accuracy', 'Column header for accuracy percentage in the results table.', json_array()),
+           ('dashboard.actions', 'Column header for action buttons in the results table.', json_array()),
+           ('dashboard.id',
+            'Label displaying the participant username/id.',
+            json_array('The username/id of the participant.')),
+           ('dashboard.exportParticipantResult',
+            'Button text or tooltip to export detailed results for a specific participant.',
+            json_array()),
+           ('dashboard.summary', 'Heading for the summary statistics section.', json_array()),
+           ('dashboard.totalParticipants', 'Label for the total number of participants statistic.', json_array()),
+           ('dashboard.averageAccuracy', 'Label for the average accuracy statistic.', json_array()),
+           ('dashboard.averageTimeTaken', 'Label for the average time taken statistic.', json_array()),
+           ('dashboard.totalQuestionsAnswered', 'Label for the total questions answered statistic.', json_array()),
+           ('dashboard.errorLoadingResults',
+            'Error message shown when results fail to load in the dashboard.',
+            json_array()),
+           ('dashboard.errorNoResults',
+            'Message shown when no results are found, explaining that users need to complete the test first.',
+            json_array()),
+           ('dashboard.errorExportCsv', 'Error message shown when CSV export fails.', json_array()),
+           ('dashboard.errorExportUser',
+            'Error message shown when exporting a specific participant\'s data fails.',
+            json_array('The username/id of the participant.')),
+           # TODO remove these eventually
+           ('backend.anonymousUser', 'Default name for anonymous users.', json_array()),
+           ('backend.userDoesNotExist',
+            'Error message when trying to access a user that does not exist.',
+            json_array('The username/id of the participant.')),
+           ('backend.userAlreadyExists',
+            'Error message when trying to create a user that already exists.',
+            json_array('The username/id of the participant.'));
+
+insert into translation_value (config_version, key_id, value)
+    values (1, 1, 'Panel de Administración'),
+           (1, 2, 'Cambiar a modo {0}'),
+           (1, 3, 'Participante: {0} ({1})'),
+           (1, 4, 'Sobre este test'),
+           (1, 5, 'Consentimiento Informado'),
+           (1, 6, 'He leído y acepto el consentimiento informado'),
+           (1, 7, 'Iniciar Test'),
+           (1, 8, 'Registrarse'),
+           (1, 9, 'Preguntas Frecuentes'),
+           (1, 10, 'Por favor ingrese un {0} válido.'),
+           (1, 11, 'Información del Participante'),
            (1,
-            'home.registrationModalMessage',
-            'Tus datos serán tratados confidencialmente y serán utilizados exclusivamente con propósitos académicos.\n'),
-           (1, 'home.fullName', 'Nombre Completo'),
-           (1, 'home.identificationNumber', 'Número de Identificación'),
-           (1, 'home.age', 'Edad'),
-           (1, 'home.email', 'Correo Electrónico'),
-           (1, 'home.cancel', 'Cancelar'),
-           (1, 'home.saveInformation', 'Guardar Información'),
-           (1, 'form.otherPlaceholder', 'Especifique...'),
-           (1, 'form.youMustAnswerEverything', 'Debes responder todas las preguntas.'),
-           (1, 'form.sendAnswers', 'Enviar respuestas'),
-           (1, 'form.sendingAnswers', 'Enviando respuestas...'),
-           (1, 'preTest.title', 'Formulario Pre-Test'),
-           (1, 'postTest.title', 'Formulario Post-Test'),
-           (1, 'greeting.title', 'Información del Test'),
-           (1, 'greeting.startTest', 'Iniciar Test'),
-           (1, 'test.progress', 'Progreso:'),
-           (1, 'test.phaseQuestion', 'Fase {0}/{1} - Pregunta {2}/{3}'),
-           (1, 'test.previousPhase', 'Fase Anterior'),
-           (1, 'test.previousQuestion', 'Anterior'),
-           (1, 'test.nextQuestion', 'Siguiente'),
-           (1, 'test.backToSummary', 'Volver al resumen'),
-           (1, 'summary.phaseSummary', 'Resumen de la Fase {0}'),
-           (1, 'summary.testSummary', 'Resumen del Test'),
-           (1, 'summary.nextPhase', 'Continuar a la siguiente fase'),
-           (1, 'summary.endTest', 'Terminar test'),
-           (1, 'summary.phase', 'Fase'),
-           (1, 'summary.question', 'Pregunta'),
-           (1, 'summary.status', 'Estado'),
-           (1, 'summary.answered', 'Respondida'),
-           (1, 'summary.notAnswered', 'Sin responder'),
-           (1, 'completion.testCompleted', '¡Test Completado!'),
-           (1, 'completion.successfullySubmitted', 'Enviado Exitosamente'),
-           (1, 'completion.thankYou', 'Muchas gracias {0} por tu participación'),
-           (1, 'completion.successfullyCompleted', 'Haz enviado con éxito el {0}'),
-           (1, 'completion.userInfo', 'Información de Usuario'),
-           (1, 'completion.name', 'Nombre'),
-           (1, 'completion.identification', 'Identificación'),
-           (1, 'completion.email', 'Correo Electrónico'),
-           (1, 'completion.results', 'Resultados del test'),
-           (1, 'completion.viewResults', 'Ver Resultados'),
-           (1, 'completion.hideResults', 'Ocultar Resultados'),
-           (1, 'completion.gettingResults', 'Obteniendo resultados...'),
-           (1, 'completion.failedToGetResults', 'No se pudieron obtener los resultados. Intenta de nuevo.'),
-           (1, 'completion.noResultsFound', 'No se encontraron resultados.'),
-           (1, 'completion.correctAnswers', 'Respuestas correctas:'),
-           (1, 'completion.correctOfTotal', '{0} de {1}'),
-           (1, 'completion.skippedQuestions', 'Preguntas omitidas:'),
-           (1, 'completion.accuracyPercent', 'Porcentaje de aciertos:'),
-           (1, 'completion.timeTaken', 'Tiempo total:'),
-           (1, 'completion.timeSeconds', '{0} segundos'),
+            12,
+            'Tus datos serán tratados confidencialmente y serán utilizados exclusivamente con propósitos académicos.'),
+           (1, 13, 'Nombre Completo'),
+           (1, 14, 'Número de Identificación'),
+           (1, 15, 'Edad'),
+           (1, 16, 'Correo Electrónico'),
+           (1, 17, 'Cancelar'),
+           (1, 18, 'Guardar Información'),
+           (1, 19, 'Especifique...'),
+           (1, 20, 'Debes responder todas las preguntas.'),
+           (1, 21, 'Enviar respuestas'),
+           (1, 22, 'Enviando respuestas...'),
+           (1, 23, 'Formulario Pre-Test'),
+           (1, 24, 'Formulario Post-Test'),
+           (1, 25, 'Información del Test'),
+           (1, 26, 'Iniciar Test'),
+           (1, 27, 'Progreso:'),
+           (1, 28, 'Fase {0}/{1} - Pregunta {2}/{3}'),
+           (1, 29, 'Fase Anterior'),
+           (1, 30, 'Anterior'),
+           (1, 31, 'Siguiente'),
+           (1, 32, 'Volver al resumen'),
+           (1, 33, 'Resumen de la Fase {0}'),
+           (1, 34, 'Resumen del Test'),
+           (1, 35, 'Continuar a la siguiente fase'),
+           (1, 36, 'Terminar test'),
+           (1, 37, 'Fase'),
+           (1, 38, 'Pregunta'),
+           (1, 39, 'Estado'),
+           (1, 40, 'Respondida'),
+           (1, 41, 'Sin responder'),
+           (1, 42, '¡Test Completado!'),
+           (1, 43, 'Enviado Exitosamente'),
+           (1, 44, 'Muchas gracias {0} por tu participación'),
+           (1, 45, 'Haz enviado con éxito el {0}'),
+           (1, 46, 'Información de Usuario'),
+           (1, 47, 'Nombre'),
+           (1, 48, 'Identificación'),
+           (1, 49, 'Correo Electrónico'),
+           (1, 50, 'Resultados del test'),
+           (1, 51, 'Ver Resultados'),
+           (1, 52, 'Ocultar Resultados'),
+           (1, 53, 'Obteniendo resultados...'),
+           (1, 54, 'No se pudieron obtener los resultados. Intenta de nuevo.'),
+           (1, 55, 'No se encontraron resultados.'),
+           (1, 56, 'Respuestas correctas:'),
+           (1, 57, '{0} de {1}'),
+           (1, 58, 'Preguntas omitidas:'),
+           (1, 59, 'Porcentaje de aciertos:'),
+           (1, 60, 'Tiempo total:'),
+           (1, 61, '{0} segundos'),
            (1,
-            'completion.resultsRecorded',
-            'Tus resultados han sido guardados exitosamente. Estos datos serán utilizados exclusivamente con propósitos académicos y de investigación.\n'),
-           (1, 'completion.backToHome', 'Volver a Inicio'),
-           (1, 'dashboard.loadingResults', 'Cargando resultados del test...'),
-           (1, 'dashboard.analytics', '{0} - Analíticas'),
-           (1, 'dashboard.backToHome', 'Volver al Inicio'),
-           (1, 'dashboard.viewAndExportResults', 'Ver y exportar los resultados del test de los participantes.'),
-           (1, 'dashboard.participantsList', 'Lista de Participantes'),
-           (1, 'dashboard.testResults', 'Resultados del Test'),
-           (1, 'dashboard.exportCsv', 'Exportar CSV'),
-           (1, 'dashboard.noResults', 'No hay resultados disponibles todavía'),
-           (1, 'dashboard.participant', 'Participante'),
-           (1, 'dashboard.group', 'Grupo'),
-           (1, 'dashboard.date', 'Fecha'),
-           (1, 'dashboard.timeTaken', 'Tiempo (s)'),
-           (1, 'dashboard.correct', 'Correctas'),
-           (1, 'dashboard.answered', 'Respondidas'),
-           (1, 'dashboard.accuracy', 'Precisión'),
-           (1, 'dashboard.actions', 'Acciones'),
-           (1, 'dashboard.id', 'ID: {0}'),
-           (1, 'dashboard.exportParticipantResult', 'Exportar resultados detallados'),
-           (1, 'dashboard.summary', 'Resumen'),
-           (1, 'dashboard.totalParticipants', 'Total Participantes'),
-           (1, 'dashboard.averageAccuracy', 'Precisión Promedio'),
-           (1, 'dashboard.averageTimeTaken', 'Tiempo Promedio'),
-           (1, 'dashboard.totalQuestionsAnswered', 'Total Preguntas Respondidas'),
-           (1, 'dashboard.errorLoadingResults', 'Error al cargar los resultados. Por favor, actualiza la página.'),
-           (1,
-            'dashboard.errorNoResults',
-            'No se encontraron resultados. Los usuarios deben completar el test para ver los resultados aquí.'),
-           (1, 'dashboard.errorExportCsv', 'Error al exportar los datos como CSV.'),
-           (1, 'dashboard.errorExportUser', 'Error al exportar los datos del participante {0}.'),
-           (1, 'backend.anonymousUser', 'Usuario Anónimo'),
-           (1, 'backend.userDoesNotExist', 'Usuario con ID \'{0}\' no existe.'),
-           (1, 'backend.userAlreadyExists', 'Usuario con ID \'{0}\' ya existe.');
+            62,
+            'Tus resultados han sido guardados exitosamente. Estos datos serán utilizados exclusivamente con propósitos académicos y de investigación.'),
+           (1, 63, 'Volver a Inicio'),
+           (1, 64, 'Cargando resultados del test...'),
+           (1, 65, '{0} - Analíticas'),
+           (1, 66, 'Volver al Inicio'),
+           (1, 67, 'Ver y exportar los resultados del test de los participantes.'),
+           (1, 68, 'Lista de Participantes'),
+           (1, 69, 'Resultados del Test'),
+           (1, 70, 'Exportar CSV'),
+           (1, 71, 'No hay resultados disponibles todavía'),
+           (1, 72, 'Participante'),
+           (1, 73, 'Grupo'),
+           (1, 74, 'Fecha'),
+           (1, 75, 'Tiempo (s)'),
+           (1, 76, 'Correctas'),
+           (1, 77, 'Respondidas'),
+           (1, 78, 'Precisión'),
+           (1, 79, 'Acciones'),
+           (1, 80, 'ID: {0}'),
+           (1, 81, 'Exportar resultados detallados'),
+           (1, 82, 'Resumen'),
+           (1, 83, 'Total Participantes'),
+           (1, 84, 'Precisión Promedio'),
+           (1, 85, 'Tiempo Promedio'),
+           (1, 86, 'Total Preguntas Respondidas'),
+           (1, 87, 'Error al cargar los resultados. Por favor, actualiza la página.'),
+           (1, 88, 'No se encontraron resultados. Los usuarios deben completar el test para ver los resultados aquí.'),
+           (1, 89, 'Error al exportar los datos como CSV.'),
+           (1, 90, 'Error al exportar los datos del participante {0}.'),
+           # TODO remove these eventually
+           (1, 91, 'Usuario Anónimo'),
+           (1, 92, 'Usuario con ID \'{0}\' no existe.'),
+           (1, 93, 'Usuario con ID \'{0}\' ya existe.');
 
 insert into home_info_card (config_version, `order`, title, description, icon_id, color)
     values (1,
