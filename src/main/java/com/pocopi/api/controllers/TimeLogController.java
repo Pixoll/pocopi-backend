@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/timelogs")
 public class TimeLogController {
-    TimeLogService timeLogsService;
+    private final TimeLogService timeLogsService;
 
     @Autowired
     public TimeLogController(TimeLogService timeLogsService) {

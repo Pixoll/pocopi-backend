@@ -55,10 +55,8 @@ public class UserController {
             )
         }
     )
-    public ResponseEntity<String> createUser(
-        @RequestBody NewUser request
-    ) {
-        final String response = userService.createUser(request);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<Void> createUser(@RequestBody NewUser request) {
+        userService.createUser(request);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

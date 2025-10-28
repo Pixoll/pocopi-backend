@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TestProtocolRepository extends JpaRepository<TestProtocolModel, Integer> {
-    TestProtocolModel getById(Integer id);
+    TestProtocolModel getById(int id);
 
     TestProtocolModel findByGroup(TestGroupModel group);
 }

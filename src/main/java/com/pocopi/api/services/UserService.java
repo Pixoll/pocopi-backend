@@ -42,7 +42,7 @@ public class UserService {
     }
 
     @Transactional
-    public String createUser(NewUser request) throws MultiFieldException {
+    public void createUser(NewUser request) throws MultiFieldException {
         final List<FieldError> fieldErrors = new ArrayList<>();
 
         if (userRepository.existsByUsername(request.username())) {
@@ -97,8 +97,6 @@ public class UserService {
                 newUser.getAge(),
                 newUser.getPassword()
             );
-
-            return "User created successfully";
         } catch (Exception e) {
             throw new RuntimeException("Failed to create user: " + e.getMessage());
         }

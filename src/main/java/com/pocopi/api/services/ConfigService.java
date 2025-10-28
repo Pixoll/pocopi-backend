@@ -19,7 +19,7 @@ import com.pocopi.api.dto.test.TestGroup;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.HomeFaqModel;
 import com.pocopi.api.models.config.HomeInfoCardModel;
-import com.pocopi.api.models.config.TranslationModel;
+import com.pocopi.api.models.config.TranslationKeyModel;
 import com.pocopi.api.models.form.*;
 import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.*;
@@ -75,7 +75,7 @@ public class ConfigService {
             icon = imageService.getImageByPath(configModel.getIcon().getPath());
         }
 
-        final List<TranslationModel> translations = translationRepository.findAllByConfigVersion(configId);
+        final List<TranslationKeyModel> translations = translationRepository.findAllByConfigVersion(configId);
         final List<HomeInfoCardModel> homeInfoCardModels = homeInfoCardService.findAllByConfigVersion(configId);
         final List<HomeFaqModel> homeFaqs = homeFaqService.findAllByConfigVersion(configId);
         final List<FormModel> forms = formRepository.findAllByConfigVersion(configId);
@@ -100,7 +100,7 @@ public class ConfigService {
             }
         }
         final Map<String, String> translationMap = new HashMap<>();
-        for (final TranslationModel translation : translations) {
+        for (final TranslationKeyModel translation : translations) {
             translationMap.put(translation.getKey(), translation.getValue());
         }
 

@@ -1,6 +1,5 @@
 package com.pocopi.api.converters;
 
-import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.models.user.Role;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

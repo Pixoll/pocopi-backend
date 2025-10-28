@@ -27,21 +27,21 @@ public class TimeLogEventWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
-        String payload = message.getPayload();
+        final String payload = message.getPayload();
         System.out.println("received: " + payload);
 
-        NewTimeLogEvent optionEvent = objectMapper.readValue(payload, NewTimeLogEvent.class);
+        final NewTimeLogEvent optionEvent = objectMapper.readValue(payload, NewTimeLogEvent.class);
 
-        String result = timeLogsService.addTimeLog(optionEvent);
+        final String result = timeLogsService.addTimeLog(optionEvent);
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, @NonNull CloseStatus status) {
         System.out.println("ws connection closed: " + session.getId());
     }
 
     @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) {
+    public void handleTransportError(@NonNull WebSocketSession session, Throwable exception) {
         System.err.println("ws error: " + exception.getMessage());
     }
 }
