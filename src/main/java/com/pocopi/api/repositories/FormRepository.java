@@ -44,6 +44,8 @@ public interface FormRepository extends JpaRepository<FormModel, Integer> {
     )
     List<FormProjection> findFormWithAllData(int formId);
 
+    FormModel findById(int id);
+
     @Query(value = "select * from form as f where f.config_version = :configVersion", nativeQuery = true)
     List<FormModel> findAllByConfigVersion(int configVersion);
 }
