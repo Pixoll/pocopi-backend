@@ -11,6 +11,8 @@ springDepManagerVersion = "1.1.7"
 [libraries]
 openApi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "openAPIVersion" }
 dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenvVersion" }
+flyway-core = { group = "org.flywaydb", name = "flyway-core" }
+flyway-mysql = { group = "org.flywaydb", name = "flyway-mysql" }
 junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 jjwt-api = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jjwtVersion" }
 jjwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwtVersion" }

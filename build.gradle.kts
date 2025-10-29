@@ -47,6 +47,13 @@ dependencies {
     testImplementation(libs.spring.restdocs.mockmvc)
     testImplementation(libs.spring.security.test)
 
+    // db
+
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.mysql)
+
+    runtimeOnly(libs.mysql.connector)
+
     // others
 
     compileOnly(libs.jjwt.api)
@@ -59,7 +66,6 @@ dependencies {
 
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
-    runtimeOnly(libs.mysql.connector)
 
     // testing
 
