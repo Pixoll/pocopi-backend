@@ -62,6 +62,7 @@ dependencies {
     annotationProcessor(libs.lombok)
 
     implementation(libs.dotenv)
+    implementation(libs.json.schema.validator)
     implementation(libs.openApi)
 
     runtimeOnly(libs.jjwt.impl)

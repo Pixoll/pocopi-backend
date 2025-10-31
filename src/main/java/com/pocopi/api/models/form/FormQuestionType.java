@@ -3,6 +3,8 @@ package com.pocopi.api.models.form;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+import java.util.stream.Stream;
+
 @Getter
 public enum FormQuestionType {
     SELECT_ONE("select-one"),
@@ -20,5 +22,12 @@ public enum FormQuestionType {
     @JsonValue
     public String getValue() {
         return this.name;
+    }
+
+    public static FormQuestionType fromValue(String name) {
+        return Stream.of(FormQuestionType.values())
+            .filter(c -> c.getName().equals(name))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new);
     }
 }
