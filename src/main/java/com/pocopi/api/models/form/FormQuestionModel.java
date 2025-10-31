@@ -10,7 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "form_question", uniqueConstraints = {@UniqueConstraint(columnNames = {"form_id", "order"})})
+@Table(name = "form_question", uniqueConstraints = {@UniqueConstraint(columnNames = {"form_id", "`order`"})})
 @Setter
 @Getter
 @NoArgsConstructor
@@ -29,7 +29,7 @@ public class FormQuestionModel {
     @JoinColumn(name = "form_id", nullable = false)
     private FormModel form;
 
-    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
+    @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
     @Size(min = 1, max = 50)

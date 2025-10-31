@@ -11,7 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @Table(
     name = "form_question_option",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"form_question_id", "order"})}
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"form_question_id", "`order`"})}
 )
 @Getter
 @Setter
@@ -31,7 +31,7 @@ public class FormQuestionOptionModel {
     @JoinColumn(name = "form_question_id", nullable = false)
     private FormQuestionModel formQuestion;
 
-    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
+    @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
     @Size(min = 1, max = 100)

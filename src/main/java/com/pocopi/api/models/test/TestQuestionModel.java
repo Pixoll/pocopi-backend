@@ -9,7 +9,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_question", uniqueConstraints = {@UniqueConstraint(columnNames = {"phase_id", "order"})})
+@Table(name = "test_question", uniqueConstraints = {@UniqueConstraint(columnNames = {"phase_id", "`order`"})})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,7 +28,7 @@ public class TestQuestionModel {
     @JoinColumn(name = "phase_id", nullable = false)
     private TestPhaseModel phase;
 
-    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
+    @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
     @Size(min = 1, max = 100)

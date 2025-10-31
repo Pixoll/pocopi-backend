@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "home_faq", uniqueConstraints = @UniqueConstraint(columnNames = {"config_version", "order"}))
+@Table(name = "home_faq", uniqueConstraints = @UniqueConstraint(columnNames = {"config_version", "`order`"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,7 +27,7 @@ public class HomeFaqModel {
     @JoinColumn(name = "config_version", nullable = false)
     private ConfigModel config;
 
-    @Column(name = "order", nullable = false, columnDefinition = "int1 unsigned")
+    @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
     @Size(min = 1, max = 100)
