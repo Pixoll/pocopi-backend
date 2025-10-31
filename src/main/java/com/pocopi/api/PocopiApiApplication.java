@@ -9,8 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import java.io.IOException;
-
 @SpringBootApplication
 public class PocopiApiApplication {
     private static final Logger LOGGER = LoggerFactory.getLogger(PocopiApiApplication.class);
@@ -41,8 +39,10 @@ public class PocopiApiApplication {
             }
 
             try {
+                LOGGER.info("Migrating old configuration...");
                 migrator.migrate(oldConfigPath);
-            } catch (IOException e) {
+                LOGGER.info("Successfully migrated old configuration");
+            } catch (Exception e) {
                 LOGGER.error("Failed to migrate old configuration from path: {}", oldConfigPath, e);
             }
         };
