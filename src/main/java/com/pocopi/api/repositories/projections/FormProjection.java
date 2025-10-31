@@ -1,4 +1,4 @@
-package com.pocopi.api.repositories;
+package com.pocopi.api.repositories.projections;
 
 import com.pocopi.api.models.form.FormQuestionType;
 

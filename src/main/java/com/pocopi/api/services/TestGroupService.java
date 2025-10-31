@@ -3,7 +3,7 @@ package com.pocopi.api.services;
 import com.pocopi.api.dto.test.*;
 import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.test.TestProtocolModel;
-import com.pocopi.api.repositories.TestGroupData;
+import com.pocopi.api.repositories.projections.TestGroupData;
 import com.pocopi.api.repositories.TestGroupRepository;
 import lombok.Getter;
 import lombok.Setter;

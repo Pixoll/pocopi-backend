@@ -1,4 +1,4 @@
-package com.pocopi.api.repositories;
+package com.pocopi.api.repositories.projections;
 
 public interface TestGroupData {
     int getGroupId();

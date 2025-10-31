@@ -1,6 +1,7 @@
 package com.pocopi.api.repositories;
 
 import com.pocopi.api.models.form.FormModel;
+import com.pocopi.api.repositories.projections.FormProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
