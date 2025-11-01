@@ -5,6 +5,7 @@ import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
+import com.pocopi.api.models.user.Role;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserRepository;
@@ -47,10 +48,10 @@ public class UserService {
         return users.stream().map(user -> new User(
             user.getId(),
             user.getUsername(),
-            user.getName(),
             user.isAnonymous(),
+            user.getName(),
             user.getEmail(),
-            user.getAge()
+            user.getAge() != null ? user.getAge().intValue() : null
         )).collect(Collectors.toList());
     }
 
@@ -63,10 +64,10 @@ public class UserService {
         return new User(
             user.getId(),
             user.getUsername(),
-            user.getName(),
             user.isAnonymous(),
+            user.getName(),
             user.getEmail(),
-            user.getAge()
+            user.getAge() != null ? user.getAge().intValue() : null
         );
     }
 
@@ -98,6 +99,7 @@ public class UserService {
 
         final UserModel newUser = UserModel.builder()
             .username(user.username())
+            .role(Role.USER)
             .anonymous(anonymous)
             .name(user.name())
             .email(user.email())

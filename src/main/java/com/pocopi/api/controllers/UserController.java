@@ -1,14 +1,14 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.services.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -23,30 +23,16 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         final List<User> users = userService.getAll();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> getUser(@PathVariable String username) {
         final User user = userService.getByUsername(username);
         return ResponseEntity.ok(user);
-    }
-
-    @PostMapping
-    @Operation(
-        summary = "Create new user",
-        description = "Creates a new user and returns success message",
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "User created successfully"
-            )
-        }
-    )
-    public ResponseEntity<Void> createUser(@RequestBody NewUser request) {
-        userService.createUser(request);
-        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

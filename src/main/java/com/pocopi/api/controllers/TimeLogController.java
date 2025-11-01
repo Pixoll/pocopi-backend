@@ -4,6 +4,7 @@ import com.pocopi.api.dto.time_log.TimeLog;
 import com.pocopi.api.services.TimeLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,12 +23,14 @@ public class TimeLogController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TimeLog>> getAllTimeLogs() {
         final List<TimeLog> response = timeLogsService.getTimeLogs();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TimeLog> getUserTimelogs(@PathVariable int userId) {
         final TimeLog response = timeLogsService.getTimeLogByUserId(userId);
         return ResponseEntity.ok(response);

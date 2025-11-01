@@ -5,6 +5,7 @@ import com.pocopi.api.dto.auth.Credentials;
 import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.auth.Token;
 import com.pocopi.api.services.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication")
 public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
@@ -47,13 +49,13 @@ public class AuthController {
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         final String token = jwtUtils.generateToken(userDetails.getUsername());
 
-        return new ResponseEntity<>(new Token(token), HttpStatus.OK);
+        return new ResponseEntity<>(new Token(token), HttpStatus.CREATED);
     }
 
     @PostMapping("/register")
     public ResponseEntity<Token> register(@RequestBody NewUser user) {
         userService.createUser(user);
 
-        return this.login(new Credentials(user.username(), user.password()));
+        return login(new Credentials(user.username(), user.password()));
     }
 }

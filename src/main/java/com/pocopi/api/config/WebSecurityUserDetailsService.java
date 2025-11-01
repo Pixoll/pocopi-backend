@@ -23,7 +23,7 @@ public class WebSecurityUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         final UserModel user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException("User Not Found with username: " + username);
+            throw new UsernameNotFoundException("Bad credentials");
         }
 
         return new User(

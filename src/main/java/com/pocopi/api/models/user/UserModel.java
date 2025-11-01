@@ -12,6 +12,8 @@ import org.hibernate.validator.constraints.Range;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserModel {
     public static final int USERNAME_MIN_LEN = 1;
     public static final int USERNAME_MAX_LEN = 32;
@@ -48,11 +50,11 @@ public class UserModel {
 
     @Length(min = NAME_MIN_LEN, max = NAME_MAX_LEN)
     @Column(name = "name", length = NAME_MAX_LEN)
-    private String name = null;
+    private String name;
 
     @Length(min = EMAIL_MIN_LEN, max = EMAIL_MAX_LEN)
     @Column(name = "email", length = EMAIL_MAX_LEN, unique = true)
-    private String email = null;
+    private String email;
 
     @Range(min = AGE_MIN, max = AGE_MAX)
     @Column(name = "age", columnDefinition = "int1 unsigned")
@@ -62,14 +64,4 @@ public class UserModel {
     @NotNull
     @Column(name = "password", nullable = false, length = ENCRYPTED_PASSWORD_LEN)
     private String password;
-
-    @Builder
-    public UserModel(String username, boolean anonymous, String name, String email, Byte age, String password) {
-        this.username = username;
-        this.anonymous = anonymous;
-        this.name = name;
-        this.email = email;
-        this.age = age;
-        this.password = password;
-    }
 }

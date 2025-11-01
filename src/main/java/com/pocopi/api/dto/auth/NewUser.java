@@ -14,7 +14,7 @@ public record NewUser(
     @Schema(
         requiredMode = Schema.RequiredMode.NOT_REQUIRED,
         minLength = UserModel.NAME_MIN_LEN,
-        maxLength = UserModel.NAME_MIN_LEN
+        maxLength = UserModel.NAME_MAX_LEN
     )
     String name,
 
@@ -22,7 +22,7 @@ public record NewUser(
         requiredMode = Schema.RequiredMode.NOT_REQUIRED,
         format = "email",
         minLength = UserModel.EMAIL_MIN_LEN,
-        maxLength = UserModel.EMAIL_MIN_LEN
+        maxLength = UserModel.EMAIL_MAX_LEN
     )
     String email,
 

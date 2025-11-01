@@ -2,11 +2,11 @@ package com.pocopi.api.config;
 
 import com.pocopi.api.config.jwt.AuthEntryPointJwt;
 import com.pocopi.api.config.jwt.AuthTokenFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,12 +16,19 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class WebSecurityConfig {
-    @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
+    private final AuthEntryPointJwt unauthorizedHandler;
+
+    public WebSecurityConfig(AuthEntryPointJwt unauthorizedHandler) {
+        this.unauthorizedHandler = unauthorizedHandler;
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        SecurityPathConfiguration securityPathConfiguration
+    ) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(AbstractHttpConfigurer::disable)
@@ -32,19 +39,7 @@ public class WebSecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(builder -> builder
-                .requestMatchers(
-                    "/actuator",
-                    "/actuator/**",
-                    "/api/docs",
-                    "/api/docs.yaml",
-                    "/api/docs/**",
-                    "/api/swagger-ui",
-                    "/api/swagger-ui*/**",
-                    "/error",
-                    "/api/config/latest",
-                    "/api/auth/login",
-                    "/api/auth/register"
-                ).permitAll()
+                .requestMatchers(securityPathConfiguration.getPermitAllPaths()).permitAll()
                 .anyRequest().authenticated()
             );
 

@@ -10,15 +10,15 @@ public record User(
     String username,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String name,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean anonymous,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    String name,
+
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String email,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int age
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    Integer age
 ) {
 }

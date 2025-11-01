@@ -7,6 +7,7 @@ import com.pocopi.api.services.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,6 +27,7 @@ public class ConfigController {
     }
 
     @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UpdatedConfig> updateConfig(@ModelAttribute ConfigUpdateWithFiles request) {
         final UpdatedConfig response = configService.processUpdatedConfig(request);
         return ResponseEntity.ok(response);
