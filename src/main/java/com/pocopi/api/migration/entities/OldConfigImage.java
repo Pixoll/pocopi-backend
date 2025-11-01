@@ -8,8 +8,7 @@ public record OldConfigImage(
     String alt
 ) {
     public OldConfigImage {
-        if (
-            relativePath == null
+        if (relativePath == null
             || absolutePath == null
             || relativePath.toString().trim().isEmpty()
             || absolutePath.toString().trim().isEmpty()

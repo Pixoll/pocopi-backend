@@ -25,18 +25,16 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
-        final List<User> response = userService.getAll();
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        final List<User> users = userService.getAll();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<User> getUser(
-        @PathVariable String username
-    ) {
-        final User response = userService.getByUsername(username);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<User> getUser(@PathVariable String username) {
+        final User user = userService.getByUsername(username);
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping

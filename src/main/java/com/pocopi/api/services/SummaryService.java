@@ -4,6 +4,7 @@ import com.pocopi.api.dto.user.UserSummary;
 import com.pocopi.api.dto.user.UsersSummary;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.user.UserModel;
+import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
 import org.springframework.stereotype.Service;
@@ -19,17 +20,20 @@ public class SummaryService {
     private final ConfigService configService;
     private final UserTestQuestionLogRepository userTestQuestionLogRepository;
     private final UserTestOptionLogRepository userTestOptionLogRepository;
+    private final UserRepository userRepository;
 
     public SummaryService(
         UserService userService,
         ConfigService configService,
         UserTestQuestionLogRepository userTestQuestionLogRepository,
-        UserTestOptionLogRepository userTestOptionLogRepository
+        UserTestOptionLogRepository userTestOptionLogRepository,
+        UserRepository userRepository
     ) {
         this.userService = userService;
         this.configService = configService;
         this.userTestQuestionLogRepository = userTestQuestionLogRepository;
         this.userTestOptionLogRepository = userTestOptionLogRepository;
+        this.userRepository = userRepository;
     }
 
     public UserSummary getUserSummaryById(int userId) {
@@ -37,7 +41,7 @@ public class SummaryService {
     }
 
     public UsersSummary getAllUserSummaries() {
-        final List<Integer> userIds = userService.getAllUserIds();
+        final List<Integer> userIds = userRepository.getAllUserIds();
         final List<UserSummary> userSummaries = new ArrayList<>();
         double totalCorrect = 0;
         int totalTime = 0;
@@ -59,7 +63,7 @@ public class SummaryService {
     }
 
     private UserSummary getUserSummary(int userId) {
-        final UserModel user = userService.getUserById(userId);
+        final UserModel user = userRepository.getUserByUserId(userId);
         final ConfigModel lastConfig = configService.findLastConfig();
 
         Long start = userTestQuestionLogRepository.findMostRecentlyStartTimeStamp(
