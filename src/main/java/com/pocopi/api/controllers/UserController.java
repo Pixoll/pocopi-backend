@@ -1,12 +1,9 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.api.ApiHttpError;
 import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,11 +42,6 @@ public class UserController {
             @ApiResponse(
                 responseCode = "200",
                 description = "User created successfully"
-            ),
-            @ApiResponse(
-                responseCode = "400",
-                description = "Validation error",
-                content = @Content(schema = @Schema(implementation = ApiHttpError.class))
             )
         }
     )
