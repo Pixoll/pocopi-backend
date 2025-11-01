@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -286,12 +287,13 @@ public final class OldConfigMigrator {
             return storedImage;
         }
 
-        final Path parentDir = image.relativePath().getParent();
+        final Path destination = Paths.get("images", image.relativePath().toString());
+        final Path parentDir = destination.getParent();
         if (parentDir != null) {
             Files.createDirectories(parentDir);
         }
 
-        Files.copy(image.absolutePath(), image.relativePath(), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(image.absolutePath(), destination, StandardCopyOption.REPLACE_EXISTING);
 
         final ImageModel imageModel = ImageModel.builder()
             .path(image.relativePath().toString())

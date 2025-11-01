@@ -649,7 +649,7 @@ public final class OldConfigParser {
             throw new IllegalArgumentException("Image path " + pathString + " not found");
         }
 
-        return new OldConfigImage(Paths.get("images", pathString), path, alt);
+        return new OldConfigImage(Paths.get(pathString), path, alt);
     }
 
     private static ArrayList<OldConfigTranslation> parseTranslations(Object rawTranslations) {
