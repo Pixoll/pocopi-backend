@@ -3,6 +3,8 @@ package com.pocopi.api.models.test;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+import java.util.stream.Stream;
+
 @Getter
 public enum UserTestOptionType {
     DESELECT("deselect"),
@@ -18,5 +20,12 @@ public enum UserTestOptionType {
     @JsonValue
     public String getValue() {
         return this.name;
+    }
+
+    public static UserTestOptionType fromValue(String name) {
+        return Stream.of(UserTestOptionType.values())
+            .filter(c -> c.getName().equals(name))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new);
     }
 }

@@ -4,8 +4,6 @@ import com.pocopi.api.models.test.UserTestOptionType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import java.util.stream.Stream;
-
 @Converter(autoApply = true)
 public class UserTestOptionTypeConverter implements AttributeConverter<UserTestOptionType, String> {
     @Override
@@ -19,13 +17,6 @@ public class UserTestOptionTypeConverter implements AttributeConverter<UserTestO
 
     @Override
     public UserTestOptionType convertToEntityAttribute(String name) {
-        if (name == null) {
-            return null;
-        }
-
-        return Stream.of(UserTestOptionType.values())
-            .filter(c -> c.getName().equals(name))
-            .findFirst()
-            .orElseThrow(IllegalArgumentException::new);
+        return name != null ? UserTestOptionType.fromValue(name) : null;
     }
 }

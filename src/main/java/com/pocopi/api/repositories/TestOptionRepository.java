@@ -5,7 +5,13 @@ import com.pocopi.api.models.test.TestQuestionModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TestOptionRepository extends JpaRepository<TestOptionModel, Integer> {
     List<TestOptionModel> findAllByQuestion(TestQuestionModel question);
+
+    Optional<TestOptionModel> findByIdAndQuestionPhaseProtocolConfigVersion(
+        int id,
+        int questionPhaseProtocolConfigVersion
+    );
 }

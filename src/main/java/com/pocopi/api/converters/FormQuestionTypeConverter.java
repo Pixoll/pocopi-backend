@@ -4,8 +4,6 @@ import com.pocopi.api.models.form.FormQuestionType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import java.util.stream.Stream;
-
 @Converter(autoApply = true)
 public class FormQuestionTypeConverter implements AttributeConverter<FormQuestionType, String> {
     @Override
@@ -19,13 +17,6 @@ public class FormQuestionTypeConverter implements AttributeConverter<FormQuestio
 
     @Override
     public FormQuestionType convertToEntityAttribute(String name) {
-        if (name == null) {
-            return null;
-        }
-
-        return Stream.of(FormQuestionType.values())
-            .filter(c -> c.getName().equals(name))
-            .findFirst()
-            .orElseThrow(IllegalArgumentException::new);
+        return name != null ? FormQuestionType.fromValue(name) : null;
     }
 }

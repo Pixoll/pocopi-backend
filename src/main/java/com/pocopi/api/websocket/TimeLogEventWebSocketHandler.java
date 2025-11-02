@@ -1,8 +1,8 @@
 package com.pocopi.api.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.time_log.NewTimeLogEvent;
-import com.pocopi.api.services.TimeLogService;
+import com.pocopi.api.dto.event_log.NewOptionEventLog;
+import com.pocopi.api.services.EventLogService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -12,11 +12,11 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Component
 public class TimeLogEventWebSocketHandler extends TextWebSocketHandler {
-    private final TimeLogService timeLogsService;
+    private final EventLogService timeLogsService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public TimeLogEventWebSocketHandler(TimeLogService timeLogsService) {
+    public TimeLogEventWebSocketHandler(EventLogService timeLogsService) {
         this.timeLogsService = timeLogsService;
     }
 
@@ -30,9 +30,9 @@ public class TimeLogEventWebSocketHandler extends TextWebSocketHandler {
         final String payload = message.getPayload();
         System.out.println("received: " + payload);
 
-        final NewTimeLogEvent optionEvent = objectMapper.readValue(payload, NewTimeLogEvent.class);
+        final NewOptionEventLog optionEvent = objectMapper.readValue(payload, NewOptionEventLog.class);
 
-        final String result = timeLogsService.addTimeLog(optionEvent);
+        timeLogsService.saveOptionEventLog(optionEvent, 0);
     }
 
     @Override

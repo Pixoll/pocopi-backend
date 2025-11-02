@@ -1,15 +1,16 @@
-package com.pocopi.api.dto.time_log;
+package com.pocopi.api.dto.event_log;
 
+import com.pocopi.api.models.test.UserTestOptionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record NewTimeLogEvent(
+public record NewOptionEventLog(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int optionId,
+    Integer optionId,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String username,
+    UserTestOptionType type,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String type
+    Long timestamp
 ) {
 }

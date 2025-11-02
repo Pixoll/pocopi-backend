@@ -1,8 +1,8 @@
-package com.pocopi.api.dto.time_log;
+package com.pocopi.api.dto.event_log;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record TimeLogEvent(
+public record OptionEventLog(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String type,
 

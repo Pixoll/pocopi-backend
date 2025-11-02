@@ -1,6 +1,6 @@
 package com.pocopi.api.models.test;
 
-import com.pocopi.api.converters.FormTypeConverter;
+import com.pocopi.api.converters.UserTestOptionTypeConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -39,7 +39,7 @@ public class UserTestOptionLogModel {
     private TestOptionModel option;
 
     @NotNull
-    @Convert(converter = FormTypeConverter.class)
+    @Convert(converter = UserTestOptionTypeConverter.class)
     @Column(name = "type", nullable = false)
     private UserTestOptionType type;
 

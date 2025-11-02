@@ -1,10 +1,10 @@
-package com.pocopi.api.dto.time_log;
+package com.pocopi.api.dto.event_log;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record TimeLog(
+public record QuestionEventLog(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int userId,
 
@@ -33,6 +33,6 @@ public record TimeLog(
     int totalOptionHovers,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<TimeLogEvent> events
+    List<OptionEventLog> events
 ) {
 }

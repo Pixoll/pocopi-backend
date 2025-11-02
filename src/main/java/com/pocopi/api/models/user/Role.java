@@ -3,6 +3,8 @@ package com.pocopi.api.models.user;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+import java.util.stream.Stream;
+
 @Getter
 public enum Role {
     USER("USER"),
@@ -17,5 +19,12 @@ public enum Role {
     @JsonValue
     public String getValue() {
         return this.name;
+    }
+
+    public static Role fromValue(String name) {
+        return Stream.of(Role.values())
+            .filter(c -> c.getName().equals(name))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new);
     }
 }

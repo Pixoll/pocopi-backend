@@ -8,18 +8,20 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+// TODO make projections
 @Repository
 public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQuestionLogModel, Long> {
     @Query(
         value = """
             select utql.timestamp + 0 as start
             from user_test_question_log utql
+                join user_test_attempt ta on ta.id = utql.attempt_id
                 join test_question tq on tq.id = utql.question_id
                 join test_phase tph on tph.id = tq.phase_id
                 join test_protocol tp on tp.id = tph.protocol_id
                 join config c on c.version = tp.config_version
             where c.version = :configVersion
-                and utql.user_id = :userId
+                and ta.user_id = :userId
             order by utql.timestamp
             limit 1
             """,
@@ -31,12 +33,13 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
         value = """
             select utql.timestamp + utql.duration as end
             from user_test_question_log utql
+                join user_test_attempt ta on ta.id = utql.attempt_id
                 join test_question tq on tq.id = utql.question_id
                 join test_phase tph on tph.id = tq.phase_id
                 join test_protocol tp on tp.id = tph.protocol_id
                 join config c on c.version = tp.config_version
             where c.version = :configVersion
-                and utql.user_id = :userId
+                and ta.user_id = :userId
             order by utql.timestamp desc
             limit 1
             """,
@@ -48,28 +51,30 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
         value = """
             with timelog as (
                 select
-                    utql.user_id,
+                    ta.user_id,
                     tq.phase_id,
                     utql.question_id,
                     min(utql.timestamp) as starttimestamp,
                     max(date_add(utql.timestamp, interval utql.duration second)) as endtimestamp
                 from user_test_question_log utql
+                    join user_test_attempt ta on ta.id = utql.attempt_id
                     join test_question tq on tq.id = utql.question_id
                     join test_phase tph on tph.id = tq.phase_id
                     join test_protocol tp on tp.id = tph.protocol_id
                     join config c on c.version = tp.config_version
                 where c.version = :configVersion
-                group by utql.user_id, tq.phase_id, utql.question_id
+                group by ta.user_id, tq.phase_id, utql.question_id
             ),
             last_non_hover as (
                 select
-                    ol.user_id,
+                    ta.user_id,
                     o.question_id,
                     ol.option_id,
                     ol.type,
-                    row_number() over (partition by ol.user_id, o.question_id order by ol.timestamp desc) as rn,
+                    row_number() over (partition by ta.user_id, o.question_id order by ol.timestamp desc) as rn,
                     o.correct
                 from user_test_option_log ol
+                    join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
@@ -97,11 +102,12 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
             ),
             select_events as (
                 select
-                    ol.user_id,
+                    ta.user_id,
                     o.question_id,
                     ol.option_id,
-                    lag(ol.option_id) over (partition by ol.user_id, o.question_id order by ol.timestamp) as prev_option
+                    lag(ol.option_id) over (partition by ta.user_id, o.question_id order by ol.timestamp) as prev_option
                 from user_test_option_log ol
+                    join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
@@ -120,10 +126,11 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
             ),
             hover_counts as (
                 select
-                    ol.user_id,
+                    ta.user_id,
                     o.question_id,
                     count(*) as totaloptionhovers
                 from user_test_option_log ol
+                    join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
@@ -131,7 +138,7 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join config c on c.version = pr.config_version
                 where c.version = :configVersion
                     and ol.type = 'hover'
-                group by ol.user_id, o.question_id
+                group by ta.user_id, o.question_id
             )
             select
                 t.user_id,
@@ -161,36 +168,38 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
         value = """
             with timelog as (
                 select
-                    utql.user_id,
+                    ta.user_id,
                     tq.phase_id,
                     utql.question_id,
                     min(utql.timestamp) as starttimestamp,
                     max(date_add(utql.timestamp, interval utql.duration second)) as endtimestamp
                 from user_test_question_log utql
+                    join user_test_attempt ta on ta.id = utql.attempt_id
                     join test_question tq on tq.id = utql.question_id
                     join test_phase tph on tph.id = tq.phase_id
                     join test_protocol tp on tp.id = tph.protocol_id
                     join config c on c.version = tp.config_version
                 where c.version = :configVersion
-                    and utql.user_id = :userId
-                group by utql.user_id, tq.phase_id, utql.question_id
+                    and ta.user_id = :userId
+                group by ta.user_id, tq.phase_id, utql.question_id
             ),
             last_non_hover as (
                 select
-                    ol.user_id,
+                    ta.user_id,
                     o.question_id,
                     ol.option_id,
                     ol.type,
-                    row_number() over (partition by ol.user_id, o.question_id order by ol.timestamp desc) as rn,
+                    row_number() over (partition by ta.user_id, o.question_id order by ol.timestamp desc) as rn,
                     o.correct
                 from user_test_option_log ol
+                    join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
                     join test_protocol pr on pr.id = ph.protocol_id
                     join config c on c.version = pr.config_version
                 where c.version = :configVersion
-                    and ol.user_id = :userId
+                    and ta.user_id = :userId
                     and ol.type in ('select','deselect')
             ),
             final_selected as (
@@ -212,18 +221,19 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
             ),
             select_events as (
                 select
-                    ol.user_id,
+                    ta.user_id,
                     o.question_id,
                     ol.option_id,
-                    lag(ol.option_id) over (partition by ol.user_id, o.question_id order by ol.timestamp) as prev_option
+                    lag(ol.option_id) over (partition by ta.user_id, o.question_id order by ol.timestamp) as prev_option
                 from user_test_option_log ol
+                    join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
                     join test_protocol pr on pr.id = ph.protocol_id
                     join config c on c.version = pr.config_version
                 where c.version = :configVersion
-                    and ol.user_id = :userId
+                    and ta.user_id = :userId
                     and ol.type = 'select'
             ),
             option_changes as (
@@ -236,19 +246,20 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
             ),
             hover_counts as (
                 select
-                    ol.user_id,
+                    ta.user_id,
                     o.question_id,
                     count(*) as totaloptionhovers
                 from user_test_option_log ol
+                    join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
                     join test_protocol pr on pr.id = ph.protocol_id
                     join config c on c.version = pr.config_version
                 where c.version = :configVersion
-                    and ol.user_id = :userId
+                    and ta.user_id = :userId
                     and ol.type = 'hover'
-                group by ol.user_id, o.question_id
+                group by ta.user_id, o.question_id
             )
             select
                 t.user_id,
