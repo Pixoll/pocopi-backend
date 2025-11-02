@@ -7,10 +7,10 @@ public record TestOption(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int id,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
     String text,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
     Image image,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

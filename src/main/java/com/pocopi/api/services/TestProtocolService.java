@@ -1,26 +1,141 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.test.TestProtocolUpdate;
-import com.pocopi.api.models.test.TestGroupModel;
-import com.pocopi.api.models.test.TestProtocolModel;
+import com.pocopi.api.dto.image.Image;
+import com.pocopi.api.dto.test.*;
+import com.pocopi.api.models.test.*;
+import com.pocopi.api.repositories.TestOptionRepository;
+import com.pocopi.api.repositories.TestPhaseRepository;
 import com.pocopi.api.repositories.TestProtocolRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.pocopi.api.repositories.TestQuestionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class TestProtocolService {
     private final TestProtocolRepository testProtocolRepository;
     private final TestPhaseService testPhaseService;
+    private final TestPhaseRepository testPhaseRepository;
+    private final TestQuestionRepository testQuestionRepository;
+    private final TestOptionRepository testOptionRepository;
+    private final ImageService imageService;
 
-    @Autowired
-    public TestProtocolService(TestProtocolRepository testProtocolRepository, TestPhaseService testPhaseService) {
+    public TestProtocolService(
+        TestProtocolRepository testProtocolRepository,
+        TestPhaseService testPhaseService,
+        TestPhaseRepository testPhaseRepository,
+        TestQuestionRepository testQuestionRepository,
+        TestOptionRepository testOptionRepository,
+        ImageService imageService
+    ) {
         this.testProtocolRepository = testProtocolRepository;
         this.testPhaseService = testPhaseService;
+        this.testPhaseRepository = testPhaseRepository;
+        this.testQuestionRepository = testQuestionRepository;
+        this.testOptionRepository = testOptionRepository;
+        this.imageService = imageService;
+    }
+
+    @Transactional
+    public List<TestProtocol> getProtocolsByConfigVersion(int configVersion) {
+        final List<TestProtocolModel> protocolsList = testProtocolRepository.findAllByConfigVersion(configVersion);
+
+        if (protocolsList.isEmpty()) {
+            return List.of();
+        }
+
+        final List<TestPhaseModel> phasesList = testPhaseRepository
+            .findAllByProtocolConfigVersionOrderByOrder(configVersion);
+        final List<TestQuestionModel> questionsList = testQuestionRepository
+            .findAllByPhaseProtocolConfigVersionOrderByOrder(configVersion);
+        final List<TestOptionModel> optionsList = testOptionRepository
+            .findAllByQuestionPhaseProtocolConfigVersionOrderByOrder(configVersion);
+
+        final HashMap<Integer, TestProtocol> protocolsMap = new HashMap<>();
+        final HashMap<Integer, TestPhase> phasesMap = new HashMap<>();
+        final HashMap<Integer, TestQuestion> questionsMap = new HashMap<>();
+
+        for (final TestProtocolModel protocolModel : protocolsList) {
+            final TestGroupModel groupModel = protocolModel.getGroup();
+            if (groupModel == null) {
+                continue;
+            }
+
+            final TestProtocol protocol = new TestProtocol(
+                protocolModel.getId(),
+                protocolModel.getGroup().getId(),
+                protocolModel.getLabel(),
+                protocolModel.isAllowPreviousPhase(),
+                protocolModel.isAllowPreviousQuestion(),
+                protocolModel.isAllowSkipQuestion(),
+                protocolModel.isRandomizePhases(),
+                new ArrayList<>()
+            );
+
+            protocolsMap.put(protocol.id(), protocol);
+        }
+
+        for (final TestPhaseModel phaseModel : phasesList) {
+            final TestProtocol protocol = protocolsMap.get(phaseModel.getProtocol().getId());
+            if (protocol == null) {
+                continue;
+            }
+
+            final TestPhase phase = new TestPhase(
+                phaseModel.getId(),
+                phaseModel.isRandomizeQuestions(),
+                new ArrayList<>()
+            );
+
+            protocol.phases().add(phase);
+            phasesMap.put(phase.id(), phase);
+        }
+
+        for (final TestQuestionModel questionModel : questionsList) {
+            final TestPhase phase = phasesMap.get(questionModel.getPhase().getId());
+            if (phase == null) {
+                continue;
+            }
+
+            final Image questionImage = questionModel.getImage() != null
+                ? imageService.getImageById(questionModel.getImage().getId())
+                : null;
+
+            final TestQuestion question = new TestQuestion(
+                questionModel.getId(),
+                questionModel.getText(),
+                questionImage,
+                questionModel.isRandomizeOptions(),
+                new ArrayList<>()
+            );
+
+            phase.questions().add(question);
+            questionsMap.put(question.id(), question);
+        }
+
+        for (final TestOptionModel optionModel : optionsList) {
+            final TestQuestion question = questionsMap.get(optionModel.getQuestion().getId());
+            if (question == null) {
+                continue;
+            }
+
+            final Image optionImage = optionModel.getImage() != null
+                ? imageService.getImageById(optionModel.getImage().getId())
+                : null;
+
+            final TestOption option = new TestOption(
+                optionModel.getId(),
+                optionModel.getText(),
+                optionImage,
+                optionModel.isCorrect()
+            );
+
+            question.options().add(option);
+        }
+
+        return protocolsMap.values().stream().toList();
     }
 
     public Map<String, String> processProtocol(

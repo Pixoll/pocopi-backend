@@ -6,16 +6,13 @@ public record TestGroup(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int id,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Probability between 0 and 100")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int probability,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String label,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String greeting,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    TestProtocol protocol
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
+    String greeting
 ) {
 }

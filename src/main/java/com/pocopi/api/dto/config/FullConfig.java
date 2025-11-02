@@ -5,12 +5,13 @@ import com.pocopi.api.dto.home_faq.FrequentlyAskedQuestion;
 import com.pocopi.api.dto.home_info_card.InformationCard;
 import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.test.TestGroup;
+import com.pocopi.api.dto.test.TestProtocol;
+import com.pocopi.api.dto.translation.Translation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
-import java.util.Map;
 
-public record Config(
+public record FullConfig(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int id,
 
@@ -45,9 +46,12 @@ public record Config(
     Form postTestForm,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Map<String, TestGroup> groups,
+    List<TestGroup> groups,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Map<String, String> translations
+    List<TestProtocol> protocols,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    List<Translation> translations
 ) {
 }

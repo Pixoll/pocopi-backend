@@ -58,9 +58,10 @@ public class FormService {
             return formsMap;
         }
 
-        final List<FormQuestionModel> questionsList = formQuestionRepository.findAllByFormConfigVersion(configVersion);
+        final List<FormQuestionModel> questionsList = formQuestionRepository
+            .findAllByFormConfigVersionOrderByOrder(configVersion);
         final List<FormQuestionOptionModel> optionsList = formQuestionOptionRepository
-            .findAllByFormQuestionFormConfigVersion(configVersion);
+            .findAllByFormQuestionFormConfigVersionOrderByOrder(configVersion);
         final List<FormQuestionSliderLabelModel> sliderLabelsList = formQuestionSliderLabelRepository
             .findAllByFormQuestionFormConfigVersion(configVersion);
 
@@ -79,11 +80,7 @@ public class FormService {
                 ? imageService.getImageById(optionModel.getImage().getId())
                 : null;
 
-            final FormOption option = new FormOption(
-                optionModel.getId(),
-                Optional.ofNullable(optionModel.getText()),
-                Optional.ofNullable(optionImage)
-            );
+            final FormOption option = new FormOption(optionModel.getId(), optionModel.getText(), optionImage);
 
             final FormQuestion question = questionsMap.get(optionModel.getFormQuestion().getId());
 
@@ -209,11 +206,9 @@ public class FormService {
     }
 
     private FormQuestion parseFormQuestion(FormQuestionModel questionModel) {
-        final Optional<String> questionText = Optional.ofNullable(questionModel.getText());
-        final Optional<Image> questionImage = Optional.ofNullable(questionModel.getImage() != null
+        final Image questionImage = questionModel.getImage() != null
             ? imageService.getImageById(questionModel.getImage().getId())
-            : null
-        );
+            : null;
 
         final FormQuestion question;
 
@@ -221,7 +216,7 @@ public class FormService {
             case SELECT_MULTIPLE -> question = new FormQuestion.SelectMultiple(
                 questionModel.getId(),
                 questionModel.getCategory(),
-                questionText,
+                questionModel.getText(),
                 questionImage,
                 questionModel.getType(),
                 new ArrayList<>(),
@@ -233,7 +228,7 @@ public class FormService {
             case SELECT_ONE -> question = new FormQuestion.SelectOne(
                 questionModel.getId(),
                 questionModel.getCategory(),
-                questionText,
+                questionModel.getText(),
                 questionImage,
                 questionModel.getType(),
                 new ArrayList<>(),
@@ -243,7 +238,7 @@ public class FormService {
             case SLIDER -> question = new FormQuestion.Slider(
                 questionModel.getId(),
                 questionModel.getCategory(),
-                questionText,
+                questionModel.getText(),
                 questionImage,
                 questionModel.getType(),
                 questionModel.getMin(),
@@ -255,7 +250,7 @@ public class FormService {
             case TEXT_SHORT -> question = new FormQuestion.TextShort(
                 questionModel.getId(),
                 questionModel.getCategory(),
-                questionText,
+                questionModel.getText(),
                 questionImage,
                 questionModel.getType(),
                 questionModel.getPlaceholder(),
@@ -266,7 +261,7 @@ public class FormService {
             case TEXT_LONG -> question = new FormQuestion.TextLong(
                 questionModel.getId(),
                 questionModel.getCategory(),
-                questionText,
+                questionModel.getText(),
                 questionImage,
                 questionModel.getType(),
                 questionModel.getPlaceholder(),

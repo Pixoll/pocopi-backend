@@ -9,6 +9,9 @@ public record TestPhase(
     int id,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean randomizeQuestions,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<TestQuestion> questions
 ) {
 }

@@ -9,6 +9,9 @@ public record TestProtocol(
     int id,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int groupId,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String label,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -19,6 +22,9 @@ public record TestProtocol(
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean allowSkipQuestion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean randomizePhases,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<TestPhase> phases

@@ -13,5 +13,5 @@ public interface FormQuestionRepository extends JpaRepository<FormQuestionModel,
 
     Optional<FormQuestionModel> findByIdAndFormId(int id, int formId);
 
-    List<FormQuestionModel> findAllByFormConfigVersion(int formConfigVersion);
+    List<FormQuestionModel> findAllByFormConfigVersionOrderByOrder(int formConfigVersion);
 }

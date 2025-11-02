@@ -1,9 +1,9 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.config.Config;
-import com.pocopi.api.dto.config.ConfigUpdate;
-import com.pocopi.api.dto.config.ConfigUpdateWithFiles;
-import com.pocopi.api.dto.config.UpdatedConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pocopi.api.dto.config.*;
 import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.form.FormUpdate;
 import com.pocopi.api.dto.form_question.FormQuestionUpdate;
@@ -13,11 +13,10 @@ import com.pocopi.api.dto.home_info_card.InformationCard;
 import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.dto.test.TestGroup;
+import com.pocopi.api.dto.test.TestProtocol;
 import com.pocopi.api.dto.translation.Translation;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
-import com.pocopi.api.models.config.HomeFaqModel;
-import com.pocopi.api.models.config.HomeInfoCardModel;
 import com.pocopi.api.models.form.FormQuestionModel;
 import com.pocopi.api.models.form.FormQuestionOptionModel;
 import com.pocopi.api.models.form.FormQuestionType;
@@ -25,6 +24,7 @@ import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ConfigService {
+    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final ConfigRepository configRepository;
     private final TranslationValueRepository translationValueRepository;
     private final FormService formService;
@@ -47,6 +49,8 @@ public class ConfigService {
     private final ImageRepository imageRepository;
     private final HomeInfoCardRepository homeInfoCardRepository;
     private final HomeFaqRepository homeFaqRepository;
+    private final TestGroupRepository testGroupRepository;
+    private final TestProtocolService testProtocolService;
 
     public ConfigService(
         ConfigRepository configRepository,
@@ -60,7 +64,9 @@ public class ConfigService {
         HomeInfoCardRepository homeInfoCardRepository,
         ImageService imageService,
         ImageRepository imageRepository,
-        TestGroupService testGroupService
+        TestGroupService testGroupService,
+        TestGroupRepository testGroupRepository,
+        TestProtocolService testProtocolService
     ) {
         this.configRepository = configRepository;
         this.translationValueRepository = translationValueRepository;
@@ -74,9 +80,12 @@ public class ConfigService {
         this.imageService = imageService;
         this.imageRepository = imageRepository;
         this.testGroupService = testGroupService;
+        this.testGroupRepository = testGroupRepository;
+        this.testProtocolService = testProtocolService;
     }
 
-    public Config getLatestConfig() {
+    @Transactional
+    public TrimmedConfig getLatestConfigTrimmed() {
         final ConfigModel configModel = configRepository.findLastConfig();
         final int configVersion = configModel.getVersion();
 
@@ -84,40 +93,75 @@ public class ConfigService {
             ? imageService.getImageById(configModel.getIcon().getId())
             : null;
 
-        final List<Translation> translations = translationValueRepository.findAllByConfigVersion(configVersion);
-        final List<HomeInfoCardModel> homeInfoCardModels = homeInfoCardRepository.findAllByConfigVersion(configVersion);
-        final List<HomeFaqModel> homeFaqs = homeFaqRepository.findAllByConfigVersion(configVersion);
-        final Map<FormType, Form> forms = formService.getFormsByConfigVersion(configVersion);
+        final Map<String, String> translations = translationValueRepository
+            .findAllByConfigVersion(configVersion)
+            .stream()
+            .collect(
+                HashMap::new,
+                (map, translation) -> map.put(translation.getKey(), translation.getValue()),
+                HashMap::putAll
+            );
 
+        final Map<FormType, Form> forms = formService.getFormsByConfigVersion(configVersion);
         final Form preTest = forms.get(FormType.PRE);
         final Form postTest = forms.get(FormType.POST);
 
-        final Map<String, String> translationsMap = translations.stream()
-            .collect(Collectors.toMap(Translation::key, Translation::value, (a, b) -> b));
+        final List<InformationCard> informationCards = getInformationCards(configVersion);
+        final List<FrequentlyAskedQuestion> frequentlyAskedQuestions = getFrequentlyAskedQuestions(configVersion);
 
-        final List<InformationCard> informationCards = homeInfoCardModels.stream()
-            .map(card -> {
-                final Image iconByInfoCard = card.getIcon() != null
-                    ? imageService.getImageById(card.getIcon().getId())
-                    : null;
+        return new TrimmedConfig(
+            icon,
+            configModel.getTitle(),
+            configModel.getSubtitle(),
+            configModel.getDescription(),
+            informationCards,
+            configModel.getInformedConsent(),
+            frequentlyAskedQuestions,
+            preTest,
+            postTest,
+            translations
+        );
+    }
 
-                return new InformationCard(
-                    card.getId(),
-                    card.getTitle(),
-                    card.getDescription(),
-                    card.getColor(),
-                    iconByInfoCard
-                );
-            })
-            .collect(Collectors.toList());
+    @Transactional
+    public FullConfig getLatestConfigFull() {
+        final ConfigModel configModel = configRepository.findLastConfig();
+        final int configVersion = configModel.getVersion();
 
-        final List<FrequentlyAskedQuestion> frequentlyAskedQuestions = homeFaqs.stream()
-            .map(faq -> new FrequentlyAskedQuestion(faq.getId(), faq.getQuestion(), faq.getAnswer()))
-            .collect(Collectors.toList());
+        final Image icon = configModel.getIcon() != null
+            ? imageService.getImageById(configModel.getIcon().getId())
+            : null;
 
-        final Map<String, TestGroup> groups = testGroupService.getGroupsByConfigVersion(configVersion);
+        final List<Translation> translations = translationValueRepository
+            .findAllByConfigVersionWithDetails(configVersion)
+            .stream()
+            .map((translation) -> new Translation(
+                translation.getKey(),
+                translation.getValue(),
+                translation.getDescription(),
+                parseJsonStringArray(translation.getArgumentsJson())
+            ))
+            .toList();
 
-        return new Config(
+        final Map<FormType, Form> forms = formService.getFormsByConfigVersion(configVersion);
+        final Form preTest = forms.get(FormType.PRE);
+        final Form postTest = forms.get(FormType.POST);
+
+        final List<TestProtocol> protocols = testProtocolService.getProtocolsByConfigVersion(configVersion);
+
+        final List<TestGroup> groups = testGroupRepository.findAllByConfigVersion(configVersion).stream()
+            .map((group) -> new TestGroup(
+                group.getId(),
+                group.getProbability(),
+                group.getLabel(),
+                group.getGreeting()
+            ))
+            .toList();
+
+        final List<InformationCard> informationCards = getInformationCards(configVersion);
+        final List<FrequentlyAskedQuestion> frequentlyAskedQuestions = getFrequentlyAskedQuestions(configVersion);
+
+        return new FullConfig(
             configVersion,
             icon,
             configModel.getTitle(),
@@ -130,7 +174,8 @@ public class ConfigService {
             preTest,
             postTest,
             groups,
-            translationsMap
+            protocols,
+            translations
         );
     }
 
@@ -172,6 +217,34 @@ public class ConfigService {
             postTestUpdatedSummary,
             groupSummary
         );
+    }
+
+    private List<FrequentlyAskedQuestion> getFrequentlyAskedQuestions(int configVersion) {
+        return homeFaqRepository
+            .findAllByConfigVersion(configVersion)
+            .stream()
+            .map(faq -> new FrequentlyAskedQuestion(faq.getId(), faq.getQuestion(), faq.getAnswer()))
+            .collect(Collectors.toList());
+    }
+
+    private List<InformationCard> getInformationCards(int configVersion) {
+        return homeInfoCardRepository
+            .findAllByConfigVersion(configVersion)
+            .stream()
+            .map(card -> {
+                final Image iconByInfoCard = card.getIcon() != null
+                    ? imageService.getImageById(card.getIcon().getId())
+                    : null;
+
+                return new InformationCard(
+                    card.getId(),
+                    card.getTitle(),
+                    card.getDescription(),
+                    card.getColor(),
+                    iconByInfoCard
+                );
+            })
+            .collect(Collectors.toList());
     }
 
     private Map<String, String> processFormQuestions(FormUpdate updatedForm, Map<Integer, File> images) {
@@ -837,5 +910,20 @@ public class ConfigService {
         }
 
         return result;
+    }
+
+    private static List<String> parseJsonStringArray(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+
+        try {
+            return OBJECT_MAPPER.readValue(
+                json, new TypeReference<>() {
+                }
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse arguments JSON", e);
+        }
     }
 }

@@ -1,7 +1,8 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.dto.config.Config;
+import com.pocopi.api.dto.config.FullConfig;
 import com.pocopi.api.dto.config.ConfigUpdateWithFiles;
+import com.pocopi.api.dto.config.TrimmedConfig;
 import com.pocopi.api.dto.config.UpdatedConfig;
 import com.pocopi.api.services.ConfigService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,8 +22,15 @@ public class ConfigController {
     }
 
     @GetMapping("/latest")
-    public ResponseEntity<Config> getLastestConfig() {
-        final Config config = configService.getLatestConfig();
+    public ResponseEntity<TrimmedConfig> getLastestConfigAsUser() {
+        final TrimmedConfig config = configService.getLatestConfigTrimmed();
+        return ResponseEntity.ok(config);
+    }
+
+    @GetMapping("/latest/full")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FullConfig> getLastestConfigAsAdmin() {
+        final FullConfig config = configService.getLatestConfigFull();
         return ResponseEntity.ok(config);
     }
 

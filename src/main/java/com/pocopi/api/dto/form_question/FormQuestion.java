@@ -7,9 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
-import java.util.Optional;
 
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+@SuppressWarnings("unused")
 public sealed interface FormQuestion
     permits FormQuestion.SelectMultiple,
     FormQuestion.SelectOne,
@@ -25,11 +24,11 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public String category;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<String> text;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
+        public String text;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<Image> image;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+        public Image image;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public FormQuestionType type;
@@ -55,11 +54,11 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public String category;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<String> text;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
+        public String text;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<Image> image;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+        public Image image;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public FormQuestionType type;
@@ -79,11 +78,11 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public String category;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<String> text;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
+        public String text;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<Image> image;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+        public Image image;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public FormQuestionType type;
@@ -109,11 +108,11 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public String category;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<String> text;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
+        public String text;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<Image> image;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+        public Image image;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public FormQuestionType type;
@@ -136,11 +135,11 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public String category;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<String> text;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
+        public String text;
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Optional<Image> image;
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+        public Image image;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public FormQuestionType type;

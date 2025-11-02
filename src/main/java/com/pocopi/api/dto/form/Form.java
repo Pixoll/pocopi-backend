@@ -9,7 +9,7 @@ public record Form(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int id,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Form questions")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<FormQuestion> questions
 ) {
 }
