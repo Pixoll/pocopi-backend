@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -24,21 +23,6 @@ public class ImageService {
     public ImageService(ImageRepository imageRepository, ImageConfig imageConfig) {
         this.imageRepository = imageRepository;
         this.imageConfig = imageConfig;
-    }
-
-    public ImageUrl saveImageToExistsUrl(MultipartFile file, String relativePath) {
-        validateFile(file);
-
-        final ImageModel imageModel = imageRepository.findByPath(relativePath);
-        if (imageModel == null) {
-            throw new RuntimeException("Image path not found in database: " + relativePath);
-        }
-
-        saveFileToFileSystem(file, relativePath);
-
-        final String publicUrl = buildPublicUrl(relativePath);
-
-        return new ImageUrl(publicUrl);
     }
 
     public void saveImageBytes(byte[] imageBytes, String relativePath) {
@@ -122,17 +106,6 @@ public class ImageService {
 
         final String url = buildPublicUrl(imageModel.getPath());
         return new Image(url, imageModel.getAlt());
-    }
-
-    private void saveFileToFileSystem(MultipartFile file, String relativePath) {
-        try {
-            final Path fullPath = resolveFullPath(relativePath);
-            ensureDirectoryExists(fullPath.getParent());
-
-            Files.copy(file.getInputStream(), fullPath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException("Error saving file: " + e.getMessage(), e);
-        }
     }
 
     private String generateUniquePath(String category, String originalFilename) {
