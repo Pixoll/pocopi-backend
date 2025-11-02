@@ -1,8 +1,8 @@
 package com.pocopi.api.mappers;
 
-import com.pocopi.api.dto.form_result.FormAnswers;
+import com.pocopi.api.dto.form.FormAnswers;
 import com.pocopi.api.dto.results.ResultsByUser;
-import com.pocopi.api.dto.test_resullt.TestQuestionResult;
+import com.pocopi.api.dto.results.TestQuestionResult;
 import com.pocopi.api.dto.user.UserBasicInfo;
 import com.pocopi.api.models.user.UserModel;
 import org.springframework.stereotype.Component;

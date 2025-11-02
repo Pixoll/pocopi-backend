@@ -1,6 +1,6 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.home_faq.FrequentlyAskedQuestionUpdate;
+import com.pocopi.api.dto.config.FrequentlyAskedQuestionUpdate;
 import com.pocopi.api.models.config.HomeFaqModel;
 import com.pocopi.api.repositories.HomeFaqRepository;
 import org.springframework.stereotype.Service;

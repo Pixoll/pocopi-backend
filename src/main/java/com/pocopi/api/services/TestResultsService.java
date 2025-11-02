@@ -1,8 +1,8 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.test_resullt.TestQuestionResult;
-import com.pocopi.api.dto.test_resullt.TestResultByUser;
-import com.pocopi.api.dto.test_resullt.TestResultsByGroup;
+import com.pocopi.api.dto.results.TestQuestionResult;
+import com.pocopi.api.dto.results.TestResultByUser;
+import com.pocopi.api.dto.results.TestResultsByGroup;
 import com.pocopi.api.dto.user.UserBasicInfo;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;

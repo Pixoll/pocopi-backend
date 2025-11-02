@@ -1,4 +1,4 @@
-package com.pocopi.api.dto.translation;
+package com.pocopi.api.dto.config;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

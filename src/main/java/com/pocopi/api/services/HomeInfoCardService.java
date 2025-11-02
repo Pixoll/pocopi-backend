@@ -1,6 +1,6 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.home_info_card.InformationCardUpdate;
+import com.pocopi.api.dto.config.InformationCardUpdate;
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.HomeInfoCardModel;

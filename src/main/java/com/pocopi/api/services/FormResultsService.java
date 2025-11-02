@@ -1,7 +1,7 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.form_result.FormAnswersByGroup;
-import com.pocopi.api.dto.form_result.FormAnswersByUser;
+import com.pocopi.api.dto.results.FormAnswersByGroup;
+import com.pocopi.api.dto.results.FormAnswersByUser;
 import com.pocopi.api.mappers.FormResultsMapper;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.form.FormModel;

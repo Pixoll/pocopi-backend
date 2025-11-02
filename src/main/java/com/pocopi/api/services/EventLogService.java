@@ -1,10 +1,10 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.api.FieldError;
-import com.pocopi.api.dto.event_log.NewOptionEventLog;
-import com.pocopi.api.dto.event_log.NewQuestionEventLog;
-import com.pocopi.api.dto.event_log.OptionEventLog;
-import com.pocopi.api.dto.event_log.QuestionEventLog;
+import com.pocopi.api.dto.event.NewOptionEventLog;
+import com.pocopi.api.dto.event.NewQuestionEventLog;
+import com.pocopi.api.dto.event.OptionEventLog;
+import com.pocopi.api.dto.event.QuestionEventLog;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.models.test.*;

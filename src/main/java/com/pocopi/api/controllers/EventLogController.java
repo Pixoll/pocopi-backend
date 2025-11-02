@@ -1,9 +1,9 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.auth.AuthUser;
-import com.pocopi.api.dto.event_log.NewOptionEventLog;
-import com.pocopi.api.dto.event_log.NewQuestionEventLog;
-import com.pocopi.api.dto.event_log.QuestionEventLog;
+import com.pocopi.api.dto.event.NewOptionEventLog;
+import com.pocopi.api.dto.event.NewQuestionEventLog;
+import com.pocopi.api.dto.event.QuestionEventLog;
 import com.pocopi.api.services.EventLogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;

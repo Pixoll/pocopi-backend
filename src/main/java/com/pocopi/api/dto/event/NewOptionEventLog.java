@@ -1,4 +1,4 @@
-package com.pocopi.api.dto.event_log;
+package com.pocopi.api.dto.event;
 
 import com.pocopi.api.models.test.UserTestOptionType;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,4 +1,4 @@
-package com.pocopi.api.dto.form_result;
+package com.pocopi.api.dto.results;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

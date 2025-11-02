@@ -1,15 +1,15 @@
-package com.pocopi.api.dto.home_faq;
+package com.pocopi.api.dto.event;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record FrequentlyAskedQuestion(
+public record NewQuestionEventLog(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int id,
+    Integer questionId,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String question,
+    Long timestamp,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String answer
+    Integer duration
 ) {
 }

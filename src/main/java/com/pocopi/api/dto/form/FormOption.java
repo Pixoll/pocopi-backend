@@ -1,4 +1,4 @@
-package com.pocopi.api.dto.form_question_option;
+package com.pocopi.api.dto.form;
 
 import com.pocopi.api.dto.image.Image;
 import io.swagger.v3.oas.annotations.media.Schema;

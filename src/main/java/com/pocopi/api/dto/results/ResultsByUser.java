@@ -1,7 +1,6 @@
 package com.pocopi.api.dto.results;
 
-import com.pocopi.api.dto.form_result.FormAnswers;
-import com.pocopi.api.dto.test_resullt.TestQuestionResult;
+import com.pocopi.api.dto.form.FormAnswers;
 import com.pocopi.api.dto.user.UserBasicInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 

@@ -1,7 +1,7 @@
 package com.pocopi.api.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.event_log.NewOptionEventLog;
+import com.pocopi.api.dto.event.NewOptionEventLog;
 import com.pocopi.api.services.EventLogService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;

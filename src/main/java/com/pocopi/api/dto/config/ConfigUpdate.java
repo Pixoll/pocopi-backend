@@ -1,8 +1,6 @@
 package com.pocopi.api.dto.config;
 
 import com.pocopi.api.dto.form.FormUpdate;
-import com.pocopi.api.dto.home_faq.FrequentlyAskedQuestionUpdate;
-import com.pocopi.api.dto.home_info_card.InformationCardUpdate;
 import com.pocopi.api.dto.test.TestGroupUpdate;
 import io.swagger.v3.oas.annotations.media.Schema;
 

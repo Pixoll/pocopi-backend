@@ -1,6 +1,5 @@
 package com.pocopi.api.dto.form;
 
-import com.pocopi.api.dto.form_question.FormQuestion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;

@@ -1,11 +1,11 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.form_result.FormAnswers;
-import com.pocopi.api.dto.form_result.FormAnswersByUser;
+import com.pocopi.api.dto.form.FormAnswers;
+import com.pocopi.api.dto.results.FormAnswersByUser;
 import com.pocopi.api.dto.results.ResultsByGroup;
 import com.pocopi.api.dto.results.ResultsByUser;
-import com.pocopi.api.dto.test_resullt.TestQuestionResult;
-import com.pocopi.api.dto.test_resullt.TestResultByUser;
+import com.pocopi.api.dto.results.TestQuestionResult;
+import com.pocopi.api.dto.results.TestResultByUser;
 import com.pocopi.api.dto.user.UserBasicInfo;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;

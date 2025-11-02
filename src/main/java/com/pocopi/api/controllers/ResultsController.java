@@ -1,12 +1,12 @@
 package com.pocopi.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.form_result.FormAnswersByGroup;
-import com.pocopi.api.dto.form_result.FormAnswersByUser;
+import com.pocopi.api.dto.results.FormAnswersByGroup;
+import com.pocopi.api.dto.results.FormAnswersByUser;
 import com.pocopi.api.dto.results.ResultsByGroup;
 import com.pocopi.api.dto.results.ResultsByUser;
-import com.pocopi.api.dto.test_resullt.TestResultByUser;
-import com.pocopi.api.dto.test_resullt.TestResultsByGroup;
+import com.pocopi.api.dto.results.TestResultByUser;
+import com.pocopi.api.dto.results.TestResultsByGroup;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.services.FormResultsService;

@@ -1,4 +1,4 @@
-package com.pocopi.api.dto.test_resullt;
+package com.pocopi.api.dto.results;
 
 import com.pocopi.api.dto.user.UserBasicInfo;
 import io.swagger.v3.oas.annotations.media.Schema;

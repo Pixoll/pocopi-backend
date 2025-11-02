@@ -1,9 +1,9 @@
 package com.pocopi.api.mappers;
 
-import com.pocopi.api.dto.form_result.FormAnswer;
-import com.pocopi.api.dto.form_result.FormAnswers;
-import com.pocopi.api.dto.form_result.FormAnswersByGroup;
-import com.pocopi.api.dto.form_result.FormAnswersByUser;
+import com.pocopi.api.dto.form.FormAnswer;
+import com.pocopi.api.dto.form.FormAnswers;
+import com.pocopi.api.dto.results.FormAnswersByGroup;
+import com.pocopi.api.dto.results.FormAnswersByUser;
 import com.pocopi.api.dto.user.UserBasicInfo;
 import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.models.form.UserFormAnswerModel;
