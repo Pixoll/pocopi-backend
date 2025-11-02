@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,45 @@ public class TestGroupService {
 
     public TestGroupModel getTestGroup(int id) {
         return testGroupRepository.findById(id).orElse(null);
+    }
+
+    public TestGroupModel sampleGroup() {
+        final List<TestGroupModel> groups = testGroupRepository.findAll();
+
+        final SecureRandom random = new SecureRandom();
+        final long randomValue = Math.abs(random.nextLong());
+
+        final String randomStr = String.valueOf(randomValue);
+        final String reversedStr = new StringBuilder(randomStr).reverse().toString();
+        final BigDecimal targetProbability = new BigDecimal("0." + reversedStr);
+
+        final ArrayList<BigDecimal> probabilitySums = new ArrayList<>();
+        BigDecimal lastProbability = BigDecimal.ZERO;
+
+        for (final TestGroupModel group : groups) {
+            final BigDecimal prob = new BigDecimal(group.getProbability())
+                .divide(new BigDecimal("100"), 10, RoundingMode.HALF_UP);
+            lastProbability = lastProbability.add(prob);
+            probabilitySums.add(lastProbability);
+        }
+
+        int left = 0;
+        int right = probabilitySums.size() - 1;
+        int index = 0;
+
+        while (left <= right) {
+            final int mid = left + (right - left) / 2;
+            final BigDecimal value = probabilitySums.get(mid);
+
+            if (value.compareTo(targetProbability) > 0) {
+                index = mid;
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+
+        return groups.get(index);
     }
 
     public Map<String, TestGroup> buildGroupResponses(int configVersion) {

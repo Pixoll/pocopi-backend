@@ -9,10 +9,10 @@ import com.pocopi.api.models.user.Role;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;

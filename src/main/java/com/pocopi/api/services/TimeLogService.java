@@ -8,8 +8,8 @@ import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
