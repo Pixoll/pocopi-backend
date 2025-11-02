@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface TestPhaseRepository extends JpaRepository<TestPhaseModel, Integer> {
     List<TestPhaseModel> findAllByProtocol(TestProtocolModel protocol);
+
+    List<TestPhaseModel> findAllByProtocolConfigVersion(int protocolConfigVersion);
 }

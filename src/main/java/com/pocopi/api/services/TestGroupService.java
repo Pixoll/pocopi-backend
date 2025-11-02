@@ -1,14 +1,14 @@
 package com.pocopi.api.services;
 
+import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.test.*;
-import com.pocopi.api.models.test.TestGroupModel;
-import com.pocopi.api.models.test.TestProtocolModel;
-import com.pocopi.api.repositories.projections.TestGroupData;
-import com.pocopi.api.repositories.TestGroupRepository;
+import com.pocopi.api.models.test.*;
+import com.pocopi.api.repositories.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -22,16 +22,27 @@ public class TestGroupService {
     private final TestGroupRepository testGroupRepository;
     private final ImageService imageService;
     private final TestProtocolService testProtocolService;
+    private final TestProtocolRepository testProtocolRepository;
+    private final TestPhaseRepository testPhaseRepository;
+    private final TestQuestionRepository testQuestionRepository;
+    private final TestOptionRepository testOptionRepository;
 
-    @Autowired
     public TestGroupService(
         TestGroupRepository testGroupRepository,
         ImageService imageService,
-        TestProtocolService testProtocolService
+        TestProtocolService testProtocolService,
+        TestProtocolRepository testProtocolRepository,
+        TestPhaseRepository testPhaseRepository,
+        TestQuestionRepository testQuestionRepository,
+        TestOptionRepository testOptionRepository
     ) {
         this.testGroupRepository = testGroupRepository;
         this.imageService = imageService;
         this.testProtocolService = testProtocolService;
+        this.testProtocolRepository = testProtocolRepository;
+        this.testPhaseRepository = testPhaseRepository;
+        this.testQuestionRepository = testQuestionRepository;
+        this.testOptionRepository = testOptionRepository;
     }
 
     public TestGroupModel getTestGroup(int id) {
@@ -77,84 +88,109 @@ public class TestGroupService {
         return groups.get(index);
     }
 
-    public Map<String, TestGroup> buildGroupResponses(int configVersion) {
-        final List<TestGroupData> rows = testGroupRepository.findAllGroupsDataByConfigVersion(configVersion);
+    @Transactional
+    public Map<String, TestGroup> getGroupsByConfigVersion(int configVersion) {
+        final Map<String, TestGroupModel> groupModelsMap = testGroupRepository.findAllByConfigVersion(configVersion)
+            .stream()
+            .collect(Collectors.toMap(TestGroupModel::getLabel, (g) -> g, (a, b) -> b));
 
-        if (rows.isEmpty()) {
+        if (groupModelsMap.isEmpty()) {
             return Map.of();
         }
 
-        final Map<Integer, List<TestGroupData>> groupsMap = new LinkedHashMap<>();
-        for (final TestGroupData row : rows) {
-            groupsMap.computeIfAbsent(row.getGroupId(), k -> new ArrayList<>()).add(row);
+        final List<TestProtocolModel> protocolsList = testProtocolRepository.findAllByConfigVersion(configVersion);
+        final List<TestPhaseModel> phasesList = testPhaseRepository.findAllByProtocolConfigVersion(configVersion);
+        final List<TestQuestionModel> questionsList = testQuestionRepository
+            .findAllByPhaseProtocolConfigVersion(configVersion);
+        final List<TestOptionModel> optionsList = testOptionRepository
+            .findAllByQuestionPhaseProtocolConfigVersion(configVersion);
+
+        final HashMap<String, TestGroup> groupsMap = new HashMap<>();
+        final HashMap<Integer, TestProtocol> protocolsMap = new HashMap<>();
+        final HashMap<Integer, TestPhase> phasesMap = new HashMap<>();
+        final HashMap<Integer, TestQuestion> questionsMap = new HashMap<>();
+
+        for (final TestProtocolModel protocolModel : protocolsList) {
+            final TestGroupModel groupModel = protocolModel.getGroup();
+            if (groupModel == null) {
+                continue;
+            }
+
+            final TestProtocol protocol = new TestProtocol(
+                protocolModel.getId(),
+                protocolModel.getLabel(),
+                protocolModel.isAllowPreviousPhase(),
+                protocolModel.isAllowPreviousQuestion(),
+                protocolModel.isAllowSkipQuestion(),
+                new ArrayList<>()
+            );
+
+            final TestGroup group = new TestGroup(
+                groupModel.getId(),
+                groupModel.getProbability(),
+                groupModel.getLabel(),
+                groupModel.getGreeting(),
+                protocol
+            );
+
+            protocolsMap.put(protocol.id(), protocol);
+            groupsMap.put(group.label(), group);
         }
 
-        return groupsMap.values().stream()
-            .map(groupRows -> {
-                final TestGroupData first = groupRows.getFirst();
+        for (final TestPhaseModel phaseModel : phasesList) {
+            final TestProtocol protocol = protocolsMap.get(phaseModel.getProtocol().getId());
+            if (protocol == null) {
+                continue;
+            }
 
-                final Map<Integer, List<TestGroupData>> phasesMap = groupRows.stream().collect(Collectors.groupingBy(
-                    TestGroupData::getPhaseId,
-                    LinkedHashMap::new,
-                    Collectors.toList()
-                ));
+            final TestPhase phase = new TestPhase(phaseModel.getId(), new ArrayList<>());
 
-                final List<TestPhase> phases = phasesMap.values().stream()
-                    .map(phaseRows -> {
-                        final Map<Integer, List<TestGroupData>> questionsMap = phaseRows.stream()
-                            .collect(Collectors.groupingBy(
-                                TestGroupData::getQuestionOrder,
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                            ));
+            protocol.phases().add(phase);
+            phasesMap.put(phase.id(), phase);
+        }
 
-                        final List<TestQuestion> questions = questionsMap.values().stream()
-                            .map(qRows -> {
-                                final List<TestOption> options = qRows.stream()
-                                    .map(r -> new TestOption(
-                                        r.getOptionId(),
-                                        r.getOptionText(),
-                                        r.getOptionImageId() != null
-                                            ? imageService.getImageById(r.getOptionImageId())
-                                            : null,
-                                        r.getCorrect()
-                                    ))
-                                    .toList();
+        for (final TestQuestionModel questionModel : questionsList) {
+            final TestPhase phase = phasesMap.get(questionModel.getPhase().getId());
+            if (phase == null) {
+                continue;
+            }
 
-                                return new TestQuestion(
-                                    qRows.getFirst().getQuestionId(),
-                                    qRows.getFirst().getQuestionText(),
-                                    imageService.getImageById(qRows.getFirst().getQuestionImageId()),
-                                    options
-                                );
-                            })
-                            .toList();
+            final Image questionImage = questionModel.getImage() != null
+                ? imageService.getImageById(questionModel.getImage().getId())
+                : null;
 
-                        return new TestPhase(phaseRows.getFirst().getPhaseId(), questions);
-                    })
-                    .toList();
+            final TestQuestion question = new TestQuestion(
+                questionModel.getId(),
+                questionModel.getText(),
+                questionImage,
+                new ArrayList<>()
+            );
 
-                final TestProtocol protocol = new TestProtocol(
-                    first.getProtocolId(),
-                    first.getProtocolLabel(),
-                    first.getAllowPreviousPhase(),
-                    first.getAllowPreviousQuestion(),
-                    first.getAllowSkipQuestion(),
-                    phases
-                );
+            phase.questions().add(question);
+            questionsMap.put(question.id(), question);
+        }
 
-                return Map.entry(
-                    first.getGroupLabel(),
-                    new TestGroup(
-                        first.getGroupId(),
-                        first.getProbability(),
-                        first.getGroupLabel(),
-                        first.getGreeting(),
-                        protocol
-                    )
-                );
-            })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
+        for (final TestOptionModel optionModel : optionsList) {
+            final TestQuestion question = questionsMap.get(optionModel.getQuestion().getId());
+            if (question == null) {
+                continue;
+            }
+
+            final Image optionImage = optionModel.getImage() != null
+                ? imageService.getImageById(optionModel.getImage().getId())
+                : null;
+
+            final TestOption option = new TestOption(
+                optionModel.getId(),
+                optionModel.getText(),
+                optionImage,
+                optionModel.isCorrect()
+            );
+
+            question.options().add(option);
+        }
+
+        return groupsMap;
     }
 
     public List<TestGroupModel> finAllTestGroups() {

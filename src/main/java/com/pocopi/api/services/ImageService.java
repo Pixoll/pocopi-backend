@@ -3,6 +3,7 @@ package com.pocopi.api.services;
 import com.pocopi.api.config.ImageConfig;
 import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.image.ImageUrl;
+import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
 import org.springframework.stereotype.Service;
@@ -30,10 +31,8 @@ public class ImageService {
             throw new IllegalArgumentException("Image bytes cannot be empty");
         }
         try {
-            final ImageModel imageModel = imageRepository.findByPath(relativePath);
-            if (imageModel == null) {
-                throw new RuntimeException("Image path not found in database: " + relativePath);
-            }
+            imageRepository.findByPath(relativePath)
+                .orElseThrow(() -> HttpException.notFound("Image with path " + relativePath + " not found"));
 
             final Path fullPath = resolveFullPath(relativePath);
             ensureDirectoryExists(fullPath.getParent());
@@ -87,19 +86,6 @@ public class ImageService {
         }
     }
 
-    public Image getImageByPath(String relativePath) {
-        final ImageModel imageModel = imageRepository.findByPath(relativePath);
-        if (imageModel == null) {
-            throw new RuntimeException("Image not found with path: " + relativePath);
-        }
-        final String url = buildPublicUrl(relativePath);
-        return new Image(url, imageModel.getAlt());
-    }
-
-    public ImageModel getImageModelByPath(String path) {
-        return imageRepository.findByPath(path);
-    }
-
     public Image getImageById(int id) {
         final ImageModel imageModel = imageRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Image not found with id: " + id));
@@ -129,8 +115,7 @@ public class ImageService {
             normalizedPath = "images/" + normalizedPath;
         }
 
-        String baseUrl = imageConfig.getBaseUrl();
-        baseUrl = baseUrl.replaceFirst("/$", "");
+        final String baseUrl = imageConfig.getBaseUrl().replaceFirst("/$", "");
 
         return baseUrl + "/" + normalizedPath;
     }

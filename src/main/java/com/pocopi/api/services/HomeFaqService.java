@@ -75,10 +75,6 @@ public class HomeFaqService {
         return results;
     }
 
-    public List<HomeFaqModel> findAllByConfigVersion(int configId) {
-        return homeFaqRepository.findAllByConfigVersion(configId);
-    }
-
     private boolean checkChangeByFaq(HomeFaqModel savedFaq, FrequentlyAskedQuestionUpdate updated) {
         return !Objects.equals(savedFaq.getAnswer(), updated.answer())
                || !Objects.equals(savedFaq.getQuestion(), updated.question());

@@ -1,7 +1,12 @@
 package com.pocopi.api.services;
 
+import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.form.NewFormAnswer;
 import com.pocopi.api.dto.form.NewFormAnswers;
+import com.pocopi.api.dto.form_question.FormQuestion;
+import com.pocopi.api.dto.form_question.SliderLabel;
+import com.pocopi.api.dto.form_question_option.FormOption;
+import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.form.*;
 import com.pocopi.api.models.user.UserModel;
@@ -10,30 +15,100 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FormService {
     private final FormRepository formRepository;
     private final FormQuestionRepository formQuestionRepository;
     private final FormQuestionOptionRepository formQuestionOptionRepository;
+    private final FormQuestionSliderLabelRepository formQuestionSliderLabelRepository;
     private final UserFormSubmissionRepository userFormSubmissionRepository;
     private final UserFormAnswerRepository userFormAnswerRepository;
+    private final ImageService imageService;
 
     public FormService(
         FormRepository formRepository,
         FormQuestionRepository formQuestionRepository,
         FormQuestionOptionRepository formQuestionOptionRepository,
+        FormQuestionSliderLabelRepository formQuestionSliderLabelRepository,
         UserFormSubmissionRepository userFormSubmissionRepository,
-        UserFormAnswerRepository userFormAnswerRepository
+        UserFormAnswerRepository userFormAnswerRepository,
+        ImageService imageService
     ) {
         this.formRepository = formRepository;
         this.formQuestionRepository = formQuestionRepository;
         this.formQuestionOptionRepository = formQuestionOptionRepository;
+        this.formQuestionSliderLabelRepository = formQuestionSliderLabelRepository;
         this.userFormSubmissionRepository = userFormSubmissionRepository;
         this.userFormAnswerRepository = userFormAnswerRepository;
+        this.imageService = imageService;
+    }
+
+    public Map<FormType, Form> getFormsByConfigVersion(int configVersion) {
+        final Map<FormType, Form> formsMap = formRepository.findAllByConfigVersion(configVersion).stream()
+            .collect(Collectors.toMap(
+                FormModel::getType,
+                (form) -> new Form(form.getId(), new ArrayList<>()),
+                (a, b) -> b
+            ));
+
+        if (formsMap.isEmpty()) {
+            return formsMap;
+        }
+
+        final List<FormQuestionModel> questionsList = formQuestionRepository.findAllByFormConfigVersion(configVersion);
+        final List<FormQuestionOptionModel> optionsList = formQuestionOptionRepository
+            .findAllByFormQuestionFormConfigVersion(configVersion);
+        final List<FormQuestionSliderLabelModel> sliderLabelsList = formQuestionSliderLabelRepository
+            .findAllByFormQuestionFormConfigVersion(configVersion);
+
+        final HashMap<Integer, FormQuestion> questionsMap = new HashMap<>();
+
+        for (final FormQuestionModel questionModel : questionsList) {
+            final FormQuestion question = parseFormQuestion(questionModel);
+            questionsMap.put(questionModel.getId(), question);
+
+            final Form form = formsMap.get(questionModel.getForm().getType());
+            form.questions().add(question);
+        }
+
+        for (final FormQuestionOptionModel optionModel : optionsList) {
+            final Image optionImage = optionModel.getImage() != null
+                ? imageService.getImageById(optionModel.getImage().getId())
+                : null;
+
+            final FormOption option = new FormOption(
+                optionModel.getId(),
+                Optional.ofNullable(optionModel.getText()),
+                Optional.ofNullable(optionImage)
+            );
+
+            final FormQuestion question = questionsMap.get(optionModel.getFormQuestion().getId());
+
+            switch (question) {
+                case FormQuestion.SelectMultiple q -> q.options.add(option);
+                case FormQuestion.SelectOne q -> q.options.add(option);
+                default -> throw new IllegalArgumentException(
+                    "Form question of type 'slider' and 'text-*' cannot have options"
+                );
+            }
+        }
+
+        for (final FormQuestionSliderLabelModel sliderLabelModel : sliderLabelsList) {
+            final SliderLabel sliderLabel = new SliderLabel(sliderLabelModel.getNumber(), sliderLabelModel.getLabel());
+
+            final FormQuestion question = questionsMap.get(sliderLabelModel.getFormQuestion().getId());
+
+            if (question instanceof FormQuestion.Slider q) {
+                q.labels.add(sliderLabel);
+            } else {
+                throw new IllegalArgumentException("Form question of type 'select-*' and 'text-*' cannot have options");
+            }
+        }
+
+        return formsMap;
     }
 
     @Transactional
@@ -131,6 +206,78 @@ public class FormService {
         }
 
         userFormAnswerRepository.saveAll(answers);
+    }
+
+    private FormQuestion parseFormQuestion(FormQuestionModel questionModel) {
+        final Optional<String> questionText = Optional.ofNullable(questionModel.getText());
+        final Optional<Image> questionImage = Optional.ofNullable(questionModel.getImage() != null
+            ? imageService.getImageById(questionModel.getImage().getId())
+            : null
+        );
+
+        final FormQuestion question;
+
+        switch (questionModel.getType()) {
+            case SELECT_MULTIPLE -> question = new FormQuestion.SelectMultiple(
+                questionModel.getId(),
+                questionModel.getCategory(),
+                questionText,
+                questionImage,
+                questionModel.getType(),
+                new ArrayList<>(),
+                questionModel.getMin(),
+                questionModel.getMax(),
+                questionModel.getOther()
+            );
+
+            case SELECT_ONE -> question = new FormQuestion.SelectOne(
+                questionModel.getId(),
+                questionModel.getCategory(),
+                questionText,
+                questionImage,
+                questionModel.getType(),
+                new ArrayList<>(),
+                questionModel.getOther()
+            );
+
+            case SLIDER -> question = new FormQuestion.Slider(
+                questionModel.getId(),
+                questionModel.getCategory(),
+                questionText,
+                questionImage,
+                questionModel.getType(),
+                questionModel.getMin(),
+                questionModel.getMax(),
+                questionModel.getStep(),
+                new ArrayList<>()
+            );
+
+            case TEXT_SHORT -> question = new FormQuestion.TextShort(
+                questionModel.getId(),
+                questionModel.getCategory(),
+                questionText,
+                questionImage,
+                questionModel.getType(),
+                questionModel.getPlaceholder(),
+                questionModel.getMinLength(),
+                questionModel.getMaxLength()
+            );
+
+            case TEXT_LONG -> question = new FormQuestion.TextLong(
+                questionModel.getId(),
+                questionModel.getCategory(),
+                questionText,
+                questionImage,
+                questionModel.getType(),
+                questionModel.getPlaceholder(),
+                questionModel.getMinLength(),
+                questionModel.getMaxLength()
+            );
+
+            default -> throw new IllegalArgumentException("Unknown form question type " + questionModel.getType());
+        }
+
+        return question;
     }
 
     private static void validateFormAnswer(NewFormAnswer answer, FormQuestionModel question) {

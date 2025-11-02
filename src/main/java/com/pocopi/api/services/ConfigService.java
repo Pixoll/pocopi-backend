@@ -6,10 +6,7 @@ import com.pocopi.api.dto.config.ConfigUpdateWithFiles;
 import com.pocopi.api.dto.config.UpdatedConfig;
 import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.form.FormUpdate;
-import com.pocopi.api.dto.form_question.FormQuestion;
 import com.pocopi.api.dto.form_question.FormQuestionUpdate;
-import com.pocopi.api.dto.form_question.SliderLabel;
-import com.pocopi.api.dto.form_question_option.FormOption;
 import com.pocopi.api.dto.form_question_option.FormOptionUpdate;
 import com.pocopi.api.dto.home_faq.FrequentlyAskedQuestion;
 import com.pocopi.api.dto.home_info_card.InformationCard;
@@ -17,13 +14,16 @@ import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.dto.test.TestGroup;
 import com.pocopi.api.dto.translation.Translation;
+import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.HomeFaqModel;
 import com.pocopi.api.models.config.HomeInfoCardModel;
-import com.pocopi.api.models.form.*;
+import com.pocopi.api.models.form.FormQuestionModel;
+import com.pocopi.api.models.form.FormQuestionOptionModel;
+import com.pocopi.api.models.form.FormQuestionType;
+import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.*;
-import com.pocopi.api.repositories.projections.FormProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,118 +36,105 @@ import java.util.stream.Collectors;
 @Service
 public class ConfigService {
     private final ConfigRepository configRepository;
-    private final TranslationRepository translationRepository;
-    private final FormRepository formRepository;
+    private final TranslationValueRepository translationValueRepository;
+    private final FormService formService;
     private final FormQuestionRepository formQuestionRepository;
     private final FormQuestionOptionRepository formQuestionOptionRepository;
     private final HomeFaqService homeFaqService;
     private final HomeInfoCardService homeInfoCardService;
     private final ImageService imageService;
     private final TestGroupService testGroupService;
+    private final ImageRepository imageRepository;
+    private final HomeInfoCardRepository homeInfoCardRepository;
+    private final HomeFaqRepository homeFaqRepository;
 
     public ConfigService(
         ConfigRepository configRepository,
-        TranslationRepository translationRepository,
-        FormRepository formRepository,
+        TranslationValueRepository translationValueRepository,
+        FormService formService,
         FormQuestionRepository formQuestionRepository,
         FormQuestionOptionRepository formQuestionOptionRepository,
         HomeFaqService homeFaqService,
+        HomeFaqRepository homeFaqRepository,
         HomeInfoCardService homeInfoCardService,
+        HomeInfoCardRepository homeInfoCardRepository,
         ImageService imageService,
+        ImageRepository imageRepository,
         TestGroupService testGroupService
     ) {
         this.configRepository = configRepository;
-        this.translationRepository = translationRepository;
-        this.formRepository = formRepository;
+        this.translationValueRepository = translationValueRepository;
+        this.formService = formService;
         this.formQuestionRepository = formQuestionRepository;
         this.formQuestionOptionRepository = formQuestionOptionRepository;
         this.homeFaqService = homeFaqService;
+        this.homeFaqRepository = homeFaqRepository;
         this.homeInfoCardService = homeInfoCardService;
+        this.homeInfoCardRepository = homeInfoCardRepository;
         this.imageService = imageService;
+        this.imageRepository = imageRepository;
         this.testGroupService = testGroupService;
     }
 
-    public Config getLastConfig() {
-        final ConfigModel configModel = findLastConfig();
-        final int configId = configModel.getVersion();
+    public Config getLatestConfig() {
+        final ConfigModel configModel = configRepository.findLastConfig();
+        final int configVersion = configModel.getVersion();
 
-        Image icon = null;
-        if (configModel.getIcon().getPath() != null) {
-            icon = imageService.getImageByPath(configModel.getIcon().getPath());
-        }
+        final Image icon = configModel.getIcon() != null
+            ? imageService.getImageById(configModel.getIcon().getId())
+            : null;
 
-        final List<Translation> translations = translationRepository.findAllByConfigVersion(configId);
-        final List<HomeInfoCardModel> homeInfoCardModels = homeInfoCardService.findAllByConfigVersion(configId);
-        final List<HomeFaqModel> homeFaqs = homeFaqService.findAllByConfigVersion(configId);
-        final List<FormModel> forms = formRepository.findAllByConfigVersion(configId);
-        Form preTest = null;
-        Form postTest = null;
+        final List<Translation> translations = translationValueRepository.findAllByConfigVersion(configVersion);
+        final List<HomeInfoCardModel> homeInfoCardModels = homeInfoCardRepository.findAllByConfigVersion(configVersion);
+        final List<HomeFaqModel> homeFaqs = homeFaqRepository.findAllByConfigVersion(configVersion);
+        final Map<FormType, Form> forms = formService.getFormsByConfigVersion(configVersion);
 
-        if (forms.size() == 2) {
-            final FormModel firstForm = forms.get(0);
-            final FormModel secondForm = forms.get(1);
+        final Form preTest = forms.get(FormType.PRE);
+        final Form postTest = forms.get(FormType.POST);
 
-            final List<FormProjection> firstRows = formRepository.findFormWithAllData(firstForm.getConfig()
-                .getVersion());
-            final List<FormProjection> secondRows = formRepository.findFormWithAllData(secondForm.getConfig()
-                .getVersion());
+        final Map<String, String> translationsMap = translations.stream()
+            .collect(Collectors.toMap(Translation::key, Translation::value, (a, b) -> b));
 
-            if (firstForm.getType() == FormType.PRE) {
-                preTest = generateFormFromQuery(firstRows);
-                postTest = generateFormFromQuery(secondRows);
-            } else {
-                preTest = generateFormFromQuery(secondRows);
-                postTest = generateFormFromQuery(firstRows);
-            }
-        }
-        final Map<String, String> translationMap = new HashMap<>();
-        for (final Translation translation : translations) {
-            translationMap.put(translation.key(), translation.value());
-        }
+        final List<InformationCard> informationCards = homeInfoCardModels.stream()
+            .map(card -> {
+                final Image iconByInfoCard = card.getIcon() != null
+                    ? imageService.getImageById(card.getIcon().getId())
+                    : null;
 
-        final List<InformationCard> informationCards = new ArrayList<>();
-        for (final HomeInfoCardModel homeInfoCardModel : homeInfoCardModels) {
-            Image iconByInfoCard = null;
-            if (homeInfoCardModel.getIcon().getPath() != null) {
-                iconByInfoCard = imageService.getImageByPath(homeInfoCardModel.getIcon().getPath());
-            }
-            final InformationCard informationCard = new InformationCard(
-                homeInfoCardModel.getId(),
-                homeInfoCardModel.getTitle(),
-                homeInfoCardModel.getDescription(),
-                homeInfoCardModel.getColor(),
-                Optional.ofNullable(iconByInfoCard)
-            );
-            informationCards.add(informationCard);
-        }
-        final List<FrequentlyAskedQuestion> frequentlyAskedQuestions = new ArrayList<>();
-        for (final HomeFaqModel faq : homeFaqs) {
-            frequentlyAskedQuestions.add(new FrequentlyAskedQuestion(faq.getId(), faq.getQuestion(), faq.getAnswer()));
-        }
-        final Map<String, TestGroup> groups = testGroupService.buildGroupResponses(configId);
+                return new InformationCard(
+                    card.getId(),
+                    card.getTitle(),
+                    card.getDescription(),
+                    card.getColor(),
+                    iconByInfoCard
+                );
+            })
+            .collect(Collectors.toList());
+
+        final List<FrequentlyAskedQuestion> frequentlyAskedQuestions = homeFaqs.stream()
+            .map(faq -> new FrequentlyAskedQuestion(faq.getId(), faq.getQuestion(), faq.getAnswer()))
+            .collect(Collectors.toList());
+
+        final Map<String, TestGroup> groups = testGroupService.getGroupsByConfigVersion(configVersion);
 
         return new Config(
-            configId,
-            Optional.ofNullable(icon),
+            configVersion,
+            icon,
             configModel.getTitle(),
-            Optional.ofNullable(configModel.getSubtitle()),
+            configModel.getSubtitle(),
             configModel.getDescription(),
             configModel.isAnonymous(),
             informationCards,
             configModel.getInformedConsent(),
             frequentlyAskedQuestions,
-            Optional.ofNullable(preTest),
-            Optional.ofNullable(postTest),
+            preTest,
+            postTest,
             groups,
-            translationMap
+            translationsMap
         );
     }
 
-    public ConfigModel findLastConfig() {
-        return configRepository.findLastConfig();
-    }
-
-    public UpdatedConfig processUpdatedConfig(ConfigUpdateWithFiles request) {
+    public UpdatedConfig updateConfig(ConfigUpdateWithFiles request) {
         final ConfigModel savedModel = configRepository.getByVersion(request.updateLastConfig().version());
 
         final Map<Integer, File> preTestFiles = convertMultipartFileMap(request.preTestFormQuestionOptionsFiles());
@@ -685,7 +672,8 @@ public class ConfigService {
                     altText
                 );
                 final String path = response.url().substring(response.url().indexOf("/images/") + 1);
-                final ImageModel newImage = imageService.getImageModelByPath(path);
+                final ImageModel newImage = imageRepository.findByPath(path)
+                    .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
                 question.setImage(newImage);
                 formQuestionRepository.save(question);
             }
@@ -710,7 +698,8 @@ public class ConfigService {
                     altText
                 );
                 final String path = response.url().substring(response.url().indexOf("/images/") + 1);
-                final ImageModel newImage = imageService.getImageModelByPath(path);
+                final ImageModel newImage = imageRepository.findByPath(path)
+                    .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
                 option.setImage(newImage);
                 formQuestionOptionRepository.save(option);
             }
@@ -828,91 +817,6 @@ public class ConfigService {
         return updates;
     }
 
-    private Form generateFormFromQuery(List<FormProjection> rows) {
-        final Map<Integer, List<FormProjection>> groupedByQuestion = rows.stream()
-            .collect(Collectors.groupingBy(FormProjection::getQuestionId));
-
-        final List<FormQuestion> questions = new ArrayList<>();
-
-        for (final Map.Entry<Integer, List<FormProjection>> entry : groupedByQuestion.entrySet()) {
-            final List<FormProjection> group = entry.getValue();
-            final FormProjection first = group.getFirst();
-
-            Image imageResponse = null;
-            if (first.getQuestionImagePath() != null) {
-                imageResponse = imageService.getImageByPath(first.getQuestionImagePath());
-            }
-
-            final FormQuestionType type = first.getQuestionType();
-            switch (type) {
-                case SELECT_MULTIPLE -> questions.add(new FormQuestion.SelectMultiple(
-                    first.getQuestionId(),
-                    first.getCategory(),
-                    Optional.ofNullable(first.getQuestionText()),
-                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
-                    type,
-                    this.getOptionsFromGroup(group),
-                    first.getMin(),
-                    first.getMax(),
-                    first.getOther()
-                ));
-
-                case SELECT_ONE -> questions.add(new FormQuestion.SelectOne(
-                    first.getQuestionId(),
-                    first.getCategory(),
-                    Optional.ofNullable(first.getQuestionText()),
-                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
-                    type,
-                    this.getOptionsFromGroup(group),
-                    first.getOther()
-                ));
-
-                case SLIDER -> {
-                    final List<SliderLabel> labels = group.stream()
-                        .filter(r -> r.getSliderValue() != null)
-                        .map(r -> new SliderLabel(r.getSliderValue(), r.getSliderLabel()))
-                        .toList();
-
-                    questions.add(new FormQuestion.Slider(
-                        first.getQuestionId(),
-                        first.getCategory(),
-                        Optional.ofNullable(first.getQuestionText()),
-                        imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
-                        type,
-                        first.getPlaceholder(),
-                        first.getMin(),
-                        first.getMax(),
-                        first.getStep(),
-                        labels
-                    ));
-                }
-
-                case TEXT_SHORT -> questions.add(new FormQuestion.TextShort(
-                    first.getQuestionId(),
-                    first.getCategory(),
-                    Optional.ofNullable(first.getQuestionText()),
-                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
-                    type,
-                    first.getPlaceholder(),
-                    first.getMinLength(),
-                    first.getMaxLength()
-                ));
-                case TEXT_LONG -> questions.add(new FormQuestion.TextLong(
-                    first.getQuestionId(),
-                    first.getCategory(),
-                    Optional.ofNullable(first.getQuestionText()),
-                    imageResponse != null ? Optional.of(imageResponse) : Optional.empty(),
-                    type,
-                    first.getPlaceholder(),
-                    first.getMinLength(),
-                    first.getMaxLength()
-                ));
-            }
-        }
-
-        return new Form(rows.getFirst().getFormId(), questions);
-    }
-
     private File convertMultipartFileToFile(MultipartFile multipartFile) throws IOException {
         final File tempFile = File.createTempFile("upload-", multipartFile.getOriginalFilename());
         multipartFile.transferTo(tempFile);
@@ -933,23 +837,5 @@ public class ConfigService {
         }
 
         return result;
-    }
-
-    private List<FormOption> getOptionsFromGroup(List<FormProjection> group) {
-        return group.stream()
-            .filter(r -> r.getOptionId() != null)
-            .map(r -> {
-                Image imageResponseBySMOptions = null;
-                if (r.getOptionImagePath() != null) {
-                    imageResponseBySMOptions = imageService.getImageByPath(r.getOptionImagePath());
-                }
-                return new FormOption(
-                    r.getOptionId(),
-                    Optional.ofNullable(r.getOptionText()),
-                    imageResponseBySMOptions != null ? Optional.of(imageResponseBySMOptions) :
-                        Optional.empty()
-                );
-            })
-            .toList();
     }
 }

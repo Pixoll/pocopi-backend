@@ -14,4 +14,6 @@ public interface TestOptionRepository extends JpaRepository<TestOptionModel, Int
         int id,
         int questionPhaseProtocolConfigVersion
     );
+
+    List<TestOptionModel> findAllByQuestionPhaseProtocolConfigVersion(int questionPhaseProtocolConfigVersion);
 }

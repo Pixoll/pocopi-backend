@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 @Component
 public final class OldConfigMigrator {
@@ -280,11 +281,11 @@ public final class OldConfigMigrator {
             return images.get(image.relativePath());
         }
 
-        final ImageModel storedImage = imageRepository.findByPath(image.relativePath().toString());
+        final Optional<ImageModel> storedImage = imageRepository.findByPath(image.relativePath().toString());
 
-        if (storedImage != null) {
-            images.put(image.relativePath(), storedImage);
-            return storedImage;
+        if (storedImage.isPresent()) {
+            images.put(image.relativePath(), storedImage.get());
+            return storedImage.get();
         }
 
         final Path destination = Paths.get("images", image.relativePath().toString());

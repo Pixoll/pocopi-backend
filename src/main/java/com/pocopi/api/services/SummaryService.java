@@ -4,6 +4,7 @@ import com.pocopi.api.dto.user.UserSummary;
 import com.pocopi.api.dto.user.UsersSummary;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.user.UserModel;
+import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.repositories.UserTestOptionLogRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
@@ -16,21 +17,18 @@ import java.util.Set;
 
 @Service
 public class SummaryService {
-    private final UserService userService;
-    private final ConfigService configService;
+    private final ConfigRepository configRepository;
     private final UserTestQuestionLogRepository userTestQuestionLogRepository;
     private final UserTestOptionLogRepository userTestOptionLogRepository;
     private final UserRepository userRepository;
 
     public SummaryService(
-        UserService userService,
-        ConfigService configService,
+        ConfigRepository configRepository,
         UserTestQuestionLogRepository userTestQuestionLogRepository,
         UserTestOptionLogRepository userTestOptionLogRepository,
         UserRepository userRepository
     ) {
-        this.userService = userService;
-        this.configService = configService;
+        this.configRepository = configRepository;
         this.userTestQuestionLogRepository = userTestQuestionLogRepository;
         this.userTestOptionLogRepository = userTestOptionLogRepository;
         this.userRepository = userRepository;
@@ -64,7 +62,7 @@ public class SummaryService {
 
     private UserSummary getUserSummary(int userId) {
         final UserModel user = userRepository.getUserByUserId(userId);
-        final ConfigModel lastConfig = configService.findLastConfig();
+        final ConfigModel lastConfig = configRepository.findLastConfig();
 
         Long start = userTestQuestionLogRepository.findMostRecentlyStartTimeStamp(
             lastConfig.getVersion(),

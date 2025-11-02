@@ -2,9 +2,11 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.home_info_card.InformationCardUpdate;
 import com.pocopi.api.dto.image.ImageUrl;
+import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.HomeInfoCardModel;
 import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.repositories.HomeInfoCardRepository;
+import com.pocopi.api.repositories.ImageRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,10 +21,15 @@ import java.util.Objects;
 public class HomeInfoCardService {
     private final HomeInfoCardRepository homeInfoCardRepository;
     private final ImageService imageService;
+    private final ImageRepository imageRepository;
 
-    public HomeInfoCardService(HomeInfoCardRepository homeInfoCardRepository, ImageService imageService) {
+    public HomeInfoCardService(
+        HomeInfoCardRepository homeInfoCardRepository, ImageService imageService,
+        ImageRepository imageRepository
+    ) {
         this.homeInfoCardRepository = homeInfoCardRepository;
         this.imageService = imageService;
+        this.imageRepository = imageRepository;
     }
 
     public Map<String, String> processCardInformation(
@@ -127,10 +134,6 @@ public class HomeInfoCardService {
         return results;
     }
 
-    public List<HomeInfoCardModel> findAllByConfigVersion(int configId) {
-        return homeInfoCardRepository.findAllByConfigVersion(configId);
-    }
-
     private void updateOrCreateCardImage(HomeInfoCardModel card, File imageFile) throws IOException {
         final byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
         final ImageModel currentImage = card.getIcon();
@@ -145,7 +148,8 @@ public class HomeInfoCardService {
                 "Home info card: " + card.getTitle()
             );
             final String path = response.url().substring(response.url().indexOf("/images/") + 1);
-            final ImageModel newImage = imageService.getImageModelByPath(path);
+            final ImageModel newImage = imageRepository.findByPath(path)
+                .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
             card.setIcon(newImage);
         }
     }

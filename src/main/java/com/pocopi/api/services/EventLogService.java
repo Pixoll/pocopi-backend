@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Service
 public class EventLogService {
-    private final ConfigService configService;
+    private final ConfigRepository configRepository;
     private final TestQuestionRepository testQuestionRepository;
     private final TestOptionRepository testOptionRepository;
     private final UserTestAttemptRepository userTestAttemptRepository;
@@ -28,14 +28,14 @@ public class EventLogService {
     private final UserTestOptionLogRepository userTestOptionLogRepository;
 
     public EventLogService(
-        ConfigService configService,
+        ConfigRepository configRepository,
         TestQuestionRepository testQuestionRepository,
         TestOptionRepository testOptionRepository,
         UserTestAttemptRepository userTestAttemptRepository,
         UserTestQuestionLogRepository userTestQuestionLogRepository,
         UserTestOptionLogRepository userTestOptionLogRepository
     ) {
-        this.configService = configService;
+        this.configRepository = configRepository;
         this.testQuestionRepository = testQuestionRepository;
         this.testOptionRepository = testOptionRepository;
         this.userTestAttemptRepository = userTestAttemptRepository;
@@ -44,7 +44,7 @@ public class EventLogService {
     }
 
     public List<QuestionEventLog> getAllEventLogs() {
-        final int configVersion = configService.findLastConfig().getVersion();
+        final int configVersion = configRepository.findLastConfig().getVersion();
 
         final List<Object[]> allQuestionInfo = userTestQuestionLogRepository.findAllQuestionEvents(configVersion);
         final List<Object[]> allEvents = userTestOptionLogRepository.findAllEventByLastConfig(configVersion);
@@ -53,7 +53,7 @@ public class EventLogService {
     }
 
     public List<QuestionEventLog> getEventLogsByUserId(int userId) {
-        final int configVersion = configService.findLastConfig().getVersion();
+        final int configVersion = configRepository.findLastConfig().getVersion();
 
         final List<Object[]> userQuestionInfo = userTestQuestionLogRepository
             .findAllQuestionEventsInfoByUserId(configVersion, userId);
@@ -67,7 +67,7 @@ public class EventLogService {
     public void saveQuestionEventLog(NewQuestionEventLog questionEventLog, int userId) {
         validateQuestionEventLog(questionEventLog);
 
-        final int configVersion = configService.findLastConfig().getVersion();
+        final int configVersion = configRepository.findLastConfig().getVersion();
 
         final UserTestAttemptModel testAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)
@@ -93,7 +93,7 @@ public class EventLogService {
     public void saveOptionEventLog(NewOptionEventLog optionEventLog, int userId) {
         validateOptionEventLog(optionEventLog);
 
-        final int configVersion = configService.findLastConfig().getVersion();
+        final int configVersion = configRepository.findLastConfig().getVersion();
 
         final UserTestAttemptModel testAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)

@@ -41,5 +41,5 @@ public interface TestGroupRepository extends JpaRepository<TestGroupModel, Integ
     )
     List<TestGroupData> findAllGroupsDataByConfigVersion(int configVersion);
 
-    List<TestGroupModel> findAllByConfig_Version(int version);
+    List<TestGroupModel> findAllByConfigVersion(int configVersion);
 }

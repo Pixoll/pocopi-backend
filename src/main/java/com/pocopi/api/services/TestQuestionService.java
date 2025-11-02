@@ -2,10 +2,12 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.dto.test.TestQuestionUpdate;
+import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.image.ImageModel;
 import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.TestPhaseModel;
 import com.pocopi.api.models.test.TestQuestionModel;
+import com.pocopi.api.repositories.ImageRepository;
 import com.pocopi.api.repositories.TestQuestionRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +24,17 @@ public class TestQuestionService {
     private final TestQuestionRepository testQuestionRepository;
     private final ImageService imageService;
     private final TestOptionService testOptionService;
+    private final ImageRepository imageRepository;
 
     public TestQuestionService(
         TestQuestionRepository testQuestionRepository, ImageService imageService,
-        TestOptionService testOptionService
+        TestOptionService testOptionService,
+        ImageRepository imageRepository
     ) {
         this.testQuestionRepository = testQuestionRepository;
         this.imageService = imageService;
         this.testOptionService = testOptionService;
+        this.imageRepository = imageRepository;
     }
 
     public Map<String, String> processTestQuestions(
@@ -178,7 +183,8 @@ public class TestQuestionService {
                     altText
                 );
                 final String path = response.url().substring(response.url().indexOf("/images/") + 1);
-                final ImageModel newImage = imageService.getImageModelByPath(path);
+                final ImageModel newImage = imageRepository.findByPath(path)
+                    .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
                 question.setImage(newImage);
                 testQuestionRepository.save(question);
             }

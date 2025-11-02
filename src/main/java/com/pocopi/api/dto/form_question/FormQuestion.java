@@ -89,9 +89,6 @@ public sealed interface FormQuestion
         public FormQuestionType type;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String placeholder;
-
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         public int min;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

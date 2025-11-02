@@ -15,10 +15,10 @@ public record InformationCard(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String description,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int color,
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"integer", "null"})
+    Integer color,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    Optional<Image> icon
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+    Image icon
 ) {
 }
