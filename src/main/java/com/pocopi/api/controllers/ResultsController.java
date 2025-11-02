@@ -12,6 +12,7 @@ import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.services.FormResultsService;
 import com.pocopi.api.services.ResultsService;
 import com.pocopi.api.services.TestResultsService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,6 +29,7 @@ import java.util.zip.GZIPOutputStream;
 
 @RestController
 @RequestMapping("/api/results")
+@Tag(name = "Results")
 public class ResultsController {
     private final FormResultsService formResultsService;
     private final TestResultsService testResultsService;

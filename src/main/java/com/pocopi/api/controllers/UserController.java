@@ -2,6 +2,7 @@ package com.pocopi.api.controllers;
 
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.services.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "Users")
 public class UserController {
     private final UserService userService;
 

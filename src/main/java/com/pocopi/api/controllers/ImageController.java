@@ -2,6 +2,7 @@ package com.pocopi.api.controllers;
 
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.services.ImageService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/images")
+@Tag(name = "Images")
 public class ImageController {
     private final ImageService imageService;
 

@@ -4,6 +4,7 @@ import com.pocopi.api.dto.config.Config;
 import com.pocopi.api.dto.config.ConfigUpdateWithFiles;
 import com.pocopi.api.dto.config.UpdatedConfig;
 import com.pocopi.api.services.ConfigService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/config")
+@Tag(name = "Config")
 public class ConfigController {
     private final ConfigService configService;
 
