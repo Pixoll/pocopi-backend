@@ -17,10 +17,8 @@ public class AuthUserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        final UserModel user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("Bad credentials");
-        }
+        final UserModel user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Bad credentials"));
 
         return new AuthUser(user);
     }

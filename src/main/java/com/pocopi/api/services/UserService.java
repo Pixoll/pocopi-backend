@@ -9,7 +9,6 @@ import com.pocopi.api.models.user.Role;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ConfigRepository configRepository;
 
-    @Autowired
     public UserService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
@@ -56,10 +54,8 @@ public class UserService {
     }
 
     public User getByUsername(String username) {
-        final UserModel user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw HttpException.notFound("User not found");
-        }
+        final UserModel user = userRepository.findByUsername(username)
+            .orElseThrow(() -> HttpException.notFound("User " + username + " not found"));
 
         return new User(
             user.getId(),

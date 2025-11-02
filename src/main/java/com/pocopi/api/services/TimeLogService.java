@@ -11,10 +11,7 @@ import com.pocopi.api.repositories.UserTestQuestionLogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class TimeLogService {
@@ -156,11 +153,11 @@ public class TimeLogService {
 
     @Transactional
     public String addTimeLog(NewTimeLogEvent optionEvent) {
-        final UserModel savedUser = userRepository.findByUsername(optionEvent.username());
-        if (savedUser == null) {
+        final Optional<UserModel> savedUser = userRepository.findByUsername(optionEvent.username());
+        if (savedUser.isEmpty()) {
             return "Username not found";
         }
-        final int userId = savedUser.getId();
+        final int userId = savedUser.get().getId();
 
         userTestOptionLogRepository.insertUserTestOptionLog(
             userId,

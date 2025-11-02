@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserModel, Integer> {
     @Query(value = "select * from user u where u.id = :userId", nativeQuery = true)
@@ -16,8 +17,7 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
     boolean existsByUsername(String username);
 
-    @Query(value = "select * from user u where u.username = :username", nativeQuery = true)
-    UserModel findByUsername(@Param("username") String username);
+    Optional<UserModel> findByUsername(String username);
 
     boolean existsByEmail(String email);
 

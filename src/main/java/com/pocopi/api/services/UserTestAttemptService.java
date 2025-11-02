@@ -53,14 +53,9 @@ public class UserTestAttemptService {
     public UserTestAttempt continueAttempt(int userId) {
         final int configVersion = configRepository.findLastConfig().getVersion();
 
-        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository.getUnfinishedAttempt(
-            configVersion,
-            userId
-        );
-
-        if (unfinishedAttempt == null) {
-            throw HttpException.notFound("User has not started an attempt yet");
-        }
+        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
+            .findUnfinishedAttempt(configVersion, userId)
+            .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
         return new UserTestAttempt(String.valueOf(unfinishedAttempt.getId()), unfinishedAttempt.getGroup().getId());
     }
@@ -69,14 +64,9 @@ public class UserTestAttemptService {
     public void discardAttempt(int userId) {
         final int configVersion = configRepository.findLastConfig().getVersion();
 
-        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository.getUnfinishedAttempt(
-            configVersion,
-            userId
-        );
-
-        if (unfinishedAttempt == null) {
-            throw HttpException.notFound("User has not started an attempt yet");
-        }
+        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
+            .findUnfinishedAttempt(configVersion, userId)
+            .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
         userTestAttemptRepository.delete(unfinishedAttempt);
     }
@@ -85,14 +75,9 @@ public class UserTestAttemptService {
     public void endAttempt(int userId) {
         final int configVersion = configRepository.findLastConfig().getVersion();
 
-        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository.getUnfinishedAttempt(
-            configVersion,
-            userId
-        );
-
-        if (unfinishedAttempt == null) {
-            throw HttpException.notFound("User has not started an attempt yet");
-        }
+        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
+            .findUnfinishedAttempt(configVersion, userId)
+            .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
         unfinishedAttempt.setEnd(Instant.now());
         userTestAttemptRepository.save(unfinishedAttempt);

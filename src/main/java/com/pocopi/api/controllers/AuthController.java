@@ -6,7 +6,6 @@ import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.auth.Token;
 import com.pocopi.api.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +25,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtils;
 
-    @Autowired
     public AuthController(
         UserService userService,
         AuthenticationManager authenticationManager,

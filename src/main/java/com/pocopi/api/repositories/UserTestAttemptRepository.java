@@ -4,6 +4,8 @@ import com.pocopi.api.models.test.UserTestAttemptModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 
+import java.util.Optional;
+
 public interface UserTestAttemptRepository extends JpaRepository<UserTestAttemptModel, Long> {
     @NativeQuery(
         """
@@ -15,9 +17,9 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
                   and ta.end is null
             """
     )
-    UserTestAttemptModel getUnfinishedAttempt(int configVersion, int userId);
+    Optional<UserTestAttemptModel> findUnfinishedAttempt(int configVersion, int userId);
 
     default boolean hasUnfinishedAttempt(int configVersion, int userId) {
-        return getUnfinishedAttempt(configVersion, userId) != null;
+        return findUnfinishedAttempt(configVersion, userId).isPresent();
     }
 }

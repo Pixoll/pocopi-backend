@@ -15,4 +15,9 @@ public record NewFormAnswer(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String answer
 ) {
+    public NewFormAnswer {
+        if (answer != null && answer.trim().isEmpty()) {
+            answer = null;
+        }
+    }
 }
