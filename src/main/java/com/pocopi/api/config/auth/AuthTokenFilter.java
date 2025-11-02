@@ -1,10 +1,11 @@
-package com.pocopi.api.config.jwt;
+package com.pocopi.api.config.auth;
 
-import com.pocopi.api.config.WebSecurityUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,11 +19,13 @@ import java.io.IOException;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthTokenFilter.class);
+
     @Autowired
     private JwtUtil jwtUtils;
 
     @Autowired
-    private WebSecurityUserDetailsService userDetailsService;
+    private AuthUserService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -35,18 +38,18 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 final String username = jwtUtils.getUsernameFromToken(jwt);
                 final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                final UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                    );
+                final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+                );
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            System.out.println("Cannot set user authentication: " + e);
+            LOGGER.error("Cannot set user authentication: {}", e.getMessage(), e);
         }
+
         filterChain.doFilter(request, response);
     }
 

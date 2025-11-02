@@ -1,4 +1,4 @@
-package com.pocopi.api.config.jwt;
+package com.pocopi.api.config.auth;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

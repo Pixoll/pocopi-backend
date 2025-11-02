@@ -1,7 +1,7 @@
 package com.pocopi.api.config;
 
-import com.pocopi.api.config.jwt.AuthEntryPointJwt;
-import com.pocopi.api.config.jwt.AuthTokenFilter;
+import com.pocopi.api.config.auth.AuthEntryPointJwt;
+import com.pocopi.api.config.auth.AuthTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

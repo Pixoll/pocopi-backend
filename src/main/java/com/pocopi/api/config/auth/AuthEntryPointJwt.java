@@ -1,4 +1,4 @@
-package com.pocopi.api.config.jwt;
+package com.pocopi.api.config.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

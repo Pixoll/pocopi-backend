@@ -1,6 +1,6 @@
 package com.pocopi.api.controllers;
 
-import com.pocopi.api.config.jwt.JwtUtil;
+import com.pocopi.api.config.auth.JwtUtil;
 import com.pocopi.api.dto.auth.Credentials;
 import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.auth.Token;
