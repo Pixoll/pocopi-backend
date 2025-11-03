@@ -1,4 +1,4 @@
-package com.pocopi.api.models.image;
+package com.pocopi.api.models.config;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

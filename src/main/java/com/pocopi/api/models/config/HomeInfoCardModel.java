@@ -1,6 +1,5 @@
 package com.pocopi.api.models.config;
 
-import com.pocopi.api.models.image.ImageModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;

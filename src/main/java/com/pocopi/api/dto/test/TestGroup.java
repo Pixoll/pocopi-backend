@@ -2,6 +2,8 @@ package com.pocopi.api.dto.test;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
+
 public record TestGroup(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int id,
@@ -13,6 +15,21 @@ public record TestGroup(
     String label,
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
-    String greeting
+    String greeting,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean allowPreviousPhase,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean allowPreviousQuestion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean allowSkipQuestion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean randomizePhases,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    List<TestPhase> phases
 ) {
 }

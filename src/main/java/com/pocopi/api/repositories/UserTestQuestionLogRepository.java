@@ -18,8 +18,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                 join user_test_attempt ta on ta.id = utql.attempt_id
                 join test_question tq on tq.id = utql.question_id
                 join test_phase tph on tph.id = tq.phase_id
-                join test_protocol tp on tp.id = tph.protocol_id
-                join config c on c.version = tp.config_version
+                join test_group tg on tg.id = tph.group_id
+                join config c on c.version = tg.config_version
             where c.version = :configVersion
                 and ta.user_id = :userId
             order by utql.timestamp
@@ -36,8 +36,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                 join user_test_attempt ta on ta.id = utql.attempt_id
                 join test_question tq on tq.id = utql.question_id
                 join test_phase tph on tph.id = tq.phase_id
-                join test_protocol tp on tp.id = tph.protocol_id
-                join config c on c.version = tp.config_version
+                join test_group tg on tg.id = tph.group_id
+                join config c on c.version = tg.config_version
             where c.version = :configVersion
                 and ta.user_id = :userId
             order by utql.timestamp desc
@@ -60,8 +60,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join user_test_attempt ta on ta.id = utql.attempt_id
                     join test_question tq on tq.id = utql.question_id
                     join test_phase tph on tph.id = tq.phase_id
-                    join test_protocol tp on tp.id = tph.protocol_id
-                    join config c on c.version = tp.config_version
+                    join test_group tg on tg.id = tph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                 group by ta.user_id, tq.phase_id, utql.question_id
             ),
@@ -78,8 +78,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
-                    join test_protocol pr on pr.id = ph.protocol_id
-                    join config c on c.version = pr.config_version
+                    join test_group tg on tg.id = ph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                   and ol.type in ('select','deselect')
             ),
@@ -111,8 +111,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
-                    join test_protocol pr on pr.id = ph.protocol_id
-                    join config c on c.version = pr.config_version
+                    join test_group tg on tg.id = ph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                     and ol.type = 'select'
             ),
@@ -134,8 +134,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
-                    join test_protocol pr on pr.id = ph.protocol_id
-                    join config c on c.version = pr.config_version
+                    join test_group tg on tg.id = ph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                     and ol.type = 'hover'
                 group by ta.user_id, o.question_id
@@ -177,8 +177,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join user_test_attempt ta on ta.id = utql.attempt_id
                     join test_question tq on tq.id = utql.question_id
                     join test_phase tph on tph.id = tq.phase_id
-                    join test_protocol tp on tp.id = tph.protocol_id
-                    join config c on c.version = tp.config_version
+                    join test_group tg on tg.id = tph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                     and ta.user_id = :userId
                 group by ta.user_id, tq.phase_id, utql.question_id
@@ -196,8 +196,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
-                    join test_protocol pr on pr.id = ph.protocol_id
-                    join config c on c.version = pr.config_version
+                    join test_group tg on tg.id = ph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                     and ta.user_id = :userId
                     and ol.type in ('select','deselect')
@@ -230,8 +230,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
-                    join test_protocol pr on pr.id = ph.protocol_id
-                    join config c on c.version = pr.config_version
+                    join test_group tg on tg.id = ph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                     and ta.user_id = :userId
                     and ol.type = 'select'
@@ -254,8 +254,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
                     join test_option o on o.id = ol.option_id
                     join test_question q on q.id = o.question_id
                     join test_phase ph on ph.id = q.phase_id
-                    join test_protocol pr on pr.id = ph.protocol_id
-                    join config c on c.version = pr.config_version
+                    join test_group tg on tg.id = ph.group_id
+                    join config c on c.version = tg.config_version
                 where c.version = :configVersion
                     and ta.user_id = :userId
                     and ol.type = 'hover'

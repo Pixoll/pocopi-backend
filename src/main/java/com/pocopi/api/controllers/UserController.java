@@ -25,7 +25,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         final List<User> users = userService.getAll();
         return ResponseEntity.ok(users);
@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/{username}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<User> getUser(@PathVariable String username) {
         final User user = userService.getByUsername(username);
         return ResponseEntity.ok(user);

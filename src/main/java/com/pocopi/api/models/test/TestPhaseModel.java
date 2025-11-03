@@ -7,7 +7,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_phase", uniqueConstraints = {@UniqueConstraint(columnNames = {"protocol_id", "`order`"})})
+@Table(name = "test_phase", uniqueConstraints = {@UniqueConstraint(columnNames = {"group_id", "`order`"})})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,8 +23,8 @@ public class TestPhaseModel {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "protocol_id", nullable = false)
-    private TestProtocolModel protocol;
+    @JoinColumn(name = "group_id", nullable = false)
+    private TestGroupModel group;
 
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;

@@ -13,7 +13,6 @@ import com.pocopi.api.dto.config.InformationCard;
 import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.dto.test.TestGroup;
-import com.pocopi.api.dto.test.TestProtocol;
 import com.pocopi.api.dto.config.Translation;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
@@ -21,7 +20,7 @@ import com.pocopi.api.models.form.FormQuestionModel;
 import com.pocopi.api.models.form.FormQuestionOptionModel;
 import com.pocopi.api.models.form.FormQuestionType;
 import com.pocopi.api.models.form.FormType;
-import com.pocopi.api.models.image.ImageModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +48,6 @@ public class ConfigService {
     private final ImageRepository imageRepository;
     private final HomeInfoCardRepository homeInfoCardRepository;
     private final HomeFaqRepository homeFaqRepository;
-    private final TestGroupRepository testGroupRepository;
-    private final TestProtocolService testProtocolService;
 
     public ConfigService(
         ConfigRepository configRepository,
@@ -64,9 +61,7 @@ public class ConfigService {
         HomeInfoCardRepository homeInfoCardRepository,
         ImageService imageService,
         ImageRepository imageRepository,
-        TestGroupService testGroupService,
-        TestGroupRepository testGroupRepository,
-        TestProtocolService testProtocolService
+        TestGroupService testGroupService
     ) {
         this.configRepository = configRepository;
         this.translationValueRepository = translationValueRepository;
@@ -80,8 +75,6 @@ public class ConfigService {
         this.imageService = imageService;
         this.imageRepository = imageRepository;
         this.testGroupService = testGroupService;
-        this.testGroupRepository = testGroupRepository;
-        this.testProtocolService = testProtocolService;
     }
 
     @Transactional
@@ -148,16 +141,7 @@ public class ConfigService {
         final Form preTest = forms.get(FormType.PRE);
         final Form postTest = forms.get(FormType.POST);
 
-        final List<TestProtocol> protocols = testProtocolService.getProtocolsByConfigVersion(configVersion);
-
-        final List<TestGroup> groups = testGroupRepository.findAllByConfigVersion(configVersion).stream()
-            .map((group) -> new TestGroup(
-                group.getId(),
-                group.getProbability(),
-                group.getLabel(),
-                group.getGreeting()
-            ))
-            .toList();
+        final List<TestGroup> groups = testGroupService.getGroupsByConfigVersion(configVersion);
 
         final List<InformationCard> informationCards = getInformationCards(configVersion);
         final List<FrequentlyAskedQuestion> frequentlyAskedQuestions = getFrequentlyAskedQuestions(configVersion);
@@ -175,7 +159,6 @@ public class ConfigService {
             preTest,
             postTest,
             groups,
-            protocols,
             translations
         );
     }

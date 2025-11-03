@@ -25,14 +25,14 @@ public class EventLogController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<QuestionEventLog>> getAllEventLogs() {
         final List<QuestionEventLog> questionEventLogs = eventLogService.getAllEventLogs();
         return ResponseEntity.ok(questionEventLogs);
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<QuestionEventLog>> getUserEventLogs(@PathVariable int userId) {
         final List<QuestionEventLog> questionEventLogs = eventLogService.getEventLogsByUserId(userId);
         return ResponseEntity.ok(questionEventLogs);

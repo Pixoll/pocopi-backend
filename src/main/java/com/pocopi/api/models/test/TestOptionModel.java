@@ -1,6 +1,6 @@
 package com.pocopi.api.models.test;
 
-import com.pocopi.api.models.image.ImageModel;
+import com.pocopi.api.models.config.ImageModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

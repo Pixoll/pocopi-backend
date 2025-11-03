@@ -53,25 +53,25 @@ public class ResultsController {
     }
 
     @GetMapping("/user/{userId}/forms")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public FormAnswersByUser getUserFormResults(@PathVariable int userId) {
         return formResultsService.getUserFormResults(userId);
     }
 
     @GetMapping("/user/{userId}/tests")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public TestResultByUser getUserTestResults(@PathVariable int userId) {
         return testResultsService.getUserTestResults(userId);
     }
 
     @GetMapping("/user/{userId}/all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResultsByUser getUserAllResults(@PathVariable int userId) {
         return resultsService.getUserAllResults(userId);
     }
 
     @GetMapping("/group/{groupId}/forms")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getGroupFormResultsZip(@PathVariable int groupId) {
         try {
             final FormAnswersByGroup groupResults = formResultsService.getGroupFormResults(groupId);
@@ -98,7 +98,7 @@ public class ResultsController {
     }
 
     @GetMapping("/group/{groupId}/tests")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getGroupTestResultsZip(@PathVariable int groupId) {
         try {
             final TestResultsByGroup groupResults = testResultsService.getGroupTestResults(groupId);
@@ -125,7 +125,7 @@ public class ResultsController {
     }
 
     @GetMapping("/group/{groupId}/all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getGroupFullResultsZip(@PathVariable int groupId) {
         try {
             final ResultsByGroup groupResults = resultsService.getGroupFullResults(groupId);
@@ -152,7 +152,7 @@ public class ResultsController {
     }
 
     @GetMapping("/user/all/latest/zip")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getAllUsersLatestConfigResultsZip() {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
@@ -186,7 +186,7 @@ public class ResultsController {
     }
 
     @GetMapping("/user/all/latest/forms/zip")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getAllUsersLatestConfigFormsZip() {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
@@ -220,7 +220,7 @@ public class ResultsController {
     }
 
     @GetMapping("/user/all/latest/tests/zip")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getAllUsersLatestConfigTestsZip() {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();

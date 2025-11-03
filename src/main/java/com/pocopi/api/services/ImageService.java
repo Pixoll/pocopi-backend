@@ -4,7 +4,7 @@ import com.pocopi.api.config.ImageConfig;
 import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.exception.HttpException;
-import com.pocopi.api.models.image.ImageModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

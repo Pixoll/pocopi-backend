@@ -16,7 +16,7 @@ public record ConfigUpdateWithFiles(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by post test form")
     Map<Integer, MultipartFile> postTestFormQuestionOptionsFiles,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options each phase and protocol")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options each phase")
     Map<Integer, MultipartFile> groupQuestionOptionsFiles,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from information cards")

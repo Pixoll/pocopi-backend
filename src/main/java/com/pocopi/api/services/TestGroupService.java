@@ -1,83 +1,177 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.test.TestGroupUpdate;
+import com.pocopi.api.dto.image.Image;
+import com.pocopi.api.dto.test.*;
 import com.pocopi.api.models.test.TestGroupModel;
-import com.pocopi.api.models.test.TestProtocolModel;
+import com.pocopi.api.models.test.TestOptionModel;
+import com.pocopi.api.models.test.TestPhaseModel;
+import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.util.*;
 
 @Service
 public class TestGroupService {
     private final TestGroupRepository testGroupRepository;
-    private final TestProtocolService testProtocolService;
+    private final ConfigRepository configRepository;
+    private final TestPhaseService testPhaseService;
+    private final TestPhaseRepository testPhaseRepository;
+    private final TestQuestionRepository testQuestionRepository;
+    private final TestOptionRepository testOptionRepository;
+    private final ImageService imageService;
 
-    public TestGroupService(TestGroupRepository testGroupRepository, TestProtocolService testProtocolService) {
+    public TestGroupService(
+        TestGroupRepository testGroupRepository,
+        ConfigRepository configRepository,
+        TestPhaseService testPhaseService,
+        TestPhaseRepository testPhaseRepository,
+        TestQuestionRepository testQuestionRepository,
+        TestOptionRepository testOptionRepository,
+        ImageService imageService
+    ) {
         this.testGroupRepository = testGroupRepository;
-        this.testProtocolService = testProtocolService;
-    }
-
-    public TestGroupModel getTestGroup(int id) {
-        return testGroupRepository.findById(id).orElse(null);
+        this.configRepository = configRepository;
+        this.testPhaseService = testPhaseService;
+        this.testPhaseRepository = testPhaseRepository;
+        this.testQuestionRepository = testQuestionRepository;
+        this.testOptionRepository = testOptionRepository;
+        this.imageService = imageService;
     }
 
     public TestGroupModel sampleGroup() {
-        final List<TestGroupModel> groups = testGroupRepository.findAll();
+        final int configVersion = configRepository.findLastConfig().getVersion();
 
-        final SecureRandom random = new SecureRandom();
-        final long randomValue = Math.abs(random.nextLong());
+        final List<TestGroupModel> groups = testGroupRepository.findAllByConfigVersion(configVersion);
 
-        final String randomStr = String.valueOf(randomValue);
-        final String reversedStr = new StringBuilder(randomStr).reverse().toString();
-        final BigDecimal targetProbability = new BigDecimal("0." + reversedStr);
-
-        final ArrayList<BigDecimal> probabilitySums = new ArrayList<>();
-        BigDecimal lastProbability = BigDecimal.ZERO;
+        final ArrayList<Integer> probabilitySums = new ArrayList<>();
+        int lastProbability = 100;
 
         for (final TestGroupModel group : groups) {
-            final BigDecimal prob = new BigDecimal(group.getProbability())
-                .divide(new BigDecimal("100"), 10, RoundingMode.HALF_UP);
-            lastProbability = lastProbability.add(prob);
+            lastProbability -= group.getProbability();
             probabilitySums.add(lastProbability);
         }
 
-        int left = 0;
-        int right = probabilitySums.size() - 1;
-        int index = 0;
+        if (lastProbability != 0) {
+            throw new IllegalArgumentException("The sum of all group probabilities should be 100");
+        }
 
-        while (left <= right) {
-            final int mid = left + (right - left) / 2;
-            final BigDecimal value = probabilitySums.get(mid);
+        final SecureRandom random = new SecureRandom();
+        final int targetProbability = random.nextInt(100);
 
-            if (value.compareTo(targetProbability) > 0) {
-                index = mid;
-                right = mid - 1;
-            } else {
-                left = mid + 1;
+        for (int i = 0; i < probabilitySums.size(); i++) {
+            if (targetProbability > probabilitySums.get(i)) {
+                return groups.get(i);
             }
         }
 
-        return groups.get(index);
+        return groups.getFirst();
     }
 
-    public List<TestGroupModel> finAllTestGroups() {
-        return testGroupRepository.findAll();
-    }
+    @Transactional
+    public List<TestGroup> getGroupsByConfigVersion(int configVersion) {
+        final List<TestGroupModel> groupsList = testGroupRepository.findAllByConfigVersion(configVersion);
 
-    public TestGroupModel saveTestGroup(TestGroupModel testGroupModel) {
-        return testGroupRepository.save(testGroupModel);
+        if (groupsList.isEmpty()) {
+            return List.of();
+        }
+
+        final List<TestPhaseModel> phasesList = testPhaseRepository
+            .findAllByGroupConfigVersionOrderByOrder(configVersion);
+        final List<TestQuestionModel> questionsList = testQuestionRepository
+            .findAllByPhaseGroupConfigVersionOrderByOrder(configVersion);
+        final List<TestOptionModel> optionsList = testOptionRepository
+            .findAllByQuestionPhaseGroupConfigVersionOrderByOrder(configVersion);
+
+        final HashMap<Integer, TestGroup> groupsMap = new HashMap<>();
+        final HashMap<Integer, TestPhase> phasesMap = new HashMap<>();
+        final HashMap<Integer, TestQuestion> questionsMap = new HashMap<>();
+
+        for (final TestGroupModel groupModel : groupsList) {
+            final TestGroup group = new TestGroup(
+                groupModel.getId(),
+                groupModel.getProbability(),
+                groupModel.getLabel(),
+                groupModel.getGreeting(),
+                groupModel.isAllowPreviousPhase(),
+                groupModel.isAllowPreviousQuestion(),
+                groupModel.isAllowSkipQuestion(),
+                groupModel.isRandomizePhases(),
+                new ArrayList<>()
+            );
+
+            groupsMap.put(group.id(), group);
+        }
+
+        for (final TestPhaseModel phaseModel : phasesList) {
+            final TestGroup group = groupsMap.get(phaseModel.getGroup().getId());
+            if (group == null) {
+                continue;
+            }
+
+            final TestPhase phase = new TestPhase(
+                phaseModel.getId(),
+                phaseModel.isRandomizeQuestions(),
+                new ArrayList<>()
+            );
+
+            group.phases().add(phase);
+            phasesMap.put(phase.id(), phase);
+        }
+
+        for (final TestQuestionModel questionModel : questionsList) {
+            final TestPhase phase = phasesMap.get(questionModel.getPhase().getId());
+            if (phase == null) {
+                continue;
+            }
+
+            final Image questionImage = questionModel.getImage() != null
+                ? imageService.getImageById(questionModel.getImage().getId())
+                : null;
+
+            final TestQuestion question = new TestQuestion(
+                questionModel.getId(),
+                questionModel.getText(),
+                questionImage,
+                questionModel.isRandomizeOptions(),
+                new ArrayList<>()
+            );
+
+            phase.questions().add(question);
+            questionsMap.put(question.id(), question);
+        }
+
+        for (final TestOptionModel optionModel : optionsList) {
+            final TestQuestion question = questionsMap.get(optionModel.getQuestion().getId());
+            if (question == null) {
+                continue;
+            }
+
+            final Image optionImage = optionModel.getImage() != null
+                ? imageService.getImageById(optionModel.getImage().getId())
+                : null;
+
+            final TestOption option = new TestOption(
+                optionModel.getId(),
+                optionModel.getText(),
+                optionImage,
+                optionModel.isCorrect()
+            );
+
+            question.options().add(option);
+        }
+
+        return groupsMap.values().stream().toList();
     }
 
     public Map<String, String> processGroups(Map<String, TestGroupUpdate> groups, Map<Integer, File> images) {
         final Map<String, String> results = new HashMap<>();
-        final List<TestGroupModel> allExistingGroups = finAllTestGroups();
+        final List<TestGroupModel> allExistingGroups = testGroupRepository.findAll();
         final Map<Integer, Boolean> processedGroups = new HashMap<>();
 
         for (final TestGroupModel group : allExistingGroups) {
@@ -92,7 +186,7 @@ public class TestGroupService {
 
             if (updatedGroup.id().isPresent()) {
                 final int groupId = updatedGroup.id().get();
-                final TestGroupModel savedGroup = getTestGroup(groupId);
+                final TestGroupModel savedGroup = testGroupRepository.findById(groupId).orElse(null);
 
                 if (savedGroup == null) {
                     results.put("group_" + groupId, "Group not found");
@@ -105,18 +199,20 @@ public class TestGroupService {
                     savedGroup.setGreeting(updatedGroup.greeting());
                     savedGroup.setLabel(updatedGroup.label());
                     savedGroup.setProbability((byte) updatedGroup.probability());
+                    savedGroup.setAllowPreviousPhase(updatedGroup.allowPreviousPhase());
+                    savedGroup.setAllowPreviousQuestion(updatedGroup.allowPreviousQuestion());
+                    savedGroup.setAllowSkipQuestion(updatedGroup.allowSkipQuestion());
 
-                    saveTestGroup(savedGroup);
+                    testGroupRepository.save(savedGroup);
                 }
 
-                final Map<String, String> protocolResults = testProtocolService.processProtocol(
+                final Map<String, String> phaseResults = testPhaseService.processPhases(
                     savedGroup,
-                    updatedGroup.protocol(),
+                    updatedGroup.phases(),
                     images,
-                    imageIndexTracker,
-                    results
+                    imageIndexTracker
                 );
-                results.putAll(protocolResults);
+                results.putAll(phaseResults);
 
                 if (infoChanged) {
                     results.put("group_" + groupId, "Updated successfully");
@@ -130,17 +226,19 @@ public class TestGroupService {
                 newGroup.setProbability((byte) updatedGroup.probability());
                 newGroup.setGreeting(updatedGroup.greeting());
                 newGroup.setLabel(updatedGroup.label());
+                newGroup.setAllowPreviousPhase(updatedGroup.allowPreviousPhase());
+                newGroup.setAllowPreviousQuestion(updatedGroup.allowPreviousQuestion());
+                newGroup.setAllowSkipQuestion(updatedGroup.allowSkipQuestion());
 
-                final TestGroupModel savedGroup = saveTestGroup(newGroup);
+                final TestGroupModel savedGroup = testGroupRepository.save(newGroup);
 
-                final Map<String, String> protocolResults = testProtocolService.processProtocol(
+                final Map<String, String> phaseResults = testPhaseService.processPhases(
                     savedGroup,
-                    updatedGroup.protocol(),
+                    updatedGroup.phases(),
                     images,
-                    imageIndexTracker,
-                    results
+                    imageIndexTracker
                 );
-                results.putAll(protocolResults);
+                results.putAll(phaseResults);
 
                 results.put("group_new_" + groupKey, "Created with ID: " + savedGroup.getId());
             }
@@ -148,9 +246,9 @@ public class TestGroupService {
 
         for (final Map.Entry<Integer, Boolean> entry : processedGroups.entrySet()) {
             if (!entry.getValue()) {
-                final TestGroupModel groupToDelete = getTestGroup(entry.getKey());
+                final TestGroupModel groupToDelete = testGroupRepository.findById(entry.getKey()).orElse(null);
                 if (groupToDelete != null) {
-                    deleteGroupWithProtocol(groupToDelete);
+                    testGroupRepository.delete(groupToDelete);
                     results.put("group_" + entry.getKey(), "Deleted");
                 }
             }
@@ -159,22 +257,13 @@ public class TestGroupService {
         return results;
     }
 
-    public void deleteTestGroup(TestGroupModel testGroupModel) {
-        testGroupRepository.delete(testGroupModel);
-    }
-
-    private void deleteGroupWithProtocol(TestGroupModel group) {
-        final TestProtocolModel protocol = testProtocolService.findByGroup(group);
-        deleteTestGroup(group);
-        if (protocol != null) {
-            testProtocolService.deleteWithPhases(protocol);
-        }
-    }
-
     private boolean checkChangeByGroup(TestGroupUpdate updatedGroup, TestGroupModel savedGroup) {
         return !Objects.equals(updatedGroup.label(), savedGroup.getLabel())
                || updatedGroup.probability() != savedGroup.getProbability()
-               || !Objects.equals(updatedGroup.greeting(), savedGroup.getGreeting());
+               || !Objects.equals(updatedGroup.greeting(), savedGroup.getGreeting())
+               || updatedGroup.allowPreviousPhase() != savedGroup.isAllowPreviousPhase()
+               || updatedGroup.allowPreviousQuestion() != savedGroup.isAllowPreviousQuestion()
+               || updatedGroup.allowSkipQuestion() != savedGroup.isAllowSkipQuestion();
     }
 
     @Setter

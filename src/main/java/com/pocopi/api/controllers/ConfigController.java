@@ -28,14 +28,14 @@ public class ConfigController {
     }
 
     @GetMapping("/latest/full")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<FullConfig> getLastestConfigAsAdmin() {
         final FullConfig config = configService.getLatestConfigFull();
         return ResponseEntity.ok(config);
     }
 
     @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UpdatedConfig> updateConfig(@ModelAttribute ConfigUpdateWithFiles request) {
         final UpdatedConfig updatedConfig = configService.updateConfig(request);
         return ResponseEntity.ok(updatedConfig);

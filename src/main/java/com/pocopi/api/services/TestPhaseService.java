@@ -1,8 +1,8 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.test.TestPhaseUpdate;
+import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.test.TestPhaseModel;
-import com.pocopi.api.models.test.TestProtocolModel;
 import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.TestPhaseRepository;
 import org.springframework.stereotype.Service;
@@ -23,13 +23,13 @@ public class TestPhaseService {
     }
 
     public Map<String, String> processPhases(
-        TestProtocolModel protocol,
+        TestGroupModel group,
         List<TestPhaseUpdate> phases,
         Map<Integer, File> images,
         TestGroupService.ImageIndexTracker imageIndexTracker
     ) {
         final Map<String, String> results = new HashMap<>();
-        final List<TestPhaseModel> allExistingPhases = testPhaseRepository.findAllByProtocol(protocol);
+        final List<TestPhaseModel> allExistingPhases = testPhaseRepository.findAllByGroupId(group.getId());
         final Map<Integer, Boolean> processedPhases = new HashMap<>();
 
         for (final TestPhaseModel phase : allExistingPhases) {
@@ -73,7 +73,7 @@ public class TestPhaseService {
             } else {
                 final TestPhaseModel newPhase = new TestPhaseModel();
                 newPhase.setOrder((byte) order);
-                newPhase.setProtocol(protocol);
+                newPhase.setGroup(group);
 
                 final TestPhaseModel savedPhase = testPhaseRepository.save(newPhase);
 

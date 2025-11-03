@@ -74,7 +74,7 @@ public class EventLogService {
             .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
         final TestQuestionModel question = testQuestionRepository
-            .findByIdAndPhaseProtocolConfigVersion(questionEventLog.questionId(), configVersion)
+            .findByIdAndPhaseGroupConfigVersion(questionEventLog.questionId(), configVersion)
             .orElseThrow(() ->
                 HttpException.notFound("Test question with id " + questionEventLog.questionId() + " not found")
             );
@@ -100,7 +100,7 @@ public class EventLogService {
             .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
         final TestOptionModel option = testOptionRepository
-            .findByIdAndQuestionPhaseProtocolConfigVersion(optionEventLog.optionId(), configVersion)
+            .findByIdAndQuestionPhaseGroupConfigVersion(optionEventLog.optionId(), configVersion)
             .orElseThrow(() ->
                 HttpException.notFound("Test option with id " + optionEventLog.optionId() + " not found")
             );

@@ -39,4 +39,20 @@ public class TestGroupModel {
     @Size(min = 1, max = 2000)
     @Column(name = "greeting", length = 2000)
     private String greeting = null;
+
+    @Builder.Default()
+    @Column(name = "allow_previous_phase")
+    private boolean allowPreviousPhase = true;
+
+    @Builder.Default()
+    @Column(name = "allow_previous_question")
+    private boolean allowPreviousQuestion = true;
+
+    @Builder.Default()
+    @Column(name = "allow_skip_question")
+    private boolean allowSkipQuestion = true;
+
+    @Builder.Default()
+    @Column(name = "randomize_phases")
+    private boolean randomizePhases = false;
 }

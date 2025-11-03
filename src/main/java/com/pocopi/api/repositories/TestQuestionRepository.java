@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface TestQuestionRepository extends JpaRepository<TestQuestionModel, Integer> {
     List<TestQuestionModel> findAllByPhase(TestPhaseModel phase);
 
-    Optional<TestQuestionModel> findByIdAndPhaseProtocolConfigVersion(int id, int phaseProtocolConfigVersion);
+    Optional<TestQuestionModel> findByIdAndPhaseGroupConfigVersion(int id, int phaseGroupConfigVersion);
 
-    List<TestQuestionModel> findAllByPhaseProtocolConfigVersionOrderByOrder(int phaseProtocolConfigVersion);
+    List<TestQuestionModel> findAllByPhaseGroupConfigVersionOrderByOrder(int phaseGroupConfigVersion);
 }

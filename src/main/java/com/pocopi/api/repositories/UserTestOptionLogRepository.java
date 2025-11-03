@@ -22,12 +22,13 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
                     o.correct,
                     row_number() over (partition by o.question_id order by ol.timestamp desc) as first
                 from user_test_option_log ol
+                    inner join user_test_attempt ta on ta.id = ol.attempt_id
                     inner join test_option o on o.id = ol.option_id
                     inner join test_question q on q.id = o.question_id
                     inner join test_phase ph on ph.id = q.phase_id
-                    inner join test_protocol pr on pr.id = ph.protocol_id
-                    inner join config c on c.version = pr.config_version
-                where ol.user_id = :userId
+                    inner join test_group tg on tg.id = ph.group_id
+                    inner join config c on c.version = tg.config_version
+                where ta.user_id = :userId
                     and c.version = :configVersion
                     and ol.type in ('select', 'deselect')
             )
@@ -49,15 +50,16 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
                 utol.type,
                 utol.option_id,
                 unix_timestamp(utol.timestamp) * 1000 as timestamp,
-                utol.user_id
+                ta.user_id
             from user_test_option_log utol
+                join user_test_attempt ta on ta.id = utol.attempt_id
                 join test_option to_opt on to_opt.id = utol.option_id
                 join test_question tq on tq.id = to_opt.question_id
                 join test_phase tph on tph.id = tq.phase_id
-                join test_protocol tp on tp.id = tph.protocol_id
-                join config c on c.version = tp.config_version
+                join test_group tg on tg.id = tph.group_id
+                join config c on c.version = tg.config_version
             where c.version = :configVersion
-            order by tq.id, utol.user_id, utol.timestamp
+            order by tq.id, ta.user_id, utol.timestamp
             """,
         nativeQuery = true
     )
@@ -70,16 +72,17 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
                 utol.type,
                 utol.option_id,
                 unix_timestamp(utol.timestamp) * 1000 as timestamp,
-                utol.user_id
+                ta.user_id
             from user_test_option_log utol
+                join user_test_attempt ta on ta.id = utol.attempt_id
                 join test_option to_opt on to_opt.id = utol.option_id
                 join test_question tq on tq.id = to_opt.question_id
                 join test_phase tph on tph.id = tq.phase_id
-                join test_protocol tp on tp.id = tph.protocol_id
-                join config c on c.version = tp.config_version
+                join test_group tg on tg.id = tph.group_id
+                join config c on c.version = tg.config_version
             where c.version = :configVersion
-            and utol.user_id = :userId
-            order by tq.id, utol.user_id, utol.timestamp
+            and ta.user_id = :userId
+            order by tq.id, ta.user_id, utol.timestamp
             """,
         nativeQuery = true
     )

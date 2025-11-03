@@ -27,7 +27,7 @@ public class SummaryController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UsersSummary> getAllUserSummaries() {
         final UsersSummary response = summaryService.getAllUserSummaries();
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -40,7 +40,7 @@ public class SummaryController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UserSummary> getUserSummaryById(@PathVariable int userId) {
         final UserSummary response = summaryService.getUserSummaryById(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);

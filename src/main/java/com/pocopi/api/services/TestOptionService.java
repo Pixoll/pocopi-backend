@@ -3,7 +3,7 @@ package com.pocopi.api.services;
 import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.dto.test.TestOptionUpdate;
 import com.pocopi.api.exception.HttpException;
-import com.pocopi.api.models.image.ImageModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.ImageRepository;

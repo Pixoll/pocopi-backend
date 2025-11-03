@@ -15,7 +15,7 @@ import com.pocopi.api.models.form.FormModel;
 import com.pocopi.api.models.form.FormQuestionModel;
 import com.pocopi.api.models.form.FormQuestionOptionModel;
 import com.pocopi.api.models.form.FormQuestionSliderLabelModel;
-import com.pocopi.api.models.image.ImageModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.test.*;
 import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Component;
@@ -40,7 +40,6 @@ public final class OldConfigMigrator {
     private final FormQuestionOptionRepository formQuestionOptionRepository;
     private final FormQuestionSliderLabelRepository formQuestionSliderLabelRepository;
     private final TestGroupRepository testGroupRepository;
-    private final TestProtocolRepository testProtocolRepository;
     private final TestPhaseRepository testPhaseRepository;
     private final TestQuestionRepository testQuestionRepository;
     private final TestOptionRepository testOptionRepository;
@@ -57,7 +56,6 @@ public final class OldConfigMigrator {
         FormQuestionOptionRepository formQuestionOptionRepository,
         FormQuestionSliderLabelRepository formQuestionSliderLabelRepository,
         TestGroupRepository testGroupRepository,
-        TestProtocolRepository testProtocolRepository,
         TestPhaseRepository testPhaseRepository,
         TestQuestionRepository testQuestionRepository,
         TestOptionRepository testOptionRepository,
@@ -73,7 +71,6 @@ public final class OldConfigMigrator {
         this.formQuestionOptionRepository = formQuestionOptionRepository;
         this.formQuestionSliderLabelRepository = formQuestionSliderLabelRepository;
         this.testGroupRepository = testGroupRepository;
-        this.testProtocolRepository = testProtocolRepository;
         this.testPhaseRepository = testPhaseRepository;
         this.testQuestionRepository = testQuestionRepository;
         this.testOptionRepository = testOptionRepository;
@@ -81,6 +78,7 @@ public final class OldConfigMigrator {
         this.translationValueRepository = translationValueRepository;
     }
 
+    // TODO must migrate user data as well
     public void migrate(String oldConfigPath) throws IOException {
         final LinkedHashMap<String, Object> rawConfig = OldConfigReader.read(oldConfigPath);
         final OldConfig config = OldConfigParser.parse(rawConfig);
@@ -129,38 +127,34 @@ public final class OldConfigMigrator {
         saveForm(savedConfig, config.postTestForm(), images);
 
         for (final OldConfigTestGroup group : config.groups()) {
-            final TestGroupModel groupModel = TestGroupModel.builder()
+            final TestGroupModel.TestGroupModelBuilder groupBuilder = TestGroupModel.builder()
                 .config(savedConfig)
                 .label(group.label())
                 .probability(group.probability())
-                .greeting(group.greeting())
-                .build();
-
-            final TestGroupModel savedGroup = testGroupRepository.save(groupModel);
+                .greeting(group.greeting());
 
             final OldConfigTestProtocol protocol = group.protocol();
+
+            if (protocol != null) {
+                groupBuilder
+                    .allowPreviousPhase(protocol.allowPreviousPhase())
+                    .allowPreviousQuestion(protocol.allowPreviousQuestion())
+                    .allowSkipQuestion(protocol.allowSkipQuestion())
+                    .randomizePhases(protocol.randomizePhases());
+            }
+
+            final TestGroupModel groupModel = groupBuilder.build();
+            final TestGroupModel savedGroup = testGroupRepository.save(groupModel);
 
             if (protocol == null) {
                 continue;
             }
 
-            final TestProtocolModel protocolModel = TestProtocolModel.builder()
-                .config(savedConfig)
-                .group(savedGroup)
-                .label(protocol.label())
-                .allowPreviousPhase(protocol.allowPreviousPhase())
-                .allowPreviousQuestion(protocol.allowPreviousQuestion())
-                .allowSkipQuestion(protocol.allowSkipQuestion())
-                .randomizePhases(protocol.randomizePhases())
-                .build();
-
-            final TestProtocolModel savedProtocol = testProtocolRepository.save(protocolModel);
-
             for (int i = 0; i < protocol.phases().size(); i++) {
                 final OldConfigTestPhase phase = protocol.phases().get(i);
 
                 final TestPhaseModel phaseModel = TestPhaseModel.builder()
-                    .protocol(savedProtocol)
+                    .group(savedGroup)
                     .order((byte) i)
                     .randomizeQuestions(phase.randomizeQuestions())
                     .build();
