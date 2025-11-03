@@ -5,22 +5,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocopi.api.dto.config.*;
 import com.pocopi.api.dto.form.Form;
-import com.pocopi.api.dto.form.FormUpdate;
-import com.pocopi.api.dto.form.FormQuestionUpdate;
 import com.pocopi.api.dto.form.FormOptionUpdate;
-import com.pocopi.api.dto.config.FrequentlyAskedQuestion;
-import com.pocopi.api.dto.config.InformationCard;
-import com.pocopi.api.dto.image.Image;
-import com.pocopi.api.dto.image.ImageUrl;
+import com.pocopi.api.dto.form.FormQuestionUpdate;
+import com.pocopi.api.dto.form.FormUpdate;
+import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.dto.test.TestGroup;
-import com.pocopi.api.dto.config.Translation;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.form.FormQuestionModel;
 import com.pocopi.api.models.form.FormQuestionOptionModel;
 import com.pocopi.api.models.form.FormQuestionType;
 import com.pocopi.api.models.form.FormType;
-import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -722,13 +721,13 @@ public class ConfigService {
                 imageService.saveImageBytes(imageBytes, currentImage.getPath());
             } else {
                 final String altText = "Question image for: " + question.getCategory();
-                final ImageUrl response = imageService.createAndSaveImageBytes(
+                final String url = imageService.createAndSaveImageBytes(
                     imageBytes,
                     "form/questions",
                     imageFile.getName(),
                     altText
                 );
-                final String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                final String path = url.substring(url.indexOf("/images/") + 1);
                 final ImageModel newImage = imageRepository.findByPath(path)
                     .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
                 question.setImage(newImage);
@@ -748,13 +747,13 @@ public class ConfigService {
                 imageService.saveImageBytes(imageBytes, currentImage.getPath());
             } else {
                 final String altText = "Option image: " + (option.getText() != null ? option.getText() : "option");
-                final ImageUrl response = imageService.createAndSaveImageBytes(
+                final String url = imageService.createAndSaveImageBytes(
                     imageBytes,
                     "form/questions/options",
                     imageFile.getName(),
                     altText
                 );
-                final String path = response.url().substring(response.url().indexOf("/images/") + 1);
+                final String path = url.substring(url.indexOf("/images/") + 1);
                 final ImageModel newImage = imageRepository.findByPath(path)
                     .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
                 option.setImage(newImage);

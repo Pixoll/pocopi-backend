@@ -1,6 +1,6 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.image.Image;
+import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.dto.test.*;
 import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.test.TestOptionModel;

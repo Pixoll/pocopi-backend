@@ -1,8 +1,7 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.config.ImageConfig;
-import com.pocopi.api.dto.image.Image;
-import com.pocopi.api.dto.image.ImageUrl;
+import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
@@ -38,16 +37,12 @@ public class ImageService {
             ensureDirectoryExists(fullPath.getParent());
 
             Files.write(fullPath, imageBytes);
-
-            final String publicUrl = buildPublicUrl(relativePath);
-
-            new ImageUrl(publicUrl);
         } catch (IOException e) {
             throw new RuntimeException("Error saving image bytes: " + e.getMessage(), e);
         }
     }
 
-    public ImageUrl createAndSaveImageBytes(
+    public String createAndSaveImageBytes(
         byte[] imageBytes,
         String category,
         String originalFilename,
@@ -69,9 +64,7 @@ public class ImageService {
             imageModel.setAlt(alt);
             imageRepository.save(imageModel);
 
-            final String publicUrl = buildPublicUrl(relativePath);
-
-            return new ImageUrl(publicUrl);
+            return buildPublicUrl(relativePath);
         } catch (IOException e) {
             throw new RuntimeException("Error creating image from bytes: " + e.getMessage(), e);
         }

@@ -25,11 +25,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtils;
 
-    public AuthController(
-        UserService userService,
-        AuthenticationManager authenticationManager,
-        JwtUtil jwtUtils
-    ) {
+    public AuthController(UserService userService, AuthenticationManager authenticationManager, JwtUtil jwtUtils) {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
@@ -37,12 +33,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Token> login(@RequestBody Credentials credentials) {
-        final Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                credentials.username(),
-                credentials.password()
-            )
-        );
+        final Authentication authentication = authenticationManager
+            .authenticate(new UsernamePasswordAuthenticationToken(credentials.username(), credentials.password()));
 
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         final String token = jwtUtils.generateToken(userDetails.getUsername());

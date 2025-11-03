@@ -19,7 +19,7 @@ public class UserTestAttemptService {
     private final TestGroupService testGroupService;
     private final UserTestAttemptRepository userTestAttemptRepository;
 
-    UserTestAttemptService(
+    public UserTestAttemptService(
         ConfigRepository configRepository,
         TestGroupService testGroupService,
         UserTestAttemptRepository userTestAttemptRepository

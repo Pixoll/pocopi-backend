@@ -1,6 +1,6 @@
 package com.pocopi.api.dto.form;
 
-import com.pocopi.api.dto.image.Image;
+import com.pocopi.api.dto.config.Image;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record FormOption(

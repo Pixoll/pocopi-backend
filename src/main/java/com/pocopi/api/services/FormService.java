@@ -6,7 +6,7 @@ import com.pocopi.api.dto.form.NewFormAnswers;
 import com.pocopi.api.dto.form.FormQuestion;
 import com.pocopi.api.dto.form.SliderLabel;
 import com.pocopi.api.dto.form.FormOption;
-import com.pocopi.api.dto.image.Image;
+import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.form.*;
 import com.pocopi.api.models.user.UserModel;
@@ -109,9 +109,9 @@ public class FormService {
     }
 
     @Transactional
-    public void saveUserFormAnswers(UserModel user, NewFormAnswers formAnswers) {
-        final FormModel form = formRepository.findById(formAnswers.formId())
-            .orElseThrow(() -> HttpException.notFound("Form with id " + formAnswers.formId() + " not found"));
+    public void saveUserFormAnswers(UserModel user, int formId, NewFormAnswers formAnswers) {
+        final FormModel form = formRepository.findById(formId)
+            .orElseThrow(() -> HttpException.notFound("Form with id " + formId + " not found"));
 
         final UserFormSubmissionModel formSubmission = UserFormSubmissionModel.builder()
             .user(user)

@@ -1,7 +1,6 @@
 package com.pocopi.api.dto.config;
 
 import com.pocopi.api.dto.form.Form;
-import com.pocopi.api.dto.image.Image;
 import com.pocopi.api.dto.test.TestGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 

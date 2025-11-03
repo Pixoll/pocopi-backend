@@ -1,7 +1,6 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.config.InformationCardUpdate;
-import com.pocopi.api.dto.image.ImageUrl;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.HomeInfoCardModel;
 import com.pocopi.api.models.config.ImageModel;
@@ -141,13 +140,13 @@ public class HomeInfoCardService {
         if (currentImage != null) {
             imageService.saveImageBytes(imageBytes, currentImage.getPath());
         } else {
-            final ImageUrl response = imageService.createAndSaveImageBytes(
+            final String url = imageService.createAndSaveImageBytes(
                 imageBytes,
                 "/home/cards",
                 imageFile.getName(),
                 "Home info card: " + card.getTitle()
             );
-            final String path = response.url().substring(response.url().indexOf("/images/") + 1);
+            final String path = url.substring(url.indexOf("/images/") + 1);
             final ImageModel newImage = imageRepository.findByPath(path)
                 .orElseThrow(() -> HttpException.notFound("Image with path " + path + " not found"));
             card.setIcon(newImage);
