@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface TestOptionRepository extends JpaRepository<TestOptionModel, Integer> {
     List<TestOptionModel> findAllByQuestion(TestQuestionModel question);
 
-    Optional<TestOptionModel> findByIdAndQuestionPhaseGroupConfigVersion(int id, int questionPhaseGroupConfigVersion);
+    Optional<TestOptionModel> findByIdAndQuestionPhaseGroupId(int id, int questionPhaseGroupId);
 
     List<TestOptionModel> findAllByQuestionPhaseGroupConfigVersionOrderByOrder(int questionPhaseGroupConfigVersion);
 

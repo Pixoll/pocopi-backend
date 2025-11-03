@@ -73,11 +73,13 @@ public class EventLogService {
             .findUnfinishedAttempt(configVersion, userId)
             .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
+        final int groupId = testAttempt.getGroup().getId();
+
         final TestQuestionModel question = testQuestionRepository
-            .findByIdAndPhaseGroupConfigVersion(questionEventLog.questionId(), configVersion)
-            .orElseThrow(() ->
-                HttpException.notFound("Test question with id " + questionEventLog.questionId() + " not found")
-            );
+            .findByIdAndPhaseGroupId(questionEventLog.questionId(), groupId)
+            .orElseThrow(() -> HttpException.notFound(
+                "Test question with id " + questionEventLog.questionId() + " not found in group " + groupId
+            ));
 
         final UserTestQuestionLogModel newQuestionLog = UserTestQuestionLogModel.builder()
             .attempt(testAttempt)
@@ -99,11 +101,13 @@ public class EventLogService {
             .findUnfinishedAttempt(configVersion, userId)
             .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
+        final int groupId = testAttempt.getGroup().getId();
+
         final TestOptionModel option = testOptionRepository
-            .findByIdAndQuestionPhaseGroupConfigVersion(optionEventLog.optionId(), configVersion)
-            .orElseThrow(() ->
-                HttpException.notFound("Test option with id " + optionEventLog.optionId() + " not found")
-            );
+            .findByIdAndQuestionPhaseGroupId(optionEventLog.optionId(), groupId)
+            .orElseThrow(() -> HttpException.notFound(
+                "Test option with id " + optionEventLog.optionId() + " not found in group " + groupId
+            ));
 
         final UserTestOptionLogModel newOptionLog = UserTestOptionLogModel.builder()
             .attempt(testAttempt)
@@ -196,19 +200,19 @@ public class EventLogService {
         final ArrayList<FieldError> errors = new ArrayList<>();
 
         if (optionEventLog.optionId() == null) {
-            errors.add(new FieldError("option", "Option id is required"));
+            errors.add(new FieldError("optionId", "Option id is required"));
         } else if (optionEventLog.optionId() < 1) {
             errors.add(new FieldError("optionId", "Option id must be a positive integer"));
         }
 
         if (optionEventLog.type() == null) {
-            errors.add(new FieldError("option", "Type is required"));
+            errors.add(new FieldError("type", "Type is required"));
         }
 
         if (optionEventLog.timestamp() == null) {
-            errors.add(new FieldError("option", "Timestamp is required"));
+            errors.add(new FieldError("timestamp", "Timestamp is required"));
         } else if (optionEventLog.timestamp() <= 0) {
-            errors.add(new FieldError("option", "Timestamp must be a positive integer"));
+            errors.add(new FieldError("timestamp", "Timestamp must be a positive integer"));
         }
 
         if (!errors.isEmpty()) {
