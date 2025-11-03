@@ -114,6 +114,7 @@ public class ConfigService {
             configModel.getTitle(),
             configModel.getSubtitle(),
             configModel.getDescription(),
+            configModel.isAnonymous(),
             informationCards,
             configModel.getInformedConsent(),
             frequentlyAskedQuestions,

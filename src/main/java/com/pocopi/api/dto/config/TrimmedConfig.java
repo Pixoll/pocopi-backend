@@ -21,6 +21,9 @@ public record TrimmedConfig(
     String description,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean anonymous,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<InformationCard> informationCards,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
