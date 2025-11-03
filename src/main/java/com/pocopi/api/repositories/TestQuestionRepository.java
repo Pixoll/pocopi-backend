@@ -13,4 +13,6 @@ public interface TestQuestionRepository extends JpaRepository<TestQuestionModel,
     Optional<TestQuestionModel> findByIdAndPhaseGroupConfigVersion(int id, int phaseGroupConfigVersion);
 
     List<TestQuestionModel> findAllByPhaseGroupConfigVersionOrderByOrder(int phaseGroupConfigVersion);
+
+    List<TestQuestionModel> findAllByPhaseGroupIdOrderByOrder(int phaseGroupId);
 }

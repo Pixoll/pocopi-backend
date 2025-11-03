@@ -74,6 +74,94 @@ public class TestGroupService {
     }
 
     @Transactional
+    public AssignedTestGroup getAssignedGroup(TestGroupModel groupModel) {
+        final List<TestPhaseModel> phasesList = testPhaseRepository.findAllByGroupIdOrderByOrder(groupModel.getId());
+        final List<TestQuestionModel> questionsList = testQuestionRepository
+            .findAllByPhaseGroupIdOrderByOrder(groupModel.getId());
+        final List<TestOptionModel> optionsList = testOptionRepository
+            .findAllByQuestionPhaseGroupIdOrderByOrder(groupModel.getId());
+
+        final HashMap<Integer, ArrayList<TestQuestionModel>> phaseIdToQuestionsMap = new HashMap<>();
+        final HashMap<Integer, ArrayList<TestOptionModel>> questionIdToOptionsMap = new HashMap<>();
+
+        for (final TestQuestionModel question : questionsList) {
+            final int phaseId = question.getPhase().getId();
+            final ArrayList<TestQuestionModel> questions = phaseIdToQuestionsMap
+                .getOrDefault(phaseId, new ArrayList<>());
+
+            questions.add(question);
+            phaseIdToQuestionsMap.put(phaseId, questions);
+        }
+
+        for (final TestOptionModel option : optionsList) {
+            final int questionId = option.getQuestion().getId();
+            final ArrayList<TestOptionModel> options = questionIdToOptionsMap
+                .getOrDefault(questionId, new ArrayList<>());
+
+            options.add(option);
+            questionIdToOptionsMap.put(questionId, options);
+        }
+
+        final AssignedTestGroup group = new AssignedTestGroup(
+            groupModel.getLabel(),
+            groupModel.getGreeting(),
+            groupModel.isAllowPreviousPhase(),
+            groupModel.isAllowPreviousQuestion(),
+            groupModel.isAllowSkipQuestion(),
+            new ArrayList<>()
+        );
+
+        for (final TestPhaseModel phaseModel : phasesList) {
+            final AssignedTestPhase phase = new AssignedTestPhase(new ArrayList<>());
+
+            group.phases().add(phase);
+
+            final ArrayList<TestQuestionModel> questions = phaseIdToQuestionsMap.get(phaseModel.getId());
+
+            if (phaseModel.isRandomizeQuestions()) {
+                Collections.shuffle(questions, new SecureRandom());
+            }
+
+            for (final TestQuestionModel questionModel : questions) {
+                final Image questionImage = questionModel.getImage() != null
+                    ? imageService.getImageById(questionModel.getImage().getId())
+                    : null;
+
+                final AssignedTestQuestion question = new AssignedTestQuestion(
+                    questionModel.getId(),
+                    questionModel.getText(),
+                    questionImage,
+                    new ArrayList<>()
+                );
+
+                phase.questions().add(question);
+
+                final ArrayList<TestOptionModel> options = questionIdToOptionsMap.get(questionModel.getId());
+
+                if (questionModel.isRandomizeOptions()) {
+                    Collections.shuffle(options, new SecureRandom());
+                }
+
+                for (final TestOptionModel optionModel : options) {
+                    final Image optionImage = optionModel.getImage() != null
+                        ? imageService.getImageById(optionModel.getImage().getId())
+                        : null;
+
+                    final AssignedTestOption option = new AssignedTestOption(
+                        optionModel.getId(),
+                        optionModel.getText(),
+                        optionImage
+                    );
+
+                    question.options().add(option);
+                }
+            }
+        }
+
+        return group;
+    }
+
+    @Transactional
     public List<TestGroup> getGroupsByConfigVersion(int configVersion) {
         final List<TestGroupModel> groupsList = testGroupRepository.findAllByConfigVersion(configVersion);
 

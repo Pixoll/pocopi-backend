@@ -11,4 +11,6 @@ public interface TestPhaseRepository extends JpaRepository<TestPhaseModel, Integ
     List<TestPhaseModel> findAllByGroupId(int groupId);
 
     List<TestPhaseModel> findAllByGroupConfigVersionOrderByOrder(int groupConfigVersion);
+
+    List<TestPhaseModel> findAllByGroupIdOrderByOrder(int groupId);
 }

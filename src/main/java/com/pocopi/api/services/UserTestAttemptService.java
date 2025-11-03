@@ -1,5 +1,6 @@
 package com.pocopi.api.services;
 
+import com.pocopi.api.dto.test.AssignedTestGroup;
 import com.pocopi.api.dto.test.UserTestAttempt;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.test.TestGroupModel;
@@ -37,6 +38,7 @@ public class UserTestAttemptService {
         }
 
         final TestGroupModel group = testGroupService.sampleGroup();
+        final AssignedTestGroup assignedGroup = testGroupService.getAssignedGroup(group);
 
         final UserTestAttemptModel newAttempt = UserTestAttemptModel.builder()
             .user(user)
@@ -44,9 +46,9 @@ public class UserTestAttemptService {
             .start(Instant.now())
             .build();
 
-        final UserTestAttemptModel savedAttempt = userTestAttemptRepository.save(newAttempt);
+        userTestAttemptRepository.save(newAttempt);
 
-        return new UserTestAttempt(String.valueOf(savedAttempt.getId()), group.getId());
+        return new UserTestAttempt(assignedGroup);
     }
 
     @Transactional
@@ -57,7 +59,9 @@ public class UserTestAttemptService {
             .findUnfinishedAttempt(configVersion, userId)
             .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
-        return new UserTestAttempt(String.valueOf(unfinishedAttempt.getId()), unfinishedAttempt.getGroup().getId());
+        final AssignedTestGroup assignedGroup = testGroupService.getAssignedGroup(unfinishedAttempt.getGroup());
+
+        return new UserTestAttempt(assignedGroup);
     }
 
     @Transactional
