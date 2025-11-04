@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-// TODO make projections
 @Repository
 public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQuestionLogModel, Long> {
     @NativeQuery(
