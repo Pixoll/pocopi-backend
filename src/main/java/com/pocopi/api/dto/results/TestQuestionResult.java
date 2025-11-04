@@ -1,31 +1,27 @@
 package com.pocopi.api.dto.results;
 
+import com.pocopi.api.dto.event.QuestionTimestamp;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Resultado de una pregunta de test")
+import java.util.List;
+
 public record TestQuestionResult(
-    @Schema(description = "ID de la pregunta")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int questionId,
 
-    @Schema(description = "ID de la fase")
-    int phaseId,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    List<QuestionTimestamp> timestamps,
 
-    @Schema(description = "Timestamp de inicio")
-    long startTimestamp,
-
-    @Schema(description = "Timestamp de fin")
-    long endTimestamp,
-
-    @Schema(description = "¿Fue respondida correctamente?")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean correct,
 
-    @Schema(description = "¿La pregunta fue saltada?")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean skipped,
 
-    @Schema(description = "Cantidad de cambios de opción")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int totalOptionChanges,
 
-    @Schema(description = "Cantidad de hovers")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int totalOptionHovers
 ) {
 }

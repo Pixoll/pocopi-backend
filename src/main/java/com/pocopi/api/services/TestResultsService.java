@@ -1,5 +1,9 @@
 package com.pocopi.api.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pocopi.api.dto.event.QuestionTimestamp;
 import com.pocopi.api.dto.results.TestQuestionResult;
 import com.pocopi.api.dto.results.TestResultByUser;
 import com.pocopi.api.dto.results.TestResultsByGroup;
@@ -8,18 +12,19 @@ import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.repositories.UserTestQuestionLogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.pocopi.api.repositories.projections.QuestionEventProjection;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class TestResultsService {
+    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final UserTestQuestionLogRepository userTestQuestionLogRepository;
     private final UserRepository userRepository;
     private final ConfigRepository configRepository;
 
-    @Autowired
     public TestResultsService(
         UserTestQuestionLogRepository userTestQuestionLogRepository,
         UserRepository userRepository,
@@ -37,17 +42,16 @@ public class TestResultsService {
         }
 
         final int configVersion = configRepository.findLastConfig().getVersion();
-        final List<Object[]> rows = userTestQuestionLogRepository.findAllQuestionEventsInfoByUserId(configVersion, userId);
+        final List<QuestionEventProjection> rows = userTestQuestionLogRepository
+            .findAllQuestionEventsByUserId(configVersion, userId);
 
-        final List<TestQuestionResult> questionResults = rows.stream().map(row -> new TestQuestionResult(
-            ((Number) row[2]).intValue(),
-            ((Number) row[1]).intValue(),
-            ((Number) row[3]).longValue(),
-            ((Number) row[4]).longValue(),
-            ((Number) row[5]).intValue() == 1,
-            ((Number) row[6]).intValue() == 1,
-            ((Number) row[7]).intValue(),
-            ((Number) row[8]).intValue()
+        final List<TestQuestionResult> questionResults = rows.stream().map(event -> new TestQuestionResult(
+            event.getQuestionId(),
+            parseJsonTimestampArray(event.getTimestampsJson()),
+            event.getCorrect() == 1,
+            event.getSkipped() == 1,
+            event.getTotalOptionChanges().intValue(),
+            event.getTotalOptionHovers().intValue()
         )).toList();
 
         final UserBasicInfo userInfo = new UserBasicInfo(
@@ -71,5 +75,20 @@ public class TestResultsService {
             .toList();
 
         return new TestResultsByGroup(groupId, userResults);
+    }
+
+    private static List<QuestionTimestamp> parseJsonTimestampArray(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+
+        try {
+            return OBJECT_MAPPER.readValue(
+                json, new TypeReference<>() {
+                }
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse timestamps JSON", e);
+        }
     }
 }

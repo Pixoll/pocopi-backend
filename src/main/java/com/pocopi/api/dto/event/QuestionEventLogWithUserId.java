@@ -4,7 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record QuestionEventLog(
+public record QuestionEventLogWithUserId(
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int userId,
+
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int questionId,
 

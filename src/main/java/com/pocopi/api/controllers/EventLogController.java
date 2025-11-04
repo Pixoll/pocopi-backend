@@ -4,6 +4,7 @@ import com.pocopi.api.config.auth.AuthUser;
 import com.pocopi.api.dto.event.NewOptionEventLog;
 import com.pocopi.api.dto.event.NewQuestionEventLog;
 import com.pocopi.api.dto.event.QuestionEventLog;
+import com.pocopi.api.dto.event.QuestionEventLogWithUserId;
 import com.pocopi.api.services.EventLogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -26,8 +27,8 @@ public class EventLogController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<List<QuestionEventLog>> getAllEventLogs() {
-        final List<QuestionEventLog> questionEventLogs = eventLogService.getAllEventLogs();
+    public ResponseEntity<List<QuestionEventLogWithUserId>> getAllEventLogs() {
+        final List<QuestionEventLogWithUserId> questionEventLogs = eventLogService.getAllEventLogs();
         return ResponseEntity.ok(questionEventLogs);
     }
 

@@ -48,7 +48,7 @@ public class UserTestAttemptService {
 
         userTestAttemptRepository.save(newAttempt);
 
-        return new UserTestAttempt(assignedGroup);
+        return new UserTestAttempt(false, 0, assignedGroup);
     }
 
     @Transactional
@@ -61,7 +61,7 @@ public class UserTestAttemptService {
 
         final AssignedTestGroup assignedGroup = testGroupService.getAssignedGroup(unfinishedAttempt.getGroup());
 
-        return new UserTestAttempt(assignedGroup);
+        return new UserTestAttempt(false, 0, assignedGroup);
     }
 
     @Transactional

@@ -1,6 +1,6 @@
 package com.pocopi.api.models.test;
 
-import com.pocopi.api.converters.UserTestOptionTypeConverter;
+import com.pocopi.api.converters.TestOptionEventTypeConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -39,9 +39,9 @@ public class UserTestOptionLogModel {
     private TestOptionModel option;
 
     @NotNull
-    @Convert(converter = UserTestOptionTypeConverter.class)
+    @Convert(converter = TestOptionEventTypeConverter.class)
     @Column(name = "type", nullable = false)
-    private UserTestOptionType type;
+    private TestOptionEventType type;
 
     @NotNull
     @Column(name = "timestamp", nullable = false)

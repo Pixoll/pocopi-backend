@@ -2,12 +2,10 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.user.UserSummary;
 import com.pocopi.api.dto.user.UsersSummary;
-import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.exception.HttpException;
+import com.pocopi.api.models.test.UserTestAttemptModel;
 import com.pocopi.api.models.user.UserModel;
-import com.pocopi.api.repositories.ConfigRepository;
-import com.pocopi.api.repositories.UserRepository;
-import com.pocopi.api.repositories.UserTestOptionLogRepository;
-import com.pocopi.api.repositories.UserTestQuestionLogRepository;
+import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,20 +16,20 @@ import java.util.Set;
 @Service
 public class SummaryService {
     private final ConfigRepository configRepository;
-    private final UserTestQuestionLogRepository userTestQuestionLogRepository;
     private final UserTestOptionLogRepository userTestOptionLogRepository;
     private final UserRepository userRepository;
+    private final UserTestAttemptRepository userTestAttemptRepository;
 
     public SummaryService(
         ConfigRepository configRepository,
-        UserTestQuestionLogRepository userTestQuestionLogRepository,
         UserTestOptionLogRepository userTestOptionLogRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        UserTestAttemptRepository userTestAttemptRepository
     ) {
         this.configRepository = configRepository;
-        this.userTestQuestionLogRepository = userTestQuestionLogRepository;
         this.userTestOptionLogRepository = userTestOptionLogRepository;
         this.userRepository = userRepository;
+        this.userTestAttemptRepository = userTestAttemptRepository;
     }
 
     public UserSummary getUserSummaryById(int userId) {
@@ -62,23 +60,16 @@ public class SummaryService {
 
     private UserSummary getUserSummary(int userId) {
         final UserModel user = userRepository.getUserByUserId(userId);
-        final ConfigModel lastConfig = configRepository.findLastConfig();
+        final int configVersion = configRepository.findLastConfig().getVersion();
 
-        Long start = userTestQuestionLogRepository.findMostRecentlyStartTimeStamp(
-            lastConfig.getVersion(),
-            user.getId()
-        );
-        Long end = userTestQuestionLogRepository.findMostRecentlyEndTimeStamp(lastConfig.getVersion(), user.getId());
-        //algo q diga q no respondio nada bien o quedo lol xd
-        if (start == null || end == null) {
-            start = 0L;
-            end = 0L;
-        }
+        final UserTestAttemptModel attempt = userTestAttemptRepository
+            .findLatestFinishedAttempt(configVersion, userId)
+            .orElseThrow(() -> HttpException.notFound("User with id " + userId + " does not have any test attempts"));
 
-        final List<Object[]> options = userTestOptionLogRepository.findAllLastOptionsByUserId(
-            userId,
-            lastConfig.getVersion()
-        );
+        final long start = attempt.getStart().toEpochMilli();
+        final long end = attempt.getEnd().toEpochMilli();
+
+        final List<Object[]> options = userTestOptionLogRepository.findAllLastOptionsByUserId(userId, configVersion);
         int questionsAnswered = 0;
         int questionsCorrect = 0;
 

@@ -6,14 +6,14 @@ import lombok.Getter;
 import java.util.stream.Stream;
 
 @Getter
-public enum UserTestOptionType {
+public enum TestOptionEventType {
     DESELECT("deselect"),
     SELECT("select"),
     HOVER("hover");
 
     private final String name;
 
-    UserTestOptionType(String name) {
+    TestOptionEventType(String name) {
         this.name = name;
     }
 
@@ -22,8 +22,8 @@ public enum UserTestOptionType {
         return this.name;
     }
 
-    public static UserTestOptionType fromValue(String name) {
-        return Stream.of(UserTestOptionType.values())
+    public static TestOptionEventType fromValue(String name) {
+        return Stream.of(TestOptionEventType.values())
             .filter(c -> c.getName().equals(name))
             .findFirst()
             .orElseThrow(IllegalArgumentException::new);

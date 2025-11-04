@@ -1,14 +1,18 @@
 package com.pocopi.api.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocopi.api.dto.api.FieldError;
-import com.pocopi.api.dto.event.NewOptionEventLog;
-import com.pocopi.api.dto.event.NewQuestionEventLog;
-import com.pocopi.api.dto.event.OptionEventLog;
-import com.pocopi.api.dto.event.QuestionEventLog;
+import com.pocopi.api.dto.event.*;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.models.test.*;
 import com.pocopi.api.repositories.*;
+import com.pocopi.api.repositories.projections.OptionEventProjection;
+import com.pocopi.api.repositories.projections.QuestionEventProjection;
+import com.pocopi.api.repositories.projections.OptionEventWithUserIdProjection;
+import com.pocopi.api.repositories.projections.QuestionEventWithUserIdProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +20,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class EventLogService {
+    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final ConfigRepository configRepository;
     private final TestQuestionRepository testQuestionRepository;
     private final TestOptionRepository testOptionRepository;
@@ -43,24 +48,85 @@ public class EventLogService {
         this.userTestOptionLogRepository = userTestOptionLogRepository;
     }
 
-    public List<QuestionEventLog> getAllEventLogs() {
+    @Transactional
+    public List<QuestionEventLogWithUserId> getAllEventLogs() {
         final int configVersion = configRepository.findLastConfig().getVersion();
 
-        final List<Object[]> allQuestionInfo = userTestQuestionLogRepository.findAllQuestionEvents(configVersion);
-        final List<Object[]> allEvents = userTestOptionLogRepository.findAllEventByLastConfig(configVersion);
+        final List<QuestionEventWithUserIdProjection> questionEvents = userTestQuestionLogRepository
+            .findAllQuestionEvents(configVersion);
+        final List<OptionEventWithUserIdProjection> optionEvents = userTestOptionLogRepository
+            .findAllOptionEvents(configVersion);
 
-        return parseEventLogs(allQuestionInfo, allEvents);
+        final HashMap<Integer, QuestionEventLogWithUserId> questionEventLogs = new HashMap<>();
+
+        for (final QuestionEventWithUserIdProjection questionEvent : questionEvents) {
+            final QuestionEventLogWithUserId questionEventLogResponse = new QuestionEventLogWithUserId(
+                questionEvent.getUserId(),
+                questionEvent.getQuestionId(),
+                parseJsonTimestampArray(questionEvent.getTimestampsJson()),
+                questionEvent.getCorrect() == 1,
+                questionEvent.getSkipped() == 1,
+                questionEvent.getTotalOptionChanges().intValue(),
+                questionEvent.getTotalOptionHovers().intValue(),
+                new ArrayList<>()
+            );
+
+            questionEventLogs.put(questionEvent.getQuestionId(), questionEventLogResponse);
+        }
+
+        for (final OptionEventWithUserIdProjection optionEvent : optionEvents) {
+            final QuestionEventLogWithUserId questionEvent = questionEventLogs.get(optionEvent.getQuestionId());
+
+            final OptionEventLog eventLog = new OptionEventLog(
+                optionEvent.getOptionId(),
+                TestOptionEventType.fromValue(optionEvent.getType()),
+                optionEvent.getTimestamp()
+            );
+
+            questionEvent.events().add(eventLog);
+        }
+
+        return questionEventLogs.values().stream().toList();
     }
 
+    @Transactional
     public List<QuestionEventLog> getEventLogsByUserId(int userId) {
         final int configVersion = configRepository.findLastConfig().getVersion();
 
-        final List<Object[]> userQuestionInfo = userTestQuestionLogRepository
-            .findAllQuestionEventsInfoByUserId(configVersion, userId);
-        final List<Object[]> userEvents = userTestOptionLogRepository
-            .findAllEventByUserIdAndConfigVersion(userId, configVersion);
+        final List<QuestionEventProjection> questionEvents = userTestQuestionLogRepository
+            .findAllQuestionEventsByUserId(configVersion, userId);
+        final List<OptionEventProjection> optionEvents = userTestOptionLogRepository
+            .findAllOptionEventsByUserId(configVersion, userId);
 
-        return parseEventLogs(userQuestionInfo, userEvents);
+        final HashMap<Integer, QuestionEventLog> questionEventLogs = new HashMap<>();
+
+        for (final QuestionEventProjection questionEvent : questionEvents) {
+            final QuestionEventLog questionEventLogResponse = new QuestionEventLog(
+                questionEvent.getQuestionId(),
+                parseJsonTimestampArray(questionEvent.getTimestampsJson()),
+                questionEvent.getCorrect() == 1,
+                questionEvent.getSkipped() == 1,
+                questionEvent.getTotalOptionChanges().intValue(),
+                questionEvent.getTotalOptionHovers().intValue(),
+                new ArrayList<>()
+            );
+
+            questionEventLogs.put(questionEvent.getQuestionId(), questionEventLogResponse);
+        }
+
+        for (final OptionEventProjection optionEvent : optionEvents) {
+            final QuestionEventLog questionEvent = questionEventLogs.get(optionEvent.getQuestionId());
+
+            final OptionEventLog eventLog = new OptionEventLog(
+                optionEvent.getOptionId(),
+                TestOptionEventType.fromValue(optionEvent.getType()),
+                optionEvent.getTimestamp()
+            );
+
+            questionEvent.events().add(eventLog);
+        }
+
+        return questionEventLogs.values().stream().toList();
     }
 
     @Transactional
@@ -119,57 +185,6 @@ public class EventLogService {
         userTestOptionLogRepository.save(newOptionLog);
     }
 
-    private static List<QuestionEventLog> parseEventLogs(List<Object[]> userQuestionInfo, List<Object[]> userEvents) {
-        final Map<String, List<OptionEventLog>> eventsMap = new HashMap<>();
-
-        for (final Object[] event : userEvents) {
-            final int questionId = (Integer) event[0];
-            final String type = (String) event[1];
-            final int optionId = (Integer) event[2];
-            final long timestamp = ((Number) event[3]).longValue();
-            final int uid = (Integer) event[4];
-
-            final String key = uid + "_" + questionId;
-            final OptionEventLog eventResponse = new OptionEventLog(type, optionId, timestamp);
-
-            eventsMap.computeIfAbsent(key, k -> new ArrayList<>()).add(eventResponse);
-        }
-
-        final List<QuestionEventLog> response = new ArrayList<>();
-
-        for (final Object[] questionInfo : userQuestionInfo) {
-            final int uid = (int) questionInfo[0];
-            final int phaseId = (int) questionInfo[1];
-            final int questionId = (int) questionInfo[2];
-            final long startTimestamp = ((Number) questionInfo[3]).longValue();
-            final long endTimestamp = ((Number) questionInfo[4]).longValue();
-            final boolean correct = ((Number) questionInfo[5]).intValue() == 1;
-            final boolean skipped = ((Number) questionInfo[6]).intValue() == 1;
-            final int totalOptionChanges = ((Number) questionInfo[7]).intValue();
-            final int totalOptionHovers = ((Number) questionInfo[8]).intValue();
-
-            final String key = uid + "_" + questionId;
-            final List<OptionEventLog> events = eventsMap.getOrDefault(key, new ArrayList<>());
-
-            final QuestionEventLog questionEventLogResponse = new QuestionEventLog(
-                uid,
-                phaseId,
-                questionId,
-                startTimestamp,
-                endTimestamp,
-                skipped,
-                correct,
-                totalOptionChanges,
-                totalOptionHovers,
-                events
-            );
-
-            response.add(questionEventLogResponse);
-        }
-
-        return response;
-    }
-
     private static void validateQuestionEventLog(NewQuestionEventLog questionEventLog) {
         final ArrayList<FieldError> errors = new ArrayList<>();
 
@@ -217,6 +232,21 @@ public class EventLogService {
 
         if (!errors.isEmpty()) {
             throw new MultiFieldException("Missing or invalid fields", errors);
+        }
+    }
+
+    private static List<QuestionTimestamp> parseJsonTimestampArray(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+
+        try {
+            return OBJECT_MAPPER.readValue(
+                json, new TypeReference<>() {
+                }
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse timestamps JSON", e);
         }
     }
 }
