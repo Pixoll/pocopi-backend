@@ -103,7 +103,7 @@ public class SummaryService {
             user.getId(),
             user.getName(),
             user.getEmail(),
-            user.getAge(),
+            user.getAge() != null ? user.getAge().intValue() : null,
             start,
             Math.toIntExact(end - start),
             questionsAnswered,

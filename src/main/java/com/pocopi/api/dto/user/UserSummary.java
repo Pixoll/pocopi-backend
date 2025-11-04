@@ -13,7 +13,7 @@ public record UserSummary(
     String email,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int age,
+    Integer age,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     long timestamp,
