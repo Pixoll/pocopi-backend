@@ -21,13 +21,13 @@ public class ConfigController {
         this.configService = configService;
     }
 
-    @GetMapping("/latest")
+    @GetMapping
     public ResponseEntity<TrimmedConfig> getLastestConfigAsUser() {
         final TrimmedConfig config = configService.getLatestConfigTrimmed();
         return ResponseEntity.ok(config);
     }
 
-    @GetMapping("/latest/full")
+    @GetMapping("/full")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<FullConfig> getLastestConfigAsAdmin() {
         final FullConfig config = configService.getLatestConfigFull();
