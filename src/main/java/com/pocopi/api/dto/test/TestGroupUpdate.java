@@ -3,16 +3,15 @@ package com.pocopi.api.dto.test;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
-import java.util.Optional;
 
 public record TestGroupUpdate(
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    Optional<Integer> id,
+    Integer id,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int probability,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String label,
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
@@ -26,6 +25,9 @@ public record TestGroupUpdate(
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean allowSkipQuestion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean randomizePhases,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<TestPhaseUpdate> phases

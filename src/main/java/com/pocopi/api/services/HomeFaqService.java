@@ -1,14 +1,19 @@
 package com.pocopi.api.services;
 
+import com.pocopi.api.dto.config.FrequentlyAskedQuestion;
 import com.pocopi.api.dto.config.FrequentlyAskedQuestionUpdate;
+import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.HomeFaqModel;
 import com.pocopi.api.repositories.HomeFaqRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Service
 public class HomeFaqService {
@@ -18,65 +23,87 @@ public class HomeFaqService {
         this.homeFaqRepository = homeFaqRepository;
     }
 
-    public Map<String, String> processFaq(List<FrequentlyAskedQuestionUpdate> updateFaqs) {
-        final Map<String, String> results = new HashMap<>();
-        final List<HomeFaqModel> allExistingFaqs = homeFaqRepository.findAll();
+    public List<FrequentlyAskedQuestion> getFaqsByConfigVersion(int configVersion) {
+        return homeFaqRepository
+            .findAllByConfigVersion(configVersion)
+            .stream()
+            .map(faq -> new FrequentlyAskedQuestion(faq.getId(), faq.getQuestion(), faq.getAnswer()))
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public boolean updateFaqs(ConfigModel config, List<FrequentlyAskedQuestionUpdate> updateFaqs) {
+        final List<HomeFaqModel> storedFaqs = homeFaqRepository.findAllByConfigVersion(config.getVersion());
+
+        if (updateFaqs == null || updateFaqs.isEmpty()) {
+            if (storedFaqs.isEmpty()) {
+                return false;
+            }
+
+            homeFaqRepository.deleteAll(storedFaqs);
+            return true;
+        }
+
+        final AtomicBoolean modified = new AtomicBoolean(false);
+        final Map<Integer, HomeFaqModel> storedFaqsMap = new HashMap<>();
         final Map<Integer, Boolean> processedFaqs = new HashMap<>();
 
-        for (final HomeFaqModel faq : allExistingFaqs) {
+        for (final HomeFaqModel faq : storedFaqs) {
+            storedFaqsMap.put(faq.getId(), faq);
             processedFaqs.put(faq.getId(), false);
         }
 
-        int order = 0;
-        for (final FrequentlyAskedQuestionUpdate frequentlyAskedQuestionUpdate : updateFaqs) {
-            if (frequentlyAskedQuestionUpdate.id().isPresent()) {
-                final Integer faqId = frequentlyAskedQuestionUpdate.id().get();
-                final HomeFaqModel savedFaq = homeFaqRepository.getHomeFaqModelById(faqId);
+        byte order = 0;
 
-                if (savedFaq == null) {
-                    results.put("faq_" + faqId, "FAQ not found");
-                    order++;
-                    continue;
-                }
+        for (final FrequentlyAskedQuestionUpdate faqUpdate : updateFaqs) {
+            final boolean isNew = faqUpdate.id() == null
+                || !storedFaqsMap.containsKey(faqUpdate.id());
 
-                final boolean infoChanged = checkChangeByFaq(savedFaq, frequentlyAskedQuestionUpdate);
-                final boolean orderChanged = savedFaq.getOrder() != order;
+            if (isNew) {
+                final HomeFaqModel newFaq = HomeFaqModel.builder()
+                    .config(config)
+                    .order(order++)
+                    .question(faqUpdate.question())
+                    .answer(faqUpdate.answer())
+                    .build();
 
-                if (infoChanged || orderChanged) {
-                    savedFaq.setAnswer(frequentlyAskedQuestionUpdate.answer());
-                    savedFaq.setQuestion(frequentlyAskedQuestionUpdate.question());
-                    savedFaq.setOrder((byte) order);
-
-                    homeFaqRepository.save(savedFaq);
-                    results.put("faq_" + faqId, "Updated successfully");
-                } else {
-                    results.put("faq_" + faqId, "No changes");
-                }
-                processedFaqs.put(faqId, true);
-            } else {
-                final HomeFaqModel newFaq = new HomeFaqModel();
-                newFaq.setAnswer(frequentlyAskedQuestionUpdate.answer());
-                newFaq.setQuestion(frequentlyAskedQuestionUpdate.question());
-                newFaq.setOrder((byte) order);
-
-                final HomeFaqModel savedNewFaq = homeFaqRepository.save(newFaq);
-                results.put("faq_new_" + order, "Created with ID: " + savedNewFaq.getId());
+                homeFaqRepository.save(newFaq);
+                modified.set(true);
+                continue;
             }
 
-            order++;
-        }
+            final int faqId = faqUpdate.id();
+            final HomeFaqModel storedFaq = storedFaqsMap.get(faqId);
 
-        for (final Map.Entry<Integer, Boolean> entry : processedFaqs.entrySet()) {
-            if (!entry.getValue()) {
-                homeFaqRepository.deleteById(entry.getKey());
-                results.put("faq_" + entry.getKey(), "Deleted");
+            processedFaqs.put(faqId, true);
+
+            final boolean updated = !Objects.equals(storedFaq.getAnswer(), faqUpdate.answer())
+                || !Objects.equals(storedFaq.getQuestion(), faqUpdate.question())
+                || storedFaq.getOrder() != order++;
+
+            if (!updated) {
+                continue;
             }
-        }
-        return results;
-    }
 
-    private boolean checkChangeByFaq(HomeFaqModel savedFaq, FrequentlyAskedQuestionUpdate updated) {
-        return !Objects.equals(savedFaq.getAnswer(), updated.answer())
-               || !Objects.equals(savedFaq.getQuestion(), updated.question());
+            storedFaq.setAnswer(faqUpdate.answer());
+            storedFaq.setQuestion(faqUpdate.question());
+            storedFaq.setOrder(order);
+
+            homeFaqRepository.save(storedFaq);
+            modified.set(true);
+        }
+
+        processedFaqs.forEach((faqId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final HomeFaqModel faq = storedFaqsMap.get(faqId);
+
+            homeFaqRepository.delete(faq);
+            modified.set(true);
+        });
+
+        return modified.get();
     }
 }

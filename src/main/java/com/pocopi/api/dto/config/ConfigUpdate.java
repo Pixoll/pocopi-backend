@@ -6,17 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public record ConfigUpdate(
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int version,
-
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String title,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Optional<String> subtitle,
+    String subtitle,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String description,
@@ -27,20 +23,20 @@ public record ConfigUpdate(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String informedConsent,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     List<InformationCardUpdate> informationCards,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     List<FrequentlyAskedQuestionUpdate> faq,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     FormUpdate preTestForm,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     FormUpdate postTestForm,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Map<String, TestGroupUpdate> groups,
+    List<TestGroupUpdate> groups,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Map<String, String> translations

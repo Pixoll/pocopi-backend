@@ -4,25 +4,24 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
-import java.util.Optional;
 
 public record ConfigUpdateWithFiles(
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Icon by config")
-    Optional<MultipartFile> appIcon,
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "New application icon")
+    MultipartFile icon,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by pre test form")
-    Map<Integer, MultipartFile> preTestFormQuestionOptionsFiles,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the information cards")
+    Map<Integer, MultipartFile> informationCardImages,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options by post test form")
-    Map<Integer, MultipartFile> postTestFormQuestionOptionsFiles,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the pre-test form")
+    Map<Integer, MultipartFile> preTestFormImages,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from question and options each phase")
-    Map<Integer, MultipartFile> groupQuestionOptionsFiles,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the post-test form")
+    Map<Integer, MultipartFile> postTestFormImages,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "All images from information cards")
-    Map<Integer, MultipartFile> informationCardFiles,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the test groups")
+    Map<Integer, MultipartFile> groupImages,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Last configuration updated")
-    ConfigUpdate updateLastConfig
+    ConfigUpdate payload
 ) {
 }

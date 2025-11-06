@@ -37,37 +37,47 @@ public class FormQuestionModel {
     @Column(name = "category", nullable = false, length = 50)
     private String category;
 
+    @Builder.Default
     @Size(min = 1, max = 200)
     @Column(name = "text", length = 200)
     private String text = null;
 
+    @Builder.Default
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "image_id")
     private ImageModel image = null;
 
+    @Builder.Default
     @NotNull
     @Column(name = "required", nullable = false)
     private boolean required = true;
 
+    @Builder.Default
     @Column(name = "min", columnDefinition = "int2 unsigned")
     private Short min = null;
 
+    @Builder.Default
     @Column(name = "max", columnDefinition = "int2 unsigned")
     private Short max = null;
 
+    @Builder.Default
     @Column(name = "step", columnDefinition = "int2 unsigned")
     private Short step = null;
 
+    @Builder.Default
     @Column(name = "other")
     private Boolean other = null;
 
+    @Builder.Default
     @Column(name = "min_length", columnDefinition = "int2 unsigned")
     private Short minLength = null;
 
+    @Builder.Default
     @Column(name = "max_length", columnDefinition = "int2 unsigned")
     private Short maxLength = null;
 
+    @Builder.Default
     @Size(min = 1, max = 50)
     @Column(name = "placeholder", length = 50)
     private String placeholder = null;

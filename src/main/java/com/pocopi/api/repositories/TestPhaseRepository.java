@@ -8,8 +8,6 @@ import java.util.List;
 
 @Repository
 public interface TestPhaseRepository extends JpaRepository<TestPhaseModel, Integer> {
-    List<TestPhaseModel> findAllByGroupId(int groupId);
-
     List<TestPhaseModel> findAllByGroupConfigVersionOrderByOrder(int groupConfigVersion);
 
     List<TestPhaseModel> findAllByGroupIdOrderByOrder(int groupId);

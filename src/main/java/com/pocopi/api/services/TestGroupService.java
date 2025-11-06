@@ -2,19 +2,21 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.dto.test.*;
+import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.TestPhaseModel;
 import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.*;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TestGroupService {
@@ -257,114 +259,202 @@ public class TestGroupService {
         return groupsMap.values().stream().toList();
     }
 
-    public Map<String, String> processGroups(Map<String, TestGroupUpdate> groups, Map<Integer, File> images) {
-        final Map<String, String> results = new HashMap<>();
-        final List<TestGroupModel> allExistingGroups = testGroupRepository.findAll();
-        final Map<Integer, Boolean> processedGroups = new HashMap<>();
+    @Transactional
+    public boolean updateGroups(
+        ConfigModel config,
+        List<TestGroupUpdate> groupsUpdates,
+        Map<Integer, MultipartFile> imageFiles
+    ) {
+        final List<TestGroupModel> storedGroups = testGroupRepository.findAllByConfigVersion(config.getVersion());
+        final List<TestPhaseModel> storedPhases = testPhaseRepository
+            .findAllByGroupConfigVersionOrderByOrder(config.getVersion());
+        final List<TestQuestionModel> storedQuestions = testQuestionRepository
+            .findAllByPhaseGroupConfigVersionOrderByOrder(config.getVersion());
+        final List<TestOptionModel> storedOptions = testOptionRepository
+            .findAllByQuestionPhaseGroupConfigVersionOrderByOrder(config.getVersion());
 
-        for (final TestGroupModel group : allExistingGroups) {
+        final AtomicBoolean modified = new AtomicBoolean(false);
+
+        final Map<Integer, TestGroupModel> storedGroupsMap = new HashMap<>();
+        final Map<Integer, TestPhaseModel> storedPhasesMap = new HashMap<>();
+        final Map<Integer, TestQuestionModel> storedQuestionsMap = new HashMap<>();
+        final Map<Integer, TestOptionModel> storedOptionsMap = new HashMap<>();
+
+        final Map<Integer, Boolean> processedGroups = new HashMap<>();
+        final Map<Integer, Boolean> processedPhases = new HashMap<>();
+        final Map<Integer, Boolean> processedQuestions = new HashMap<>();
+        final Map<Integer, Boolean> processedOptions = new HashMap<>();
+
+        for (final TestGroupModel group : storedGroups) {
+            storedGroupsMap.put(group.getId(), group);
             processedGroups.put(group.getId(), false);
         }
 
-        final ImageIndexTracker imageIndexTracker = new ImageIndexTracker(0);
+        for (final TestPhaseModel phase : storedPhases) {
+            storedPhasesMap.put(phase.getId(), phase);
+            processedPhases.put(phase.getId(), false);
+        }
 
-        for (final Map.Entry<String, TestGroupUpdate> entry : groups.entrySet()) {
-            final String groupKey = entry.getKey();
-            final TestGroupUpdate updatedGroup = entry.getValue();
+        for (final TestQuestionModel question : storedQuestions) {
+            storedQuestionsMap.put(question.getId(), question);
+            processedQuestions.put(question.getId(), false);
+        }
 
-            if (updatedGroup.id().isPresent()) {
-                final int groupId = updatedGroup.id().get();
-                final TestGroupModel savedGroup = testGroupRepository.findById(groupId).orElse(null);
+        for (final TestOptionModel option : storedOptions) {
+            storedOptionsMap.put(option.getId(), option);
+            processedOptions.put(option.getId(), false);
+        }
 
-                if (savedGroup == null) {
-                    results.put("group_" + groupId, "Group not found");
-                    continue;
-                }
+        final AtomicInteger imageIndex = new AtomicInteger(0);
 
-                final boolean infoChanged = checkChangeByGroup(updatedGroup, savedGroup);
+        for (final TestGroupUpdate groupUpdate : groupsUpdates != null ? groupsUpdates : List.<TestGroupUpdate>of()) {
+            final boolean isNew = groupUpdate.id() == null
+                || !storedGroupsMap.containsKey(groupUpdate.id());
 
-                if (infoChanged) {
-                    savedGroup.setGreeting(updatedGroup.greeting());
-                    savedGroup.setLabel(updatedGroup.label());
-                    savedGroup.setProbability((byte) updatedGroup.probability());
-                    savedGroup.setAllowPreviousPhase(updatedGroup.allowPreviousPhase());
-                    savedGroup.setAllowPreviousQuestion(updatedGroup.allowPreviousQuestion());
-                    savedGroup.setAllowSkipQuestion(updatedGroup.allowSkipQuestion());
-
-                    testGroupRepository.save(savedGroup);
-                }
-
-                final Map<String, String> phaseResults = testPhaseService.processPhases(
-                    savedGroup,
-                    updatedGroup.phases(),
-                    images,
-                    imageIndexTracker
-                );
-                results.putAll(phaseResults);
-
-                if (infoChanged) {
-                    results.put("group_" + groupId, "Updated successfully");
-                } else {
-                    results.put("group_" + groupId, "No changes");
-                }
-
-                processedGroups.put(groupId, true);
-            } else {
-                final TestGroupModel newGroup = new TestGroupModel();
-                newGroup.setProbability((byte) updatedGroup.probability());
-                newGroup.setGreeting(updatedGroup.greeting());
-                newGroup.setLabel(updatedGroup.label());
-                newGroup.setAllowPreviousPhase(updatedGroup.allowPreviousPhase());
-                newGroup.setAllowPreviousQuestion(updatedGroup.allowPreviousQuestion());
-                newGroup.setAllowSkipQuestion(updatedGroup.allowSkipQuestion());
+            if (isNew) {
+                final TestGroupModel newGroup = TestGroupModel.builder()
+                    .config(config)
+                    .label(groupUpdate.label())
+                    .probability((byte) groupUpdate.probability())
+                    .greeting(groupUpdate.greeting())
+                    .allowPreviousPhase(groupUpdate.allowPreviousPhase())
+                    .allowPreviousQuestion(groupUpdate.allowPreviousQuestion())
+                    .allowSkipQuestion(groupUpdate.allowSkipQuestion())
+                    .randomizePhases(groupUpdate.randomizePhases())
+                    .build();
 
                 final TestGroupModel savedGroup = testGroupRepository.save(newGroup);
 
-                final Map<String, String> phaseResults = testPhaseService.processPhases(
+                testPhaseService.updatePhases(
                     savedGroup,
-                    updatedGroup.phases(),
-                    images,
-                    imageIndexTracker
+                    groupUpdate.phases(),
+                    storedPhasesMap,
+                    storedQuestionsMap,
+                    storedOptionsMap,
+                    processedPhases,
+                    processedQuestions,
+                    processedOptions,
+                    imageIndex,
+                    imageFiles
                 );
-                results.putAll(phaseResults);
 
-                results.put("group_new_" + groupKey, "Created with ID: " + savedGroup.getId());
+                modified.set(true);
+                continue;
             }
-        }
 
-        for (final Map.Entry<Integer, Boolean> entry : processedGroups.entrySet()) {
-            if (!entry.getValue()) {
-                final TestGroupModel groupToDelete = testGroupRepository.findById(entry.getKey()).orElse(null);
-                if (groupToDelete != null) {
-                    testGroupRepository.delete(groupToDelete);
-                    results.put("group_" + entry.getKey(), "Deleted");
-                }
+            final int groupId = groupUpdate.id();
+            final TestGroupModel storedGroup = storedGroupsMap.get(groupId);
+
+            processedGroups.put(groupId, true);
+
+            final boolean updated = !Objects.equals(storedGroup.getLabel(), groupUpdate.label())
+                || storedGroup.getProbability() != groupUpdate.probability()
+                || !Objects.equals(storedGroup.getGreeting(), groupUpdate.greeting())
+                || storedGroup.isAllowPreviousPhase() != groupUpdate.allowPreviousPhase()
+                || storedGroup.isAllowPreviousQuestion() != groupUpdate.allowPreviousQuestion()
+                || storedGroup.isAllowSkipQuestion() != groupUpdate.allowSkipQuestion()
+                || storedGroup.isRandomizePhases() != groupUpdate.randomizePhases();
+
+            if (!updated) {
+                final boolean modifiedPhases = testPhaseService.updatePhases(
+                    storedGroup,
+                    groupUpdate.phases(),
+                    storedPhasesMap,
+                    storedQuestionsMap,
+                    storedOptionsMap,
+                    processedPhases,
+                    processedQuestions,
+                    processedOptions,
+                    imageIndex,
+                    imageFiles
+                );
+
+                modified.set(modifiedPhases || modified.get());
+                continue;
             }
+
+            storedGroup.setLabel(groupUpdate.label());
+            storedGroup.setProbability((byte) groupUpdate.probability());
+            storedGroup.setGreeting(groupUpdate.greeting());
+            storedGroup.setAllowPreviousPhase(groupUpdate.allowPreviousPhase());
+            storedGroup.setAllowPreviousQuestion(groupUpdate.allowPreviousQuestion());
+            storedGroup.setAllowSkipQuestion(groupUpdate.allowSkipQuestion());
+            storedGroup.setRandomizePhases(groupUpdate.randomizePhases());
+
+            final TestGroupModel updatedGroup = testGroupRepository.save(storedGroup);
+
+            testPhaseService.updatePhases(
+                updatedGroup,
+                groupUpdate.phases(),
+                storedPhasesMap,
+                storedQuestionsMap,
+                storedOptionsMap,
+                processedPhases,
+                processedQuestions,
+                processedOptions,
+                imageIndex,
+                imageFiles
+            );
+
+            modified.set(true);
         }
 
-        return results;
-    }
+        processedOptions.forEach((optionId, processed) -> {
+            if (processed) {
+                return;
+            }
 
-    private boolean checkChangeByGroup(TestGroupUpdate updatedGroup, TestGroupModel savedGroup) {
-        return !Objects.equals(updatedGroup.label(), savedGroup.getLabel())
-               || updatedGroup.probability() != savedGroup.getProbability()
-               || !Objects.equals(updatedGroup.greeting(), savedGroup.getGreeting())
-               || updatedGroup.allowPreviousPhase() != savedGroup.isAllowPreviousPhase()
-               || updatedGroup.allowPreviousQuestion() != savedGroup.isAllowPreviousQuestion()
-               || updatedGroup.allowSkipQuestion() != savedGroup.isAllowSkipQuestion();
-    }
+            final TestOptionModel option = storedOptionsMap.get(optionId);
+            final ImageModel image = option.getImage();
 
-    @Setter
-    @Getter
-    public static class ImageIndexTracker {
-        private int index;
+            testOptionRepository.delete(option);
 
-        public ImageIndexTracker(int initialIndex) {
-            this.index = initialIndex;
-        }
+            if (image != null) {
+                imageService.deleteImageIfUnused(image);
+            }
 
-        public void increment() {
-            index++;
-        }
+            modified.set(true);
+        });
+
+        processedQuestions.forEach((questionId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final TestQuestionModel question = storedQuestionsMap.get(questionId);
+            final ImageModel image = question.getImage();
+
+            testQuestionRepository.delete(question);
+
+            if (image != null) {
+                imageService.deleteImageIfUnused(image);
+            }
+
+            modified.set(true);
+        });
+
+        processedPhases.forEach((phaseId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final TestPhaseModel phase = storedPhasesMap.get(phaseId);
+
+            testPhaseRepository.delete(phase);
+            modified.set(true);
+        });
+
+        processedGroups.forEach((groupId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final TestGroupModel group = storedGroupsMap.get(groupId);
+
+            testGroupRepository.delete(group);
+            modified.set(true);
+        });
+
+        return modified.get();
     }
 }

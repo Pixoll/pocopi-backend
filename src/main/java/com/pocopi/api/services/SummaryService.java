@@ -32,10 +32,6 @@ public class SummaryService {
         this.userTestAttemptRepository = userTestAttemptRepository;
     }
 
-    public UserSummary getUserSummaryById(int userId) {
-        return getUserSummary(userId);
-    }
-
     public UsersSummary getAllUserSummaries() {
         final List<Integer> userIds = userRepository.getAllUserIds();
         final List<UserSummary> userSummaries = new ArrayList<>();
@@ -58,7 +54,7 @@ public class SummaryService {
         );
     }
 
-    private UserSummary getUserSummary(int userId) {
+    public UserSummary getUserSummary(int userId) {
         final UserModel user = userRepository.getUserByUserId(userId);
         final int configVersion = configRepository.findLastConfig().getVersion();
 

@@ -2,11 +2,9 @@ package com.pocopi.api.dto.config;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.Optional;
-
 public record FrequentlyAskedQuestionUpdate(
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    Optional<Integer> id,
+    Integer id,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String question,

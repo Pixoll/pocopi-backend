@@ -1,26 +1,27 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.form.Form;
-import com.pocopi.api.dto.form.NewFormAnswer;
-import com.pocopi.api.dto.form.NewFormAnswers;
-import com.pocopi.api.dto.form.FormQuestion;
-import com.pocopi.api.dto.form.SliderLabel;
-import com.pocopi.api.dto.form.FormOption;
 import com.pocopi.api.dto.config.Image;
+import com.pocopi.api.dto.form.*;
 import com.pocopi.api.exception.HttpException;
+import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.form.*;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
 public class FormService {
     private final FormRepository formRepository;
+    private final FormQuestionService formQuestionService;
     private final FormQuestionRepository formQuestionRepository;
     private final FormQuestionOptionRepository formQuestionOptionRepository;
     private final FormQuestionSliderLabelRepository formQuestionSliderLabelRepository;
@@ -30,6 +31,7 @@ public class FormService {
 
     public FormService(
         FormRepository formRepository,
+        FormQuestionService formQuestionService,
         FormQuestionRepository formQuestionRepository,
         FormQuestionOptionRepository formQuestionOptionRepository,
         FormQuestionSliderLabelRepository formQuestionSliderLabelRepository,
@@ -38,6 +40,7 @@ public class FormService {
         ImageService imageService
     ) {
         this.formRepository = formRepository;
+        this.formQuestionService = formQuestionService;
         this.formQuestionRepository = formQuestionRepository;
         this.formQuestionOptionRepository = formQuestionOptionRepository;
         this.formQuestionSliderLabelRepository = formQuestionSliderLabelRepository;
@@ -137,10 +140,10 @@ public class FormService {
             ) {
                 throw HttpException.conflict(
                     "Form question with id "
-                    + question.getId()
-                    + " cannot have multiple answers (is not of type "
-                    + FormQuestionType.SELECT_MULTIPLE.getValue()
-                    + ")"
+                        + question.getId()
+                        + " cannot have multiple answers (is not of type "
+                        + FormQuestionType.SELECT_MULTIPLE.getValue()
+                        + ")"
                 );
             }
 
@@ -156,8 +159,8 @@ public class FormService {
 
             if (question.getType() == FormQuestionType.SELECT_MULTIPLE) {
                 final int answersAmount = questionAnswers.getOrDefault(question.getId(), new HashSet<>()).size()
-                                          + (questionHasOtherAnswer.getOrDefault(question.getId(), false) ? 1 : 0)
-                                          + 1;
+                    + (questionHasOtherAnswer.getOrDefault(question.getId(), false) ? 1 : 0)
+                    + 1;
 
                 if (answersAmount < question.getMin() || answersAmount > question.getMax()) {
                     throw HttpException.badRequest(
@@ -203,6 +206,161 @@ public class FormService {
         }
 
         userFormAnswerRepository.saveAll(answers);
+    }
+
+    @Transactional
+    public boolean updateForm(
+        ConfigModel config,
+        FormType type,
+        FormUpdate formUpdate,
+        Map<Integer, MultipartFile> imageFiles
+    ) {
+        final Optional<FormModel> optionalForm = formRepository.findByTypeAndConfigVersion(type, config.getVersion());
+
+        if (optionalForm.isEmpty()) {
+            if (formUpdate == null) {
+                return false;
+            }
+
+            final FormModel newForm = FormModel.builder()
+                .config(config)
+                .type(type)
+                .title(formUpdate.title())
+                .build();
+
+            final FormModel savedForm = formRepository.save(newForm);
+
+            final AtomicInteger imageIndex = new AtomicInteger(0);
+
+            formQuestionService.updateQuestions(
+                savedForm,
+                formUpdate.questions(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                imageIndex,
+                imageFiles
+            );
+
+            return true;
+        }
+
+        final AtomicBoolean modified = new AtomicBoolean(false);
+        final FormModel form = optionalForm.get();
+        final FormModel savedForm;
+
+        if (formUpdate != null && !Objects.equals(form.getTitle(), formUpdate.title())) {
+            form.setTitle(formUpdate.title());
+
+            savedForm = formRepository.save(form);
+            modified.set(true);
+        } else {
+            savedForm = form;
+        }
+
+        final List<FormQuestionModel> storedQuestions = formQuestionRepository
+            .findAllByFormIdOrderByOrder(savedForm.getId());
+        final List<FormQuestionOptionModel> storedOptions = formQuestionOptionRepository
+            .findAllByFormQuestionFormIdOrderByOrder(savedForm.getId());
+        final List<FormQuestionSliderLabelModel> storedSliderLabels = formQuestionSliderLabelRepository
+            .findAllByFormQuestionFormId(savedForm.getId());
+
+        final Map<Integer, FormQuestionModel> storedQuestionsMap = new HashMap<>();
+        final Map<Integer, FormQuestionOptionModel> storedOptionsMap = new HashMap<>();
+        final Map<Integer, FormQuestionSliderLabelModel> storedSliderLabelsMap = new HashMap<>();
+
+        final Map<Integer, Boolean> processedQuestions = new HashMap<>();
+        final Map<Integer, Boolean> processedOptions = new HashMap<>();
+        final Map<Integer, Boolean> processedSliderLabels = new HashMap<>();
+
+        for (final FormQuestionModel question : storedQuestions) {
+            storedQuestionsMap.put(question.getId(), question);
+            processedQuestions.put(question.getId(), false);
+        }
+
+        for (final FormQuestionOptionModel option : storedOptions) {
+            storedOptionsMap.put(option.getId(), option);
+            processedOptions.put(option.getId(), false);
+        }
+
+        for (final FormQuestionSliderLabelModel sliderLabel : storedSliderLabels) {
+            storedSliderLabelsMap.put(sliderLabel.getId(), sliderLabel);
+            processedSliderLabels.put(sliderLabel.getId(), false);
+        }
+
+        final AtomicInteger imageIndex = new AtomicInteger(0);
+
+        if (formUpdate != null) {
+            final boolean modifiedQuestions = formQuestionService.updateQuestions(
+                savedForm,
+                formUpdate.questions(),
+                storedQuestionsMap,
+                storedOptionsMap,
+                storedSliderLabelsMap,
+                processedQuestions,
+                processedOptions,
+                processedSliderLabels,
+                imageIndex,
+                imageFiles
+            );
+
+            modified.set(modifiedQuestions || modified.get());
+        }
+
+        processedSliderLabels.forEach((sliderLabelId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final FormQuestionSliderLabelModel sliderLabel = storedSliderLabelsMap.get(sliderLabelId);
+
+            formQuestionSliderLabelRepository.delete(sliderLabel);
+            modified.set(true);
+        });
+
+        processedOptions.forEach((optionId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final FormQuestionOptionModel option = storedOptionsMap.get(optionId);
+            final ImageModel image = option.getImage();
+
+            formQuestionOptionRepository.delete(option);
+
+            if (image != null) {
+                imageService.deleteImageIfUnused(image);
+            }
+
+            modified.set(true);
+        });
+
+        processedQuestions.forEach((questionId, processed) -> {
+            if (processed) {
+                return;
+            }
+
+            final FormQuestionModel question = storedQuestions.get(questionId);
+            final ImageModel image = question.getImage();
+
+            formQuestionRepository.delete(question);
+
+            if (image != null) {
+                imageService.deleteImageIfUnused(image);
+            }
+
+            modified.set(true);
+        });
+
+        if (formUpdate == null) {
+            formRepository.delete(savedForm);
+            modified.set(true);
+        }
+
+        return modified.get();
     }
 
     private FormQuestion parseFormQuestion(FormQuestionModel questionModel) {
@@ -283,8 +441,8 @@ public class FormService {
                     if ((answer.optionId() == null) == (answer.answer() == null)) {
                         throw HttpException.conflict(
                             "Form answer for question with id "
-                            + question.getId()
-                            + " requires either optionId or answer fields, but not both at the same time"
+                                + question.getId()
+                                + " requires either optionId or answer fields, but not both at the same time"
                         );
                     }
                 } else {
@@ -322,8 +480,8 @@ public class FormService {
                 if (answer.optionId() != null || answer.answer() != null) {
                     throw HttpException.badRequest(
                         "Form answer for question with id "
-                        + question.getId()
-                        + " cannot have optionId or answer fields"
+                            + question.getId()
+                            + " cannot have optionId or answer fields"
                     );
                 }
             }
@@ -339,8 +497,8 @@ public class FormService {
                 if (answer.optionId() != null || answer.value() != null) {
                     throw HttpException.badRequest(
                         "Form answer for question with id "
-                        + question.getId()
-                        + " cannot have optionId or answer fields"
+                            + question.getId()
+                            + " cannot have optionId or answer fields"
                     );
                 }
             }

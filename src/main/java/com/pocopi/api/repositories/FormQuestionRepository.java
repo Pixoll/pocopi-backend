@@ -9,9 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface FormQuestionRepository extends JpaRepository<FormQuestionModel, Integer> {
-    FormQuestionModel getFormQuestionModelById(int id);
-
     Optional<FormQuestionModel> findByIdAndFormId(int id, int formId);
 
     List<FormQuestionModel> findAllByFormConfigVersionOrderByOrder(int formConfigVersion);
+
+    List<FormQuestionModel> findAllByFormIdOrderByOrder(int formId);
 }

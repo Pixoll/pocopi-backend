@@ -3,6 +3,7 @@ package com.pocopi.api.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@SuppressWarnings("unused")
 @Getter
 public class HttpException extends RuntimeException {
     private final HttpStatus status;
@@ -59,5 +60,9 @@ public class HttpException extends RuntimeException {
 
     public static HttpException internalServerError(Throwable cause) {
         return new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, cause.getMessage());
+    }
+
+    public static HttpException internalServerError(String message, Throwable cause) {
+        return new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, message + ": " + cause.getMessage());
     }
 }

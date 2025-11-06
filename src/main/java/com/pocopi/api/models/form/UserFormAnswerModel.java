@@ -33,14 +33,17 @@ public class UserFormAnswerModel {
     @JoinColumn(name = "question_id", nullable = false)
     private FormQuestionModel question;
 
+    @Builder.Default
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "option_id")
     private FormQuestionOptionModel option = null;
 
+    @Builder.Default
     @Column(name = "value", columnDefinition = "int2 unsigned")
     private Short value = null;
 
+    @Builder.Default
     @Size(min = 1, max = 1000)
     @Column(name = "answer", length = 1000)
     private String answer = null;

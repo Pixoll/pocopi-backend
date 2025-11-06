@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 public class UserService {
     private static final String EMAIL_REGEX =
         "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\""
-        + "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])"
-        + "*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:"
-        + "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}"
-        + "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:"
-        + "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)])";
+            + "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])"
+            + "*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:"
+            + "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}"
+            + "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:"
+            + "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)])";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -121,10 +121,10 @@ public class UserService {
                 fieldErrors.add(new FieldError(
                     "username",
                     "Username length must be between "
-                    + UserModel.USERNAME_MIN_LEN
-                    + " and "
-                    + UserModel.USERNAME_MAX_LEN
-                    + " characters"
+                        + UserModel.USERNAME_MIN_LEN
+                        + " and "
+                        + UserModel.USERNAME_MAX_LEN
+                        + " characters"
                 ));
             }
         }
@@ -142,10 +142,10 @@ public class UserService {
                 fieldErrors.add(new FieldError(
                     "password",
                     "Password length must be between "
-                    + UserModel.PASSWORD_MIN_LEN
-                    + " and "
-                    + UserModel.PASSWORD_MAX_LEN
-                    + " characters"
+                        + UserModel.PASSWORD_MIN_LEN
+                        + " and "
+                        + UserModel.PASSWORD_MAX_LEN
+                        + " characters"
                 ));
             }
         }
@@ -174,10 +174,10 @@ public class UserService {
                 fieldErrors.add(new FieldError(
                     "name",
                     "Name length must be between "
-                    + UserModel.NAME_MIN_LEN
-                    + " and "
-                    + UserModel.NAME_MAX_LEN
-                    + " characters"
+                        + UserModel.NAME_MIN_LEN
+                        + " and "
+                        + UserModel.NAME_MAX_LEN
+                        + " characters"
                 ));
             }
         }
@@ -190,10 +190,10 @@ public class UserService {
                 fieldErrors.add(new FieldError(
                     "email",
                     "Email length must be between "
-                    + UserModel.EMAIL_MIN_LEN
-                    + " and "
-                    + UserModel.EMAIL_MAX_LEN
-                    + " characters"
+                        + UserModel.EMAIL_MIN_LEN
+                        + " and "
+                        + UserModel.EMAIL_MAX_LEN
+                        + " characters"
                 ));
             }
 

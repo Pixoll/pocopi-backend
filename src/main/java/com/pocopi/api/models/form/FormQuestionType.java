@@ -13,6 +13,12 @@ public enum FormQuestionType {
     TEXT_SHORT("text-short"),
     TEXT_LONG("text-long");
 
+    public static final String SELECT_ONE_NAME = "select-one";
+    public static final String SELECT_MULTIPLE_NAME = "select-multiple";
+    public static final String SLIDER_NAME = "slider";
+    public static final String TEXT_SHORT_NAME = "text-short";
+    public static final String TEXT_LONG_NAME = "text-long";
+
     private final String name;
 
     FormQuestionType(String name) {

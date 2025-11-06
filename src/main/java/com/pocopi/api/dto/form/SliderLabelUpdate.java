@@ -1,18 +1,15 @@
-package com.pocopi.api.dto.config;
+package com.pocopi.api.dto.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record InformationCardUpdate(
+public record SliderLabelUpdate(
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     Integer id,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String title,
+    int number,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String description,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Integer color
+    String label
 ) {
 }

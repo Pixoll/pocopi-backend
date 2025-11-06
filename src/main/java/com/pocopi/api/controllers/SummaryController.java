@@ -35,14 +35,14 @@ public class SummaryController {
 
     @GetMapping("/me")
     public ResponseEntity<UserSummary> getCurrentUserSummary(@AuthenticationPrincipal AuthUser authUser) {
-        final UserSummary response = summaryService.getUserSummaryById(authUser.getId());
+        final UserSummary response = summaryService.getUserSummary(authUser.getId());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UserSummary> getUserSummaryById(@PathVariable int userId) {
-        final UserSummary response = summaryService.getUserSummaryById(userId);
+        final UserSummary response = summaryService.getUserSummary(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

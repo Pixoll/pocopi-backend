@@ -2,15 +2,17 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.test.TestPhaseUpdate;
 import com.pocopi.api.models.test.TestGroupModel;
+import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.TestPhaseModel;
 import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.TestPhaseRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TestPhaseService {
@@ -22,93 +24,98 @@ public class TestPhaseService {
         this.testQuestionService = testQuestionService;
     }
 
-    public Map<String, String> processPhases(
+    @Transactional
+    public boolean updatePhases(
         TestGroupModel group,
-        List<TestPhaseUpdate> phases,
-        Map<Integer, File> images,
-        TestGroupService.ImageIndexTracker imageIndexTracker
+        List<TestPhaseUpdate> phasesUpdates,
+        Map<Integer, TestPhaseModel> storedPhasesMap,
+        Map<Integer, TestQuestionModel> storedQuestionsMap,
+        Map<Integer, TestOptionModel> storedOptionsMap,
+        Map<Integer, Boolean> processedPhases,
+        Map<Integer, Boolean> processedQuestions,
+        Map<Integer, Boolean> processedOptions,
+        AtomicInteger imageIndex,
+        Map<Integer, MultipartFile> imageFiles
     ) {
-        final Map<String, String> results = new HashMap<>();
-        final List<TestPhaseModel> allExistingPhases = testPhaseRepository.findAllByGroupId(group.getId());
-        final Map<Integer, Boolean> processedPhases = new HashMap<>();
-
-        for (final TestPhaseModel phase : allExistingPhases) {
-            processedPhases.put(phase.getId(), false);
+        if (phasesUpdates == null || phasesUpdates.isEmpty()) {
+            return true;
         }
 
-        int order = 0;
-        for (final TestPhaseUpdate patchPhase : phases) {
-            if (patchPhase.id().isPresent()) {
-                final int phaseId = patchPhase.id().get();
-                final TestPhaseModel savedPhase = testPhaseRepository.findById(phaseId).orElse(null);
+        boolean modified = false;
 
-                if (savedPhase == null) {
-                    results.put("phase_" + phaseId, "Phase not found");
-                    order++;
-                    continue;
-                }
+        byte order = 0;
 
-                final boolean orderChanged = savedPhase.getOrder() != order;
+        for (final TestPhaseUpdate phaseUpdate : phasesUpdates) {
+            final boolean isNew = phaseUpdate.id() == null
+                || !storedPhasesMap.containsKey(phaseUpdate.id());
 
-                if (orderChanged) {
-                    savedPhase.setOrder((byte) order);
-                    testPhaseRepository.save(savedPhase);
-                }
-
-                final Map<String, String> questionResults = testQuestionService.processTestQuestions(
-                    savedPhase,
-                    patchPhase.questions(),
-                    images,
-                    imageIndexTracker
-                );
-                results.putAll(questionResults);
-
-                if (orderChanged) {
-                    results.put("phase_" + phaseId, "Updated successfully");
-                } else {
-                    results.put("phase_" + phaseId, "No changes");
-                }
-
-                processedPhases.put(phaseId, true);
-            } else {
-                final TestPhaseModel newPhase = new TestPhaseModel();
-                newPhase.setOrder((byte) order);
-                newPhase.setGroup(group);
+            if (isNew) {
+                final TestPhaseModel newPhase = TestPhaseModel.builder()
+                    .group(group)
+                    .order(order++)
+                    .randomizeQuestions(phaseUpdate.randomizeQuestions())
+                    .build();
 
                 final TestPhaseModel savedPhase = testPhaseRepository.save(newPhase);
 
-                final Map<String, String> questionResults = testQuestionService.processTestQuestions(
+                testQuestionService.updateQuestions(
                     savedPhase,
-                    patchPhase.questions(),
-                    images,
-                    imageIndexTracker
+                    phaseUpdate.questions(),
+                    storedQuestionsMap,
+                    storedOptionsMap,
+                    processedQuestions,
+                    processedOptions,
+                    imageIndex,
+                    imageFiles
                 );
-                results.putAll(questionResults);
 
-                results.put("phase_new_" + order, "Created with ID: " + savedPhase.getId());
+                modified = true;
+                continue;
             }
 
-            order++;
-        }
+            final int phaseId = phaseUpdate.id();
+            final TestPhaseModel storedPhase = storedPhasesMap.get(phaseId);
 
-        for (final Map.Entry<Integer, Boolean> entry : processedPhases.entrySet()) {
-            if (!entry.getValue()) {
-                final TestPhaseModel phaseToDelete = testPhaseRepository.findById(entry.getKey()).orElse(null);
-                if (phaseToDelete != null) {
-                    deleteWithQuestions(phaseToDelete);
-                    results.put("phase_" + entry.getKey(), "Deleted");
-                }
+            processedPhases.put(phaseId, true);
+
+            final boolean updated = storedPhase.isRandomizeQuestions() != phaseUpdate.randomizeQuestions()
+                || storedPhase.getOrder() != order++;
+
+            if (!updated) {
+                final boolean modifiedQuestions = testQuestionService.updateQuestions(
+                    storedPhase,
+                    phaseUpdate.questions(),
+                    storedQuestionsMap,
+                    storedOptionsMap,
+                    processedQuestions,
+                    processedOptions,
+                    imageIndex,
+                    imageFiles
+                );
+
+                modified = modifiedQuestions || modified;
+                continue;
             }
+
+            storedPhase.setOrder(order);
+            storedPhase.setRandomizeQuestions(phaseUpdate.randomizeQuestions());
+
+            final TestPhaseModel savedPhase = testPhaseRepository.save(storedPhase);
+
+            testQuestionService.updateQuestions(
+                savedPhase,
+                phaseUpdate.questions(),
+                storedQuestionsMap,
+                storedOptionsMap,
+                processedQuestions,
+                processedOptions,
+                imageIndex,
+                imageFiles
+            );
+
+            modified = true;
         }
 
-        return results;
-    }
-
-    private void deleteWithQuestions(TestPhaseModel phase) {
-        final List<TestQuestionModel> questions = testQuestionService.findAllByPhase(phase);
-        for (final TestQuestionModel question : questions) {
-            testQuestionService.deleteWithOptions(question);
-        }
-        testPhaseRepository.deleteById(phase.getId());
+        return modified;
     }
 }

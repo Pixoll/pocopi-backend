@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface FormQuestionSliderLabelRepository extends JpaRepository<FormQuestionSliderLabelModel, Integer> {
     List<FormQuestionSliderLabelModel> findAllByFormQuestionFormConfigVersion(int formQuestionFormConfigVersion);
+
+    List<FormQuestionSliderLabelModel> findAllByFormQuestionFormId(int formQuestionFormId);
 }

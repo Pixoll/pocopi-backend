@@ -12,6 +12,4 @@ public interface ConfigRepository extends JpaRepository<ConfigModel, String> {
         nativeQuery = true
     )
     ConfigModel findLastConfig();
-
-    ConfigModel getByVersion(int version);
 }

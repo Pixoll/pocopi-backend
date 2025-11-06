@@ -1,12 +1,13 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.test.TestOptionUpdate;
+import com.pocopi.api.dto.form.FormOptionUpdate;
 import com.pocopi.api.models.config.ImageModel;
-import com.pocopi.api.models.test.TestOptionModel;
-import com.pocopi.api.models.test.TestQuestionModel;
-import com.pocopi.api.repositories.TestOptionRepository;
+import com.pocopi.api.models.form.FormQuestionModel;
+import com.pocopi.api.models.form.FormQuestionOptionModel;
+import com.pocopi.api.repositories.FormQuestionOptionRepository;
 import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -15,19 +16,23 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
-public class TestOptionService {
-    private final TestOptionRepository testOptionRepository;
+public class FormOptionService {
+    private final FormQuestionOptionRepository formQuestionOptionRepository;
     private final ImageService imageService;
 
-    public TestOptionService(TestOptionRepository testOptionRepository, ImageService imageService) {
-        this.testOptionRepository = testOptionRepository;
+    public FormOptionService(
+        FormQuestionOptionRepository formQuestionOptionRepository,
+        ImageService imageService
+    ) {
+        this.formQuestionOptionRepository = formQuestionOptionRepository;
         this.imageService = imageService;
     }
 
+    @Transactional
     public boolean updateOptions(
-        TestQuestionModel question,
-        List<TestOptionUpdate> optionsUpdates,
-        Map<Integer, TestOptionModel> storedOptionsMap,
+        FormQuestionModel question,
+        List<FormOptionUpdate> optionsUpdates,
+        Map<Integer, FormQuestionOptionModel> storedOptionsMap,
         Map<Integer, Boolean> processedOptions,
         AtomicInteger imageIndex,
         Map<Integer, MultipartFile> imageFiles
@@ -40,37 +45,35 @@ public class TestOptionService {
 
         byte order = 0;
 
-        for (final TestOptionUpdate optionUpdate : optionsUpdates) {
+        for (final FormOptionUpdate optionUpdate : optionsUpdates) {
             final MultipartFile optionImageFile = imageFiles.get(imageIndex.getAndIncrement());
 
             final boolean isNew = optionUpdate.id() == null
                 || !storedOptionsMap.containsKey(optionUpdate.id());
 
             if (isNew) {
-                final ImageModel image = optionImageFile != null && !optionImageFile.isEmpty()
-                    ? imageService.saveImageFile(ImageCategory.TEST_QUESTION, optionImageFile, "Test option image")
+                final ImageModel optionImage = optionImageFile != null && !optionImageFile.isEmpty()
+                    ? imageService.saveImageFile(ImageCategory.FORM_OPTION, optionImageFile, "Form option")
                     : null;
 
-                final TestOptionModel newOption = TestOptionModel.builder()
-                    .question(question)
+                final FormQuestionOptionModel newOption = FormQuestionOptionModel.builder()
+                    .formQuestion(question)
                     .order(order++)
                     .text(optionUpdate.text())
-                    .image(image)
-                    .correct(optionUpdate.correct())
+                    .image(optionImage)
                     .build();
 
-                testOptionRepository.save(newOption);
+                formQuestionOptionRepository.save(newOption);
                 modified = true;
                 continue;
             }
 
             final int optionId = optionUpdate.id();
-            final TestOptionModel storedOption = storedOptionsMap.get(optionId);
+            final FormQuestionOptionModel storedOption = storedOptionsMap.get(optionId);
 
             processedOptions.put(optionId, true);
 
             final boolean updated = !Objects.equals(storedOption.getText(), optionUpdate.text())
-                || storedOption.isCorrect() != optionUpdate.correct()
                 || storedOption.getOrder() != order++
                 || optionImageFile != null;
 
@@ -81,15 +84,14 @@ public class TestOptionService {
             final ImageModel storedImage = storedOption.getImage();
 
             storedOption.setText(optionUpdate.text());
-            storedOption.setCorrect(optionUpdate.correct());
             storedOption.setOrder(order);
 
             if (optionImageFile != null) {
                 if (storedImage == null) {
                     final ImageModel newImage = imageService.saveImageFile(
-                        ImageCategory.TEST_OPTION,
+                        ImageCategory.FORM_OPTION,
                         optionImageFile,
-                        "Test option image"
+                        "Form option"
                     );
                     storedOption.setImage(newImage);
                 } else if (!optionImageFile.isEmpty()) {
@@ -99,7 +101,7 @@ public class TestOptionService {
                 }
             }
 
-            testOptionRepository.save(storedOption);
+            formQuestionOptionRepository.save(storedOption);
 
             if (storedImage != null && storedOption.getImage() == null) {
                 imageService.deleteImageIfUnused(storedImage);

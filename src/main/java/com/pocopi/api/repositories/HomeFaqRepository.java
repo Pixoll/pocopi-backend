@@ -9,6 +9,4 @@ import java.util.List;
 @Repository
 public interface HomeFaqRepository extends JpaRepository<HomeFaqModel, Integer> {
     List<HomeFaqModel> findAllByConfigVersion(int configVersion);
-
-    HomeFaqModel getHomeFaqModelById(int id);
 }
