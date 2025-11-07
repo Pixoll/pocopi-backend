@@ -84,10 +84,10 @@ public class ConfigController {
         final boolean modified = configService.updateLatestConfig(
             configUpdate,
             icon,
-            informationCardImages,
-            preTestFormImages,
-            postTestFormImages,
-            groupImages
+            informationCardImages != null ? informationCardImages : List.of(),
+            preTestFormImages != null ? preTestFormImages : List.of(),
+            postTestFormImages != null ? postTestFormImages : List.of(),
+            groupImages != null ? groupImages : List.of()
         );
 
         return new ResponseEntity<>(modified ? HttpStatus.OK : HttpStatus.NOT_MODIFIED);
