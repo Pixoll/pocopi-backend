@@ -50,7 +50,7 @@ public class HomeInfoCardService {
     public boolean updateCards(
         ConfigModel config,
         List<InformationCardUpdate> informationCardsUpdates,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         final List<HomeInfoCardModel> storedCards = homeInfoCardRepository.findAllByConfigVersion(config.getVersion());
 

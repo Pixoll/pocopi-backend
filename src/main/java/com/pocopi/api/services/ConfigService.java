@@ -140,8 +140,14 @@ public class ConfigService {
     }
 
     @Transactional
-    public boolean updateLatestConfig(ConfigUpdateWithFiles configUpdateWithFiles) {
-        final ConfigUpdate configUpdate = configUpdateWithFiles.payload();
+    public boolean updateLatestConfig(
+        ConfigUpdate configUpdate,
+        MultipartFile iconFile,
+        List<MultipartFile> informationCardImageFiles,
+        List<MultipartFile> preTestFormImageFiles,
+        List<MultipartFile> postTestFormImageFiles,
+        List<MultipartFile> groupImageFiles
+    ) {
         final ConfigModel storedConfig = configRepository.findLastConfig();
 
         final boolean modifiedGeneral = !Objects.equals(storedConfig.getTitle(), configUpdate.title())
@@ -149,12 +155,11 @@ public class ConfigService {
             || !Objects.equals(storedConfig.getDescription(), configUpdate.description())
             || storedConfig.isAnonymous() != configUpdate.anonymous()
             || !Objects.equals(storedConfig.getInformedConsent(), configUpdate.informedConsent())
-            || configUpdateWithFiles.icon() != null;
+            || iconFile != null;
 
         final ConfigModel savedConfig;
 
         if (modifiedGeneral) {
-            final MultipartFile iconFile = configUpdateWithFiles.icon();
             final ImageModel storedIcon = storedConfig.getIcon();
 
             storedConfig.setTitle(configUpdate.title());
@@ -190,25 +195,25 @@ public class ConfigService {
         final boolean modifiedCards = homeInfoCardService.updateCards(
             savedConfig,
             configUpdate.informationCards(),
-            configUpdateWithFiles.informationCardImages()
+            informationCardImageFiles
         );
         final boolean modifiedFaq = homeFaqService.updateFaqs(savedConfig, configUpdate.faq());
         final boolean modifiedPreTestForm = formService.updateForm(
             savedConfig,
             FormType.PRE,
             configUpdate.preTestForm(),
-            configUpdateWithFiles.preTestFormImages()
+            preTestFormImageFiles
         );
         final boolean modifiedPostTestForm = formService.updateForm(
             savedConfig,
             FormType.POST,
             configUpdate.postTestForm(),
-            configUpdateWithFiles.postTestFormImages()
+            postTestFormImageFiles
         );
         final boolean modifiedGroups = testGroupService.updateGroups(
             savedConfig,
             configUpdate.groups(),
-            configUpdateWithFiles.groupImages()
+            groupImageFiles
         );
 
         return modifiedGeneral

@@ -35,7 +35,7 @@ public class FormOptionService {
         Map<Integer, FormQuestionOptionModel> storedOptionsMap,
         Map<Integer, Boolean> processedOptions,
         AtomicInteger imageIndex,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         if (optionsUpdates == null || optionsUpdates.isEmpty()) {
             return true;

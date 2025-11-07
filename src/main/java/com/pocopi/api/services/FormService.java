@@ -213,7 +213,7 @@ public class FormService {
         ConfigModel config,
         FormType type,
         FormUpdate formUpdate,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         final Optional<FormModel> optionalForm = formRepository.findByTypeAndConfigVersion(type, config.getVersion());
 

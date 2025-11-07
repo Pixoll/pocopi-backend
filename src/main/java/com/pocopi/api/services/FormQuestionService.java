@@ -43,7 +43,7 @@ public class FormQuestionService {
         Map<Integer, Boolean> processedOptions,
         Map<Integer, Boolean> processedSliderLabels,
         AtomicInteger imageIndex,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         if (formQuestionsUpdates == null || formQuestionsUpdates.isEmpty()) {
             return true;

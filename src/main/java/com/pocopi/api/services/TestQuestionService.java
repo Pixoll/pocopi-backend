@@ -41,7 +41,7 @@ public class TestQuestionService {
         Map<Integer, Boolean> processedQuestions,
         Map<Integer, Boolean> processedOptions,
         AtomicInteger imageIndex,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         if (questionsUpdates == null || questionsUpdates.isEmpty()) {
             return true;

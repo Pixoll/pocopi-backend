@@ -35,7 +35,7 @@ public class TestPhaseService {
         Map<Integer, Boolean> processedQuestions,
         Map<Integer, Boolean> processedOptions,
         AtomicInteger imageIndex,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         if (phasesUpdates == null || phasesUpdates.isEmpty()) {
             return true;

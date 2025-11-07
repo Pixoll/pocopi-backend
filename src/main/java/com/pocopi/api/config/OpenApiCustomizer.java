@@ -24,7 +24,7 @@ public class OpenApiCustomizer implements GlobalOpenApiCustomizer {
     private static final String VALIDATION_ERROR_CODE = String.valueOf(HttpStatus.UNPROCESSABLE_ENTITY.value());
     private static final String UNAUTHORIZED_CODE = String.valueOf(HttpStatus.UNAUTHORIZED.value());
     private static final String FORBIDDEN_CODE = String.valueOf(HttpStatus.FORBIDDEN.value());
-    private static final String SECURITY_SCHEME_NAME = "bearerAuth";
+    public static final String SECURITY_SCHEME_NAME = "bearerAuth";
 
     private final SecurityPathConfiguration securityPathConfiguration;
     private final AntPathMatcher pathMatcher;

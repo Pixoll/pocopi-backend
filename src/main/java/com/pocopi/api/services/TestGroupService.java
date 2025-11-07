@@ -263,7 +263,7 @@ public class TestGroupService {
     public boolean updateGroups(
         ConfigModel config,
         List<TestGroupUpdate> groupsUpdates,
-        Map<Integer, MultipartFile> imageFiles
+        List<MultipartFile> imageFiles
     ) {
         final List<TestGroupModel> storedGroups = testGroupRepository.findAllByConfigVersion(config.getVersion());
         final List<TestPhaseModel> storedPhases = testPhaseRepository
