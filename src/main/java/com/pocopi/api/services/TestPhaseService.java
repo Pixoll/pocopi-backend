@@ -79,7 +79,7 @@ public class TestPhaseService {
             processedPhases.put(phaseId, true);
 
             final boolean updated = storedPhase.isRandomizeQuestions() != phaseUpdate.randomizeQuestions()
-                || storedPhase.getOrder() != order++;
+                || storedPhase.getOrder() != order;
 
             if (!updated) {
                 final boolean modifiedQuestions = testQuestionService.updateQuestions(
@@ -94,10 +94,11 @@ public class TestPhaseService {
                 );
 
                 modified = modifiedQuestions || modified;
+                order++;
                 continue;
             }
 
-            storedPhase.setOrder(order);
+            storedPhase.setOrder(order++);
             storedPhase.setRandomizeQuestions(phaseUpdate.randomizeQuestions());
 
             final TestPhaseModel savedPhase = testPhaseRepository.save(storedPhase);

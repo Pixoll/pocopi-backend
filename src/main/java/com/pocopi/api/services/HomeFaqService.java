@@ -79,15 +79,16 @@ public class HomeFaqService {
 
             final boolean updated = !Objects.equals(storedFaq.getAnswer(), faqUpdate.answer())
                 || !Objects.equals(storedFaq.getQuestion(), faqUpdate.question())
-                || storedFaq.getOrder() != order++;
+                || storedFaq.getOrder() != order;
 
             if (!updated) {
+                order++;
                 continue;
             }
 
             storedFaq.setAnswer(faqUpdate.answer());
             storedFaq.setQuestion(faqUpdate.question());
-            storedFaq.setOrder(order);
+            storedFaq.setOrder(order++);
 
             homeFaqRepository.save(storedFaq);
             modified.set(true);

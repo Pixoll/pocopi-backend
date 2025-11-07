@@ -74,17 +74,18 @@ public class FormOptionService {
             processedOptions.put(optionId, true);
 
             final boolean updated = !Objects.equals(storedOption.getText(), optionUpdate.text())
-                || storedOption.getOrder() != order++
+                || storedOption.getOrder() != order
                 || optionImageFile != null;
 
             if (!updated) {
+                order++;
                 continue;
             }
 
             final ImageModel storedImage = storedOption.getImage();
 
             storedOption.setText(optionUpdate.text());
-            storedOption.setOrder(order);
+            storedOption.setOrder(order++);
 
             if (optionImageFile != null) {
                 if (storedImage == null && !optionImageFile.isEmpty()) {

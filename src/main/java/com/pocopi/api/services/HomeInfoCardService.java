@@ -121,10 +121,11 @@ public class HomeInfoCardService {
             final boolean updated = !Objects.equals(storedCard.getTitle(), cardUpdate.title())
                 || !Objects.equals(storedCard.getDescription(), cardUpdate.description())
                 || !Objects.equals(storedCard.getColor(), cardUpdate.color())
-                || storedCard.getOrder() != order++
+                || storedCard.getOrder() != order
                 || cardImageFile != null;
 
             if (!updated) {
+                order++;
                 continue;
             }
 
@@ -133,7 +134,7 @@ public class HomeInfoCardService {
             storedCard.setTitle(cardUpdate.title());
             storedCard.setDescription(cardUpdate.description());
             storedCard.setColor(cardUpdate.color());
-            storedCard.setOrder(order);
+            storedCard.setOrder(order++);
 
             if (cardImageFile != null) {
                 if (storedIcon == null) {

@@ -92,7 +92,7 @@ public class TestQuestionService {
 
             final boolean updated = !Objects.equals(storedQuestion.getText(), questionUpdate.text())
                 || storedQuestion.isRandomizeOptions() != questionUpdate.randomizeOptions()
-                || storedQuestion.getOrder() != order++
+                || storedQuestion.getOrder() != order
                 || questionImageFile != null;
 
             if (!updated) {
@@ -106,6 +106,7 @@ public class TestQuestionService {
                 );
 
                 modified = modifiedOptions || modified;
+                order++;
                 continue;
             }
 
@@ -113,7 +114,7 @@ public class TestQuestionService {
 
             storedQuestion.setText(questionUpdate.text());
             storedQuestion.setRandomizeOptions(questionUpdate.randomizeOptions());
-            storedQuestion.setOrder(order);
+            storedQuestion.setOrder(order++);
 
             if (questionImageFile != null) {
                 if (storedImage == null && !questionImageFile.isEmpty()) {

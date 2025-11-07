@@ -71,10 +71,11 @@ public class TestOptionService {
 
             final boolean updated = !Objects.equals(storedOption.getText(), optionUpdate.text())
                 || storedOption.isCorrect() != optionUpdate.correct()
-                || storedOption.getOrder() != order++
+                || storedOption.getOrder() != order
                 || optionImageFile != null;
 
             if (!updated) {
+                order++;
                 continue;
             }
 
@@ -82,7 +83,7 @@ public class TestOptionService {
 
             storedOption.setText(optionUpdate.text());
             storedOption.setCorrect(optionUpdate.correct());
-            storedOption.setOrder(order);
+            storedOption.setOrder(order++);
 
             if (optionImageFile != null) {
                 if (storedImage == null && !optionImageFile.isEmpty()) {

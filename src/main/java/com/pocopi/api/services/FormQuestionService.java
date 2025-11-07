@@ -108,7 +108,7 @@ public class FormQuestionService {
                         || storedQuestion.getMin() != questionUpdate.min
                         || storedQuestion.getMax() != questionUpdate.max
                         || storedQuestion.getOther() != questionUpdate.other
-                        || storedQuestion.getOrder() != order++
+                        || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
@@ -122,6 +122,7 @@ public class FormQuestionService {
                         );
 
                         modified = modifiedOptions || modified;
+                        order++;
                         continue;
                     }
 
@@ -132,7 +133,7 @@ public class FormQuestionService {
                     storedQuestion.setMax((short) questionUpdate.max);
                     storedQuestion.setMin((short) questionUpdate.min);
                     storedQuestion.setOther(questionUpdate.other);
-                    storedQuestion.setOrder(order);
+                    storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
                         if (storedImage == null && !questionImageFile.isEmpty()) {
@@ -214,7 +215,7 @@ public class FormQuestionService {
                     final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category)
                         || !Objects.equals(storedQuestion.getText(), questionUpdate.text)
                         || storedQuestion.getOther() != questionUpdate.other
-                        || storedQuestion.getOrder() != order++
+                        || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
@@ -228,6 +229,7 @@ public class FormQuestionService {
                         );
 
                         modified = modifiedOptions || modified;
+                        order++;
                         continue;
                     }
 
@@ -236,7 +238,7 @@ public class FormQuestionService {
                     storedQuestion.setCategory(questionUpdate.category);
                     storedQuestion.setText(questionUpdate.text);
                     storedQuestion.setOther(questionUpdate.other);
-                    storedQuestion.setOrder(order);
+                    storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
                         if (storedImage == null && !questionImageFile.isEmpty()) {
@@ -320,7 +322,7 @@ public class FormQuestionService {
                         || storedQuestion.getMin() != questionUpdate.min
                         || storedQuestion.getMax() != questionUpdate.max
                         || storedQuestion.getStep() != questionUpdate.step
-                        || storedQuestion.getOrder() != order++
+                        || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
@@ -332,6 +334,7 @@ public class FormQuestionService {
                         );
 
                         modified = modifiedSliderLabels || modified;
+                        order++;
                         continue;
                     }
 
@@ -342,7 +345,7 @@ public class FormQuestionService {
                     storedQuestion.setMax((short) questionUpdate.max);
                     storedQuestion.setMin((short) questionUpdate.min);
                     storedQuestion.setStep((short) questionUpdate.step);
-                    storedQuestion.setOrder(order);
+                    storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
                         if (storedImage == null && !questionImageFile.isEmpty()) {
@@ -416,10 +419,11 @@ public class FormQuestionService {
                         || !Objects.equals(storedQuestion.getPlaceholder(), questionUpdate.placeholder)
                         || storedQuestion.getMinLength() != questionUpdate.minLength
                         || storedQuestion.getMaxLength() != questionUpdate.maxLength
-                        || storedQuestion.getOrder() != order++
+                        || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
+                        order++;
                         continue;
                     }
 
@@ -430,7 +434,7 @@ public class FormQuestionService {
                     storedQuestion.setMaxLength((short) questionUpdate.maxLength);
                     storedQuestion.setMinLength((short) questionUpdate.minLength);
                     storedQuestion.setPlaceholder(questionUpdate.placeholder);
-                    storedQuestion.setOrder(order);
+                    storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
                         if (storedImage == null && !questionImageFile.isEmpty()) {
@@ -497,10 +501,11 @@ public class FormQuestionService {
                         || !Objects.equals(storedQuestion.getPlaceholder(), questionUpdate.placeholder)
                         || storedQuestion.getMinLength() != questionUpdate.minLength
                         || storedQuestion.getMaxLength() != questionUpdate.maxLength
-                        || storedQuestion.getOrder() != order++
+                        || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
+                        order++;
                         continue;
                     }
 
@@ -511,7 +516,7 @@ public class FormQuestionService {
                     storedQuestion.setMaxLength((short) questionUpdate.maxLength);
                     storedQuestion.setMinLength((short) questionUpdate.minLength);
                     storedQuestion.setPlaceholder(questionUpdate.placeholder);
-                    storedQuestion.setOrder(order);
+                    storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
                         if (storedImage == null && !questionImageFile.isEmpty()) {
