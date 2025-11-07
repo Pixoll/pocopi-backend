@@ -17,4 +17,9 @@ public record TestQuestionUpdate(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<TestOptionUpdate> options
 ) {
+    public TestQuestionUpdate {
+        if (text != null && text.isEmpty()) {
+            text = null;
+        }
+    }
 }
