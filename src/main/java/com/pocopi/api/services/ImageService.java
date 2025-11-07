@@ -25,7 +25,7 @@ public class ImageService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImageService.class);
 
     private static final int MAX_FILE_SIZE = 500_000;
-    private static final String MAX_FILE_SIZE_STR = MAX_FILE_SIZE / 100_000 + " kB";
+    private static final String MAX_FILE_SIZE_STR = MAX_FILE_SIZE / 1_000 + " kB";
 
     private static final List<String> SUPPORTED_IMAGE_TYPES = List.of("image/gif", "image/png", "image/jpeg");
 
