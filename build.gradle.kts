@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.dotenv)
     implementation(libs.json.schema.validator)
     implementation(libs.openApi)
+    implementation(libs.tika.core)
 
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)

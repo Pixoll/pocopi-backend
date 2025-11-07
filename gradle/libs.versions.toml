@@ -8,6 +8,7 @@ openAPIVersion = "2.8.13"
 springFrameworkVersion = "3.5.5"
 springDepManagerVersion = "1.1.7"
 jsonSchemaValidatorVersion = "2.0.0"
+tikaCoreVersion = "2.9.1"
 
 [libraries]
 dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenvVersion" }
@@ -33,6 +34,7 @@ spring-boot-starter-validation = { group = "org.springframework.boot", name = "s
 spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
 spring-restdocs-mockmvc = { group = "org.springframework.restdocs", name = "spring-restdocs-mockmvc" }
 spring-security-test = { group = "org.springframework.security", name = "spring-security-test" }
+tika-core = { group = "org.apache.tika", name = "tika-core", version.ref = "tikaCoreVersion" }
 
 [plugins]
 asciidoctor = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctorVersion" }

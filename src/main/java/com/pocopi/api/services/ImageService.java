@@ -5,13 +5,14 @@ import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
+import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URLConnection;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,6 +28,8 @@ public class ImageService {
     private static final String MAX_FILE_SIZE_STR = MAX_FILE_SIZE / 100_000 + " kB";
 
     private static final List<String> SUPPORTED_IMAGE_TYPES = List.of("image/gif", "image/png", "image/jpeg");
+
+    private static final Tika TIKA = new Tika();
 
     private final ImageRepository imageRepository;
     private final ImageConfig imageConfig;
@@ -139,8 +142,8 @@ public class ImageService {
             throw HttpException.badRequest("File cannot be empty");
         }
 
-        try {
-            final String mimeType = URLConnection.guessContentTypeFromStream(file.getInputStream());
+        try (final InputStream inputStream = file.getInputStream()) {
+            final String mimeType = TIKA.detect(inputStream);
 
             if (mimeType == null || !SUPPORTED_IMAGE_TYPES.contains(mimeType)) {
                 throw HttpException.badRequest("File must be an image");
