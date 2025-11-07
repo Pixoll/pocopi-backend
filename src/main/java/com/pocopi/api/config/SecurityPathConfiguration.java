@@ -14,7 +14,7 @@ public class SecurityPathConfiguration {
             "/api/swagger-ui",
             "/api/swagger-ui*/**",
             "/error",
-            "/api/config/latest",
+            "/api/config",
             "/api/auth/login",
             "/api/auth/register",
         };
