@@ -97,7 +97,11 @@ public class FormService {
         }
 
         for (final FormQuestionSliderLabelModel sliderLabelModel : sliderLabelsList) {
-            final SliderLabel sliderLabel = new SliderLabel(sliderLabelModel.getNumber(), sliderLabelModel.getLabel());
+            final SliderLabel sliderLabel = new SliderLabel(
+                sliderLabelModel.getId(),
+                sliderLabelModel.getNumber(),
+                sliderLabelModel.getLabel()
+            );
 
             final FormQuestion question = questionsMap.get(sliderLabelModel.getFormQuestion().getId());
 
