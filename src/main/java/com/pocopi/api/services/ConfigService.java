@@ -169,7 +169,7 @@ public class ConfigService {
             storedConfig.setInformedConsent(configUpdate.informedConsent());
 
             if (iconFile != null) {
-                if (storedIcon == null) {
+                if (storedIcon == null && !iconFile.isEmpty()) {
                     final ImageModel newIcon = imageService.saveImageFile(
                         ImageCategory.ICON,
                         iconFile,

@@ -135,7 +135,7 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null) {
+                        if (storedImage == null && !questionImageFile.isEmpty()) {
                             final ImageModel newImage = imageService.saveImageFile(
                                 ImageService.ImageCategory.FORM_QUESTION,
                                 questionImageFile,
@@ -239,7 +239,7 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null) {
+                        if (storedImage == null && !questionImageFile.isEmpty()) {
                             final ImageModel newImage = imageService.saveImageFile(
                                 ImageService.ImageCategory.FORM_QUESTION,
                                 questionImageFile,
@@ -345,7 +345,7 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null) {
+                        if (storedImage == null && !questionImageFile.isEmpty()) {
                             final ImageModel newImage = imageService.saveImageFile(
                                 ImageService.ImageCategory.FORM_QUESTION,
                                 questionImageFile,
@@ -433,7 +433,7 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null) {
+                        if (storedImage == null && !questionImageFile.isEmpty()) {
                             final ImageModel newImage = imageService.saveImageFile(
                                 ImageService.ImageCategory.FORM_QUESTION,
                                 questionImageFile,
@@ -514,7 +514,7 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null) {
+                        if (storedImage == null && !questionImageFile.isEmpty()) {
                             final ImageModel newImage = imageService.saveImageFile(
                                 ImageService.ImageCategory.FORM_QUESTION,
                                 questionImageFile,

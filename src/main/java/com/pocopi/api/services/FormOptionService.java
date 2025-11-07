@@ -87,7 +87,7 @@ public class FormOptionService {
             storedOption.setOrder(order);
 
             if (optionImageFile != null) {
-                if (storedImage == null) {
+                if (storedImage == null && !optionImageFile.isEmpty()) {
                     final ImageModel newImage = imageService.saveImageFile(
                         ImageCategory.FORM_OPTION,
                         optionImageFile,

@@ -116,7 +116,7 @@ public class TestQuestionService {
             storedQuestion.setOrder(order);
 
             if (questionImageFile != null) {
-                if (storedImage == null) {
+                if (storedImage == null && !questionImageFile.isEmpty()) {
                     final ImageModel newImage = imageService.saveImageFile(
                         ImageCategory.TEST_QUESTION,
                         questionImageFile,

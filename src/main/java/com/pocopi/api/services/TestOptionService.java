@@ -85,7 +85,7 @@ public class TestOptionService {
             storedOption.setOrder(order);
 
             if (optionImageFile != null) {
-                if (storedImage == null) {
+                if (storedImage == null && !optionImageFile.isEmpty()) {
                     final ImageModel newImage = imageService.saveImageFile(
                         ImageCategory.TEST_OPTION,
                         optionImageFile,
