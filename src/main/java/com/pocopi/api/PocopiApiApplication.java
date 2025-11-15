@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 public class PocopiApiApplication {
     private static final Logger LOGGER = LoggerFactory.getLogger(PocopiApiApplication.class);
     private static final String MIGRATE_OLD_CONFIG_ARG = "migrate-old-config";
+    private static final String MIGRATE_OLD_CONFIG_PATH = ".old-config";
 
     public static void main(final String[] args) {
         SpringApplication.run(PocopiApiApplication.class, args);
@@ -25,25 +26,14 @@ public class PocopiApiApplication {
                 return;
             }
 
-            final String oldConfigPath = args.getOptionValues(MIGRATE_OLD_CONFIG_ARG) != null
-                                         && !args.getOptionValues(MIGRATE_OLD_CONFIG_ARG).isEmpty()
-                ? args.getOptionValues(MIGRATE_OLD_CONFIG_ARG).getFirst()
-                : null;
-
-            if (oldConfigPath == null || oldConfigPath.trim().isEmpty()) {
-                LOGGER.error(
-                    "You must specify the path of the old configuration in the " + MIGRATE_OLD_CONFIG_ARG
-                    + " option like so: --" + MIGRATE_OLD_CONFIG_ARG + "=\"/path/to/old-config\""
-                );
-                return;
-            }
-
             try {
                 LOGGER.info("Migrating old configuration...");
-                migrator.migrate(oldConfigPath);
+                migrator.migrate(MIGRATE_OLD_CONFIG_PATH);
                 LOGGER.info("Successfully migrated old configuration");
+                System.exit(0);
             } catch (Exception e) {
-                LOGGER.error("Failed to migrate old configuration from path: {}", oldConfigPath, e);
+                LOGGER.error("Failed to migrate old configuration from path: {}", MIGRATE_OLD_CONFIG_PATH, e);
+                System.exit(1);
             }
         };
     }
