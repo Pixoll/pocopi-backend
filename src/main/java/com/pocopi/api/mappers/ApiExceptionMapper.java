@@ -73,6 +73,7 @@ public class ApiExceptionMapper {
 
             case MismatchedInputException ex -> {
                 final String token = ex.getProcessor() instanceof ReaderBasedJsonParser processor
+                    && processor.currentToken() != null
                     ? processor.currentToken().asString()
                     : null;
 
@@ -86,7 +87,19 @@ public class ApiExceptionMapper {
                     );
                 }
 
-                return HttpException.badRequest("MismatchedInputException: " + ex.getMessage());
+                return new MultiFieldException(
+                    "MismatchedInputException",
+                    List.of(new FieldError(
+                        path,
+                        ex.getMessage().startsWith("Cannot coerce")
+                            ? ex.getMessage().split("\n")[0]
+                            .replaceFirst(
+                                "^Cannot coerce (\\S+) value \\((.+)\\) to `(?:\\w+\\.)*(\\w+)`.*$",
+                                "Expected $3, got $1 value $2"
+                            )
+                            : ex.getMessage()
+                    ))
+                );
             }
 
             case InputCoercionException ex -> {
