@@ -7,6 +7,7 @@ import com.pocopi.api.dto.config.ConfigUpdate;
 import com.pocopi.api.dto.config.FullConfig;
 import com.pocopi.api.dto.config.TrimmedConfig;
 import com.pocopi.api.exception.HttpException;
+import com.pocopi.api.mappers.ApiExceptionMapper;
 import com.pocopi.api.services.ConfigService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -26,12 +27,18 @@ import static com.pocopi.api.config.OpenApiCustomizer.SECURITY_SCHEME_NAME;
 @RequestMapping("/api/config")
 @Tag(name = "Config")
 public class ConfigController {
-    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private final ConfigService configService;
+    private final ObjectMapper objectMapper;
+    private final ApiExceptionMapper apiExceptionMapper;
 
-    public ConfigController(ConfigService configService) {
+    public ConfigController(
+        ConfigService configService,
+        ObjectMapper objectMapper,
+        ApiExceptionMapper apiExceptionMapper
+    ) {
         this.configService = configService;
+        this.objectMapper = objectMapper;
+        this.apiExceptionMapper = apiExceptionMapper;
     }
 
     @GetMapping
@@ -94,18 +101,18 @@ public class ConfigController {
     }
 
     @SuppressWarnings("JvmTaintAnalysis")
-    private static ConfigUpdate parseUpdateConfigPayload(String json) {
+    private ConfigUpdate parseUpdateConfigPayload(String json) {
         if (json == null || json.isBlank()) {
             throw HttpException.badRequest("Config update payload json cannot be empty");
         }
 
         try {
-            return OBJECT_MAPPER.readValue(
+            return objectMapper.readValue(
                 json, new TypeReference<>() {
                 }
             );
         } catch (JsonProcessingException e) {
-            throw HttpException.badRequest("Invalid config payload json: " + e.getMessage());
+            throw apiExceptionMapper.fromJsonProcessingException(e);
         }
     }
 }

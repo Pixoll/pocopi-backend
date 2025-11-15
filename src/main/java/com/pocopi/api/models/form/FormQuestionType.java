@@ -36,4 +36,8 @@ public enum FormQuestionType {
             .findFirst()
             .orElseThrow(IllegalArgumentException::new);
     }
+
+    public String toString() {
+        return this.name;
+    }
 }

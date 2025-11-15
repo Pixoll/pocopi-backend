@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @SuppressWarnings("unused")
 @Getter
-public class HttpException extends RuntimeException {
+public class HttpException extends ApiException {
     private final HttpStatus status;
 
     public HttpException(HttpStatus status, String message) {
