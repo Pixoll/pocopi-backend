@@ -24,6 +24,7 @@ public class ImageModel {
     @Column(name = "path", nullable = false, length = 512, unique = true)
     private String path;
 
+    @Builder.Default
     @Size(min = 1, max = 100)
     @Column(name = "alt", length = 100)
     private String alt = null;

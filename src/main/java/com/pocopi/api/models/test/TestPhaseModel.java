@@ -29,6 +29,7 @@ public class TestPhaseModel {
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
+    @Builder.Default
     @Column(name = "randomize_questions")
     private boolean randomizeQuestions = false;
 }

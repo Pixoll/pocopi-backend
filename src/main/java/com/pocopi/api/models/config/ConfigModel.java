@@ -21,6 +21,7 @@ public class ConfigModel {
     @Setter(AccessLevel.NONE)
     private int version;
 
+    @Builder.Default
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "icon_id")
@@ -31,6 +32,7 @@ public class ConfigModel {
     @Column(name = "title", nullable = false, length = 100)
     private String title;
 
+    @Builder.Default
     @Size(min = 1, max = 200)
     @Column(name = "subtitle", length = 200)
     private String subtitle = null;
@@ -45,6 +47,7 @@ public class ConfigModel {
     @Column(name = "informed_consent", nullable = false, length = 2000)
     private String informedConsent;
 
+    @Builder.Default
     @NotNull
     @Column(name = "anonymous", nullable = false)
     private boolean anonymous = true;

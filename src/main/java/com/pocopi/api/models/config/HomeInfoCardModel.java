@@ -41,11 +41,13 @@ public class HomeInfoCardModel {
     @Column(name = "description", nullable = false, length = 100)
     private String description;
 
+    @Builder.Default
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "icon_id")
     private ImageModel icon = null;
 
+    @Builder.Default
     @Max(0xffffff)
     @Column(name = "color", columnDefinition = "int3 unsigned")
     private Integer color = null;

@@ -36,6 +36,7 @@ public class TestGroupModel {
     @Column(name = "probability", nullable = false, columnDefinition = "int1 unsigned")
     private byte probability;
 
+    @Builder.Default
     @Size(min = 1, max = 2000)
     @Column(name = "greeting", length = 2000)
     private String greeting = null;

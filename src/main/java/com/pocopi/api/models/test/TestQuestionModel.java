@@ -31,14 +31,17 @@ public class TestQuestionModel {
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
+    @Builder.Default
     @Size(min = 1, max = 100)
     @Column(name = "text", length = 100)
     private String text = null;
 
+    @Builder.Default
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")
     private ImageModel image = null;
 
+    @Builder.Default
     @Column(name = "randomize_options")
     private boolean randomizeOptions = false;
 }

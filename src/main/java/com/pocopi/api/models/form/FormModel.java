@@ -29,6 +29,7 @@ public class FormModel {
     @JoinColumn(name = "config_version", nullable = false)
     private ConfigModel config;
 
+    @Builder.Default
     @Size(min = 1, max = 100)
     @Column(name = "title", length = 100)
     private String title = null;
