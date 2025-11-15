@@ -27,7 +27,7 @@ services:
         condition: service_healthy
     volumes:
       - ${IMAGES_BASE_PATH:-./images}:/app/images
-      - ${OLD_CONFIG_PATH:-./.old-config}:/app/.old-config
+      - ${OLD_CONFIG_PATH:-./.old-config}:/app/.old-config:ro
 
   nginx:
     image: nginx:1.29.2
