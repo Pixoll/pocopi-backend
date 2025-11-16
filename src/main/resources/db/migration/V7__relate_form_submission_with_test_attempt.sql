@@ -21,6 +21,8 @@ begin
                 inner join user_test_attempt as ta on ta.id = s.attempt_id
                 inner join form              as f on f.id = s.form_id
                 inner join test_group        as g on g.id = ta.group_id
+            where s.attempt_id = new.attempt_id
+              and s.form_id = new.form_id
         );
 
     if (conflict) then
