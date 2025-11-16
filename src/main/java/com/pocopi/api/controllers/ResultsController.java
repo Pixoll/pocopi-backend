@@ -1,19 +1,13 @@
 package com.pocopi.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.results.FormAnswersByGroup;
-import com.pocopi.api.dto.results.FormAnswersByUser;
-import com.pocopi.api.dto.results.ResultsByGroup;
-import com.pocopi.api.dto.results.ResultsByUser;
-import com.pocopi.api.dto.results.TestResultByUser;
-import com.pocopi.api.dto.results.TestResultsByGroup;
+import com.pocopi.api.dto.results.*;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;
 import com.pocopi.api.services.FormResultsService;
 import com.pocopi.api.services.ResultsService;
 import com.pocopi.api.services.TestResultsService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +31,6 @@ public class ResultsController {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
 
-    @Autowired
     public ResultsController(
         FormResultsService formResultsService,
         TestResultsService testResultsService,

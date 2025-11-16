@@ -1,15 +1,10 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.form.FormAnswers;
-import com.pocopi.api.dto.results.FormAnswersByUser;
-import com.pocopi.api.dto.results.ResultsByGroup;
-import com.pocopi.api.dto.results.ResultsByUser;
-import com.pocopi.api.dto.results.TestQuestionResult;
-import com.pocopi.api.dto.results.TestResultByUser;
+import com.pocopi.api.dto.results.*;
 import com.pocopi.api.dto.user.UserBasicInfo;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +15,6 @@ public class ResultsService {
     private final TestResultsService testResultsService;
     private final UserRepository userRepository;
 
-    @Autowired
     public ResultsService(
         FormResultsService formResultsService,
         TestResultsService testResultsService,

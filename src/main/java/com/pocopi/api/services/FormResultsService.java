@@ -11,7 +11,6 @@ import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.FormRepository;
 import com.pocopi.api.repositories.UserFormAnswerRepository;
 import com.pocopi.api.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +25,6 @@ public class FormResultsService {
     private final ConfigRepository configRepository;
     private final FormResultsMapper formResultsMapper;
 
-    @Autowired
     public FormResultsService(
         UserRepository userRepository,
         UserFormAnswerRepository userFormAnswerRepository,
