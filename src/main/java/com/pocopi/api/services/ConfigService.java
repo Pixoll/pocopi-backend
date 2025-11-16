@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocopi.api.dto.config.*;
 import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.test.TestGroup;
+import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.form.FormType;
@@ -149,6 +150,15 @@ public class ConfigService {
         List<MultipartFile> groupImageFiles
     ) {
         final ConfigModel storedConfig = configRepository.findLastConfig();
+
+        if (!configUpdate.groups().isEmpty()) {
+            final int probabilitySum = configUpdate.groups().stream()
+                .reduce(0, (subtotal, group) -> subtotal + group.probability(), Integer::sum);
+
+            if (probabilitySum != 100) {
+                throw HttpException.badRequest("Config groups probability sum must be 100, got " + probabilitySum);
+            }
+        }
 
         final boolean modifiedGeneral = !Objects.equals(storedConfig.getTitle(), configUpdate.title())
             || !Objects.equals(storedConfig.getSubtitle(), configUpdate.subtitle())
