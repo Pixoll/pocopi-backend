@@ -6,6 +6,8 @@ import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.repositories.ImageRepository;
 import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -40,9 +43,12 @@ public class ImageService {
     }
 
     public ImageModel saveImageFile(ImageCategory category, MultipartFile file, String alt) {
-        validateFile(file);
+        final String extension = validateFileAndGetExtension(file);
 
-        final String relativePath = generateUniquePath(category.dir, file.getOriginalFilename());
+        final String relativePath = generateUniquePath(
+            category.dir,
+            file.getOriginalFilename() != null ? file.getOriginalFilename() : "file" + extension
+        );
         final Path fullPath = resolveFullPath(relativePath);
 
         try {
@@ -60,22 +66,43 @@ public class ImageService {
         return imageRepository.save(imageModel);
     }
 
-    public void updateImageFile(ImageModel image, MultipartFile newFile) {
-        validateFile(newFile);
+    public void updateImageFile(ImageCategory category, ImageModel image, MultipartFile newFile) {
+        final String extension = validateFileAndGetExtension(newFile);
 
         if (image.getId() < 1) {
             throw HttpException.badRequest("Cannot update an image with no id");
         }
 
-        final Path fullPath = resolveFullPath(image.getPath());
+        final Path oldPath = resolveFullPath(image.getPath());
 
         try {
-            createDirectoriesIfMissing(fullPath.getParent());
-            Files.write(fullPath, newFile.getBytes());
+            final byte[] oldBytes = Files.readAllBytes(oldPath);
+            final byte[] newBytes = newFile.getBytes();
+
+            if (Arrays.equals(oldBytes, newBytes)) {
+                return;
+            }
+        } catch (IOException e) {
+            LOGGER.warn("Could not read old image file", e);
+        }
+
+        final String newPath = generateUniquePath(
+            category.dir,
+            newFile.getOriginalFilename() != null ? newFile.getOriginalFilename() : "file" + extension
+        );
+        final Path newAbsolutePath = resolveFullPath(newPath);
+
+        try {
+            createDirectoriesIfMissing(newAbsolutePath.getParent());
+            Files.deleteIfExists(oldPath);
+            Files.write(newAbsolutePath, newFile.getBytes());
         } catch (IOException e) {
             LOGGER.error("Could not update image file", e);
             throw HttpException.internalServerError("Could not update image file", e);
         }
+
+        image.setPath(newPath);
+        imageRepository.save(image);
     }
 
     public void deleteImageIfUnused(ImageModel image) {
@@ -105,13 +132,9 @@ public class ImageService {
 
     private String generateUniquePath(String category, String originalFilename) {
         final String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        final String sanitizedFilename = sanitizeFilename(originalFilename);
+        final String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
 
         return String.format("images/%s/%s_%s", category, timestamp, sanitizedFilename);
-    }
-
-    private String sanitizeFilename(String filename) {
-        return filename != null ? filename.replaceAll("[^a-zA-Z0-9._-]", "_") : "file.jpg";
     }
 
     private String buildPublicUrl(String relativePath) {
@@ -137,13 +160,14 @@ public class ImageService {
         }
     }
 
-    private void validateFile(MultipartFile file) {
+    private String validateFileAndGetExtension(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw HttpException.badRequest("File cannot be empty");
         }
 
+        final String mimeType;
         try (final InputStream inputStream = file.getInputStream()) {
-            final String mimeType = TIKA.detect(inputStream);
+            mimeType = TIKA.detect(inputStream);
 
             if (mimeType == null || !SUPPORTED_IMAGE_TYPES.contains(mimeType)) {
                 throw HttpException.badRequest("File must be an image");
@@ -155,6 +179,12 @@ public class ImageService {
 
         if (file.getSize() > MAX_FILE_SIZE) {
             throw HttpException.payloadTooLarge("File size cannot exceed " + MAX_FILE_SIZE_STR);
+        }
+
+        try {
+            return MimeTypes.getDefaultMimeTypes().forName(mimeType).getExtension();
+        } catch (MimeTypeException e) {
+            return ".png";
         }
     }
 

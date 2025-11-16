@@ -86,17 +86,17 @@ public class TestOptionService {
             storedOption.setOrder(order++);
 
             if (optionImageFile != null) {
-                if (storedImage == null && !optionImageFile.isEmpty()) {
+                if (optionImageFile.isEmpty()) {
+                    storedOption.setImage(null);
+                } else if (storedImage == null) {
                     final ImageModel newImage = imageService.saveImageFile(
                         ImageCategory.TEST_OPTION,
                         optionImageFile,
                         "Test option image"
                     );
                     storedOption.setImage(newImage);
-                } else if (!optionImageFile.isEmpty()) {
-                    imageService.updateImageFile(storedOption.getImage(), optionImageFile);
                 } else {
-                    storedOption.setImage(null);
+                    imageService.updateImageFile(ImageCategory.TEST_OPTION, storedImage, optionImageFile);
                 }
             }
 

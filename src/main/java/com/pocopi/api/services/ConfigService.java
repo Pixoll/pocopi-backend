@@ -169,17 +169,17 @@ public class ConfigService {
             storedConfig.setInformedConsent(configUpdate.informedConsent());
 
             if (iconFile != null) {
-                if (storedIcon == null && !iconFile.isEmpty()) {
+                if (iconFile.isEmpty()) {
+                    storedConfig.setIcon(null);
+                } else if (storedIcon == null) {
                     final ImageModel newIcon = imageService.saveImageFile(
                         ImageCategory.ICON,
                         iconFile,
                         "Application icon"
                     );
                     storedConfig.setIcon(newIcon);
-                } else if (!iconFile.isEmpty()) {
-                    imageService.updateImageFile(storedConfig.getIcon(), iconFile);
                 } else {
-                    storedConfig.setIcon(null);
+                    imageService.updateImageFile(ImageCategory.ICON, storedIcon, iconFile);
                 }
             }
 

@@ -117,17 +117,17 @@ public class TestQuestionService {
             storedQuestion.setOrder(order++);
 
             if (questionImageFile != null) {
-                if (storedImage == null && !questionImageFile.isEmpty()) {
+                if (questionImageFile.isEmpty()) {
+                    storedQuestion.setImage(null);
+                } else if (storedImage == null) {
                     final ImageModel newImage = imageService.saveImageFile(
                         ImageCategory.TEST_QUESTION,
                         questionImageFile,
                         "Test question image"
                     );
                     storedQuestion.setImage(newImage);
-                } else if (!questionImageFile.isEmpty()) {
-                    imageService.updateImageFile(storedQuestion.getImage(), questionImageFile);
                 } else {
-                    storedQuestion.setImage(null);
+                    imageService.updateImageFile(ImageCategory.TEST_QUESTION, storedImage, questionImageFile);
                 }
             }
 

@@ -137,17 +137,17 @@ public class HomeInfoCardService {
             storedCard.setOrder(order++);
 
             if (cardImageFile != null) {
-                if (storedIcon == null) {
+                if (cardImageFile.isEmpty()) {
+                    storedCard.setIcon(null);
+                } else if (storedIcon == null) {
                     final ImageModel newIcon = imageService.saveImageFile(
                         ImageCategory.INFO_CARD,
                         cardImageFile,
                         "Information card icon"
                     );
                     storedCard.setIcon(newIcon);
-                } else if (!cardImageFile.isEmpty()) {
-                    imageService.updateImageFile(storedCard.getIcon(), cardImageFile);
                 } else {
-                    storedCard.setIcon(null);
+                    imageService.updateImageFile(ImageCategory.INFO_CARD, storedIcon, cardImageFile);
                 }
             }
 

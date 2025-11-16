@@ -4,6 +4,7 @@ import com.pocopi.api.dto.form.FormQuestionUpdate;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.form.*;
 import com.pocopi.api.repositories.FormQuestionRepository;
+import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,7 +65,7 @@ public class FormQuestionService {
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
                             ? imageService.saveImageFile(
-                            ImageService.ImageCategory.FORM_QUESTION,
+                            ImageCategory.FORM_QUESTION,
                             questionImageFile,
                             "Form question"
                         )
@@ -136,17 +137,17 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null && !questionImageFile.isEmpty()) {
+                        if (questionImageFile.isEmpty()) {
+                            storedQuestion.setImage(null);
+                        } else if (storedImage == null) {
                             final ImageModel newImage = imageService.saveImageFile(
-                                ImageService.ImageCategory.FORM_QUESTION,
+                                ImageCategory.FORM_QUESTION,
                                 questionImageFile,
                                 "Form question"
                             );
                             storedQuestion.setImage(newImage);
-                        } else if (!questionImageFile.isEmpty()) {
-                            imageService.updateImageFile(storedQuestion.getImage(), questionImageFile);
                         } else {
-                            storedQuestion.setImage(null);
+                            imageService.updateImageFile(ImageCategory.FORM_QUESTION, storedImage, questionImageFile);
                         }
                     }
 
@@ -175,7 +176,7 @@ public class FormQuestionService {
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
                             ? imageService.saveImageFile(
-                            ImageService.ImageCategory.FORM_QUESTION,
+                            ImageCategory.FORM_QUESTION,
                             questionImageFile,
                             "Form question"
                         )
@@ -241,17 +242,17 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null && !questionImageFile.isEmpty()) {
+                        if (questionImageFile.isEmpty()) {
+                            storedQuestion.setImage(null);
+                        } else if (storedImage == null) {
                             final ImageModel newImage = imageService.saveImageFile(
-                                ImageService.ImageCategory.FORM_QUESTION,
+                                ImageCategory.FORM_QUESTION,
                                 questionImageFile,
                                 "Form question"
                             );
                             storedQuestion.setImage(newImage);
-                        } else if (!questionImageFile.isEmpty()) {
-                            imageService.updateImageFile(storedQuestion.getImage(), questionImageFile);
                         } else {
-                            storedQuestion.setImage(null);
+                            imageService.updateImageFile(ImageCategory.FORM_QUESTION, storedImage, questionImageFile);
                         }
                     }
 
@@ -280,7 +281,7 @@ public class FormQuestionService {
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
                             ? imageService.saveImageFile(
-                            ImageService.ImageCategory.FORM_QUESTION,
+                            ImageCategory.FORM_QUESTION,
                             questionImageFile,
                             "Form question"
                         )
@@ -348,17 +349,17 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null && !questionImageFile.isEmpty()) {
+                        if (questionImageFile.isEmpty()) {
+                            storedQuestion.setImage(null);
+                        } else if (storedImage == null) {
                             final ImageModel newImage = imageService.saveImageFile(
-                                ImageService.ImageCategory.FORM_QUESTION,
+                                ImageCategory.FORM_QUESTION,
                                 questionImageFile,
                                 "Form question"
                             );
                             storedQuestion.setImage(newImage);
-                        } else if (!questionImageFile.isEmpty()) {
-                            imageService.updateImageFile(storedQuestion.getImage(), questionImageFile);
                         } else {
-                            storedQuestion.setImage(null);
+                            imageService.updateImageFile(ImageCategory.FORM_QUESTION, storedImage, questionImageFile);
                         }
                     }
 
@@ -385,7 +386,7 @@ public class FormQuestionService {
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
                             ? imageService.saveImageFile(
-                            ImageService.ImageCategory.FORM_QUESTION,
+                            ImageCategory.FORM_QUESTION,
                             questionImageFile,
                             "Form question"
                         )
@@ -437,17 +438,17 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null && !questionImageFile.isEmpty()) {
+                        if (questionImageFile.isEmpty()) {
+                            storedQuestion.setImage(null);
+                        } else if (storedImage == null) {
                             final ImageModel newImage = imageService.saveImageFile(
-                                ImageService.ImageCategory.FORM_QUESTION,
+                                ImageCategory.FORM_QUESTION,
                                 questionImageFile,
                                 "Form question"
                             );
                             storedQuestion.setImage(newImage);
-                        } else if (!questionImageFile.isEmpty()) {
-                            imageService.updateImageFile(storedQuestion.getImage(), questionImageFile);
                         } else {
-                            storedQuestion.setImage(null);
+                            imageService.updateImageFile(ImageCategory.FORM_QUESTION, storedImage, questionImageFile);
                         }
                     }
 
@@ -467,7 +468,7 @@ public class FormQuestionService {
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
                             ? imageService.saveImageFile(
-                            ImageService.ImageCategory.FORM_QUESTION,
+                            ImageCategory.FORM_QUESTION,
                             questionImageFile,
                             "Form question"
                         )
@@ -519,17 +520,17 @@ public class FormQuestionService {
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
-                        if (storedImage == null && !questionImageFile.isEmpty()) {
+                        if (questionImageFile.isEmpty()) {
+                            storedQuestion.setImage(null);
+                        } else if (storedImage == null) {
                             final ImageModel newImage = imageService.saveImageFile(
-                                ImageService.ImageCategory.FORM_QUESTION,
+                                ImageCategory.FORM_QUESTION,
                                 questionImageFile,
                                 "Form question"
                             );
                             storedQuestion.setImage(newImage);
-                        } else if (!questionImageFile.isEmpty()) {
-                            imageService.updateImageFile(storedQuestion.getImage(), questionImageFile);
                         } else {
-                            storedQuestion.setImage(null);
+                            imageService.updateImageFile(ImageCategory.FORM_QUESTION, storedImage, questionImageFile);
                         }
                     }
 

@@ -88,17 +88,17 @@ public class FormOptionService {
             storedOption.setOrder(order++);
 
             if (optionImageFile != null) {
-                if (storedImage == null && !optionImageFile.isEmpty()) {
+                if (optionImageFile.isEmpty()) {
+                    storedOption.setImage(null);
+                } else if (storedImage == null) {
                     final ImageModel newImage = imageService.saveImageFile(
                         ImageCategory.FORM_OPTION,
                         optionImageFile,
                         "Form option"
                     );
                     storedOption.setImage(newImage);
-                } else if (!optionImageFile.isEmpty()) {
-                    imageService.updateImageFile(storedOption.getImage(), optionImageFile);
                 } else {
-                    storedOption.setImage(null);
+                    imageService.updateImageFile(ImageCategory.FORM_OPTION, storedImage, optionImageFile);
                 }
             }
 
