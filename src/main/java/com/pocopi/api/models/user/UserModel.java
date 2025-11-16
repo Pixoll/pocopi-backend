@@ -38,10 +38,11 @@ public class UserModel {
     @Column(name = "username", nullable = false, length = USERNAME_MAX_LEN, unique = true)
     private String username;
 
+    @Builder.Default
     @NotNull
     @Convert(converter = RoleConverter.class)
     @Column(name = "role", nullable = false)
-    private Role role;
+    private Role role = Role.USER;
 
     @Column(name = "anonymous", nullable = false)
     private boolean anonymous;
