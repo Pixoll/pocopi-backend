@@ -1,6 +1,6 @@
 package com.pocopi.api.models.form;
 
-import com.pocopi.api.converters.FormTypeConverter;
+import com.pocopi.api.converters.FormTypeJpaConverter;
 import com.pocopi.api.models.config.ConfigModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -35,7 +35,7 @@ public class FormModel {
     private String title = null;
 
     @NotNull
-    @Convert(converter = FormTypeConverter.class)
+    @Convert(converter = FormTypeJpaConverter.class)
     @Column(name = "type", nullable = false)
     private FormType type;
 }

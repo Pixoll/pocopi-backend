@@ -5,7 +5,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class FormQuestionTypeConverter implements AttributeConverter<FormQuestionType, String> {
+public class FormQuestionTypeJpaConverter implements AttributeConverter<FormQuestionType, String> {
     @Override
     public String convertToDatabaseColumn(FormQuestionType formQuestionType) {
         if (formQuestionType == null) {

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class FormService {
+    private final ConfigRepository configRepository;
     private final FormRepository formRepository;
     private final FormQuestionService formQuestionService;
     private final FormQuestionRepository formQuestionRepository;
@@ -30,6 +31,7 @@ public class FormService {
     private final ImageService imageService;
 
     public FormService(
+        ConfigRepository configRepository,
         FormRepository formRepository,
         FormQuestionService formQuestionService,
         FormQuestionRepository formQuestionRepository,
@@ -39,6 +41,7 @@ public class FormService {
         UserFormAnswerRepository userFormAnswerRepository,
         ImageService imageService
     ) {
+        this.configRepository = configRepository;
         this.formRepository = formRepository;
         this.formQuestionService = formQuestionService;
         this.formQuestionRepository = formQuestionRepository;
@@ -116,9 +119,11 @@ public class FormService {
     }
 
     @Transactional
-    public void saveUserFormAnswers(UserModel user, int formId, NewFormAnswers formAnswers) {
-        final FormModel form = formRepository.findById(formId)
-            .orElseThrow(() -> HttpException.notFound("Form with id " + formId + " not found"));
+    public void saveUserFormAnswers(UserModel user, FormType formType, NewFormAnswers formAnswers) {
+        final int configVersion = configRepository.findLastConfig().getVersion();
+
+        final FormModel form = formRepository.findByTypeAndConfigVersion(formType, configVersion)
+            .orElseThrow(() -> HttpException.notFound("Form of type " + formType + " not found"));
 
         final UserFormSubmissionModel formSubmission = UserFormSubmissionModel.builder()
             .user(user)

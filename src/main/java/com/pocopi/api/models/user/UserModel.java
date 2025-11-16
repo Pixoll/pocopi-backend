@@ -1,6 +1,6 @@
 package com.pocopi.api.models.user;
 
-import com.pocopi.api.converters.RoleConverter;
+import com.pocopi.api.converters.RoleJpaConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -40,7 +40,7 @@ public class UserModel {
 
     @Builder.Default
     @NotNull
-    @Convert(converter = RoleConverter.class)
+    @Convert(converter = RoleJpaConverter.class)
     @Column(name = "role", nullable = false)
     private Role role = Role.USER;
 

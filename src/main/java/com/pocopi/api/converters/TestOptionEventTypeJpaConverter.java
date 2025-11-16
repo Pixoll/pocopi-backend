@@ -5,7 +5,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class TestOptionEventTypeConverter implements AttributeConverter<TestOptionEventType, String> {
+public class TestOptionEventTypeJpaConverter implements AttributeConverter<TestOptionEventType, String> {
     @Override
     public String convertToDatabaseColumn(TestOptionEventType testOptionEventType) {
         if (testOptionEventType == null) {

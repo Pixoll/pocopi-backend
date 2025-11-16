@@ -2,6 +2,7 @@ package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.auth.AuthUser;
 import com.pocopi.api.dto.form.NewFormAnswers;
+import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.services.FormService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,13 +21,13 @@ public class FormController {
         this.formService = formService;
     }
 
-    @PostMapping("/{formId}/answers")
+    @PostMapping("/{formType}/answers")
     public ResponseEntity<Void> submitFormAnswers(
-        @PathVariable int formId,
+        @PathVariable FormType formType,
         @RequestBody @Valid NewFormAnswers formAnswers,
         @AuthenticationPrincipal AuthUser authUser
     ) {
-        formService.saveUserFormAnswers(authUser.user(), formId, formAnswers);
+        formService.saveUserFormAnswers(authUser.user(), formType, formAnswers);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
