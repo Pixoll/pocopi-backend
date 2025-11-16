@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -60,6 +61,18 @@ public class GlobalExceptionHandler {
         }
 
         return new ApiHttpError(HttpStatus.BAD_REQUEST, exception).toResponseEntity();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiHttpError> methodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        final ApiException apiException = apiExceptionMapper
+            .fromValidationErrors(exception.getBindingResult().getAllErrors());
+
+        return switch (apiException) {
+            case HttpException httpException -> httpException(httpException);
+            case MultiFieldException multiFieldException -> multiFieldException(multiFieldException);
+            default -> genericException(apiException);
+        };
     }
 
     @ExceptionHandler(Exception.class)

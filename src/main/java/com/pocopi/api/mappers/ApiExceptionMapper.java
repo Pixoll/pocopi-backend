@@ -10,16 +10,25 @@ import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.pocopi.api.dto.api.FieldError;
+import com.pocopi.api.dto.config.ConfigUpdate;
 import com.pocopi.api.exception.ApiException;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
+import jakarta.validation.ConstraintViolation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.ObjectError;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class ApiExceptionMapper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiExceptionMapper.class);
+
     public ApiException fromJsonProcessingException(JsonProcessingException e) {
         final String path = parsePath(e instanceof JsonMappingException ex
             ? ex.getPath()
@@ -117,6 +126,41 @@ public class ApiExceptionMapper {
                 return HttpException.internalServerError(e);
             }
         }
+    }
+
+    public ApiException fromValidationErrors(Set<ConstraintViolation<ConfigUpdate>> errors) {
+        return new MultiFieldException(
+            "Errors in some fields",
+            errors.stream()
+                .map(error -> new FieldError(error.getPropertyPath().toString(), error.getMessage()))
+                .toList()
+        );
+    }
+
+    public ApiException fromValidationErrors(List<ObjectError> errors) {
+        return new MultiFieldException(
+            "Errors in some fields",
+            errors.stream()
+                .map(error -> {
+                    try {
+                        final Field violationField = error.getClass().getDeclaredField("violation");
+                        violationField.setAccessible(true);
+                        final Object violation = violationField.get(error);
+
+                        if (violation instanceof ConstraintViolation<?> constraintViolation) {
+                            return new FieldError(
+                                constraintViolation.getPropertyPath().toString(),
+                                constraintViolation.getMessage()
+                            );
+                        }
+                    } catch (NoSuchFieldException | IllegalAccessException exception) {
+                        LOGGER.error(exception.getMessage(), exception);
+                    }
+
+                    return new FieldError("unknown", error.getDefaultMessage());
+                })
+                .toList()
+        );
     }
 
     private String parsePath(List<JsonMappingException.Reference> references) {
