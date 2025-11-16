@@ -1,35 +1,43 @@
 package com.pocopi.api.dto.test;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
 public record TestGroupUpdate(
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Min(1)
     Integer id,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Min(0)
+    @Max(100)
     int probability,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 25)
     String label,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Size(min = 1, max = 2000)
     String greeting,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     boolean allowPreviousPhase,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     boolean allowPreviousQuestion,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     boolean allowSkipQuestion,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     boolean randomizePhases,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Valid
     List<TestPhaseUpdate> phases
 ) {
 }

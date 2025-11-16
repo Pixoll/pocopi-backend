@@ -2,43 +2,51 @@ package com.pocopi.api.dto.config;
 
 import com.pocopi.api.dto.form.FormUpdate;
 import com.pocopi.api.dto.test.TestGroupUpdate;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 import java.util.Map;
 
 public record ConfigUpdate(
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 100)
     String title,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 200)
     String subtitle,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 2000)
     String description,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     boolean anonymous,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 2000)
     String informedConsent,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Valid
     List<InformationCardUpdate> informationCards,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Valid
     List<FrequentlyAskedQuestionUpdate> faq,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Valid
     FormUpdate preTestForm,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Valid
     FormUpdate postTestForm,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Valid
+    @NotNull
     List<TestGroupUpdate> groups,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    // TODO add checks to keys and values
+    @NotNull
     Map<String, String> translations
 ) {
 }

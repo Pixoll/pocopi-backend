@@ -39,7 +39,7 @@ public class FormSliderLabelService {
             if (isNew) {
                 final FormQuestionSliderLabelModel newSliderLabel = FormQuestionSliderLabelModel.builder()
                     .formQuestion(question)
-                    .number((short) sliderLabelUpdate.number())
+                    .number(sliderLabelUpdate.number())
                     .label(sliderLabelUpdate.label())
                     .build();
 
@@ -60,7 +60,7 @@ public class FormSliderLabelService {
                 continue;
             }
 
-            storedSliderLabel.setNumber((short) sliderLabelUpdate.number());
+            storedSliderLabel.setNumber(sliderLabelUpdate.number());
             storedSliderLabel.setLabel(sliderLabelUpdate.label());
 
             formQuestionSliderLabelRepository.save(storedSliderLabel);

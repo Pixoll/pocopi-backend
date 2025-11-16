@@ -6,6 +6,7 @@ import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.auth.Token;
 import com.pocopi.api.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Token> login(@RequestBody Credentials credentials) {
+    public ResponseEntity<Token> login(@RequestBody @Valid Credentials credentials) {
         final Authentication authentication = authenticationManager
             .authenticate(new UsernamePasswordAuthenticationToken(credentials.username(), credentials.password()));
 
@@ -43,7 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Token> register(@RequestBody NewUser user) {
+    public ResponseEntity<Token> register(@RequestBody @Valid NewUser user) {
         userService.createUser(user);
 
         return login(new Credentials(user.username(), user.password()));

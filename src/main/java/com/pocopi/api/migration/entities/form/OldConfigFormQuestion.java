@@ -11,12 +11,12 @@ public record OldConfigFormQuestion(
     String text,
     OldConfigImage image,
     boolean required,
-    Short min,
-    Short max,
-    Short step,
+    Integer min,
+    Integer max,
+    Integer step,
     Boolean other,
-    Short minLength,
-    Short maxLength,
+    Integer minLength,
+    Integer maxLength,
     String placeholder,
     ArrayList<OldConfigFormOption> options,
     ArrayList<OldConfigFormSliderLabel> labels
@@ -109,7 +109,7 @@ public record OldConfigFormQuestion(
                 }
 
                 for (final OldConfigFormSliderLabel label : labels) {
-                    final short number = label.number();
+                    final int number = label.number();
 
                     if (number < min || number > max) {
                         throw new IllegalArgumentException("Form question (slider) label number out of bounds");

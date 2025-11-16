@@ -1,17 +1,20 @@
 package com.pocopi.api.dto.test;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record TestPhaseUpdate(
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Min(1)
     Integer id,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     boolean randomizeQuestions,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Valid
     List<TestQuestionUpdate> questions
 ) {
 }

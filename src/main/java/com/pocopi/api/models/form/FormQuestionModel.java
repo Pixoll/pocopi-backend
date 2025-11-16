@@ -55,15 +55,15 @@ public class FormQuestionModel {
 
     @Builder.Default
     @Column(name = "min", columnDefinition = "int2 unsigned")
-    private Short min = null;
+    private Integer min = null;
 
     @Builder.Default
     @Column(name = "max", columnDefinition = "int2 unsigned")
-    private Short max = null;
+    private Integer max = null;
 
     @Builder.Default
     @Column(name = "step", columnDefinition = "int2 unsigned")
-    private Short step = null;
+    private Integer step = null;
 
     @Builder.Default
     @Column(name = "other")
@@ -71,11 +71,11 @@ public class FormQuestionModel {
 
     @Builder.Default
     @Column(name = "min_length", columnDefinition = "int2 unsigned")
-    private Short minLength = null;
+    private Integer minLength = null;
 
     @Builder.Default
     @Column(name = "max_length", columnDefinition = "int2 unsigned")
-    private Short maxLength = null;
+    private Integer maxLength = null;
 
     @Builder.Default
     @Size(min = 1, max = 50)

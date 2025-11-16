@@ -19,14 +19,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    private static final String EMAIL_REGEX =
-        "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\""
-            + "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])"
-            + "*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:"
-            + "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}"
-            + "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:"
-            + "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)])";
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConfigRepository configRepository;
@@ -107,47 +99,12 @@ public class UserService {
     }
 
     private void validateNewUser(NewUser user, List<FieldError> fieldErrors, boolean anonymous) {
-        if (user.username() == null || user.username().isEmpty()) {
-            fieldErrors.add(new FieldError("username", "Username is required"));
-        } else {
-            final String username = user.username();
-
-            if (username.contains(" ")) {
-                fieldErrors.add(new FieldError("username", "Username cannot contain spaces"));
-            }
-
-            // noinspection SizeReplaceableByIsEmpty,ConstantValue
-            if (username.length() < UserModel.USERNAME_MIN_LEN || username.length() > UserModel.USERNAME_MAX_LEN) {
-                fieldErrors.add(new FieldError(
-                    "username",
-                    "Username length must be between "
-                        + UserModel.USERNAME_MIN_LEN
-                        + " and "
-                        + UserModel.USERNAME_MAX_LEN
-                        + " characters"
-                ));
-            }
+        if (user.username().contains(" ")) {
+            fieldErrors.add(new FieldError("username", "Username cannot contain spaces"));
         }
 
-        if (user.password() == null || user.password().isEmpty()) {
-            fieldErrors.add(new FieldError("password", "Password is required"));
-        } else {
-            final String password = user.password();
-
-            if (password.contains(" ")) {
-                fieldErrors.add(new FieldError("password", "Password cannot contain spaces"));
-            }
-
-            if (password.length() < UserModel.PASSWORD_MIN_LEN || password.length() > UserModel.PASSWORD_MAX_LEN) {
-                fieldErrors.add(new FieldError(
-                    "password",
-                    "Password length must be between "
-                        + UserModel.PASSWORD_MIN_LEN
-                        + " and "
-                        + UserModel.PASSWORD_MAX_LEN
-                        + " characters"
-                ));
-            }
+        if (user.password().contains(" ")) {
+            fieldErrors.add(new FieldError("password", "Password cannot contain spaces"));
         }
 
         if (anonymous) {
@@ -168,47 +125,14 @@ public class UserService {
 
         if (user.name() == null || user.name().isEmpty()) {
             fieldErrors.add(new FieldError("name", "Name is required for non-anonymous users"));
-        } else {
-            // noinspection SizeReplaceableByIsEmpty,ConstantValue
-            if (user.name().length() < UserModel.NAME_MIN_LEN || user.name().length() > UserModel.NAME_MAX_LEN) {
-                fieldErrors.add(new FieldError(
-                    "name",
-                    "Name length must be between "
-                        + UserModel.NAME_MIN_LEN
-                        + " and "
-                        + UserModel.NAME_MAX_LEN
-                        + " characters"
-                ));
-            }
         }
 
         if (user.email() == null || user.email().isEmpty()) {
             fieldErrors.add(new FieldError("email", "Email is required for non-anonymous users"));
-        } else {
-            // noinspection SizeReplaceableByIsEmpty,ConstantValue
-            if (user.email().length() < UserModel.EMAIL_MIN_LEN || user.email().length() > UserModel.EMAIL_MAX_LEN) {
-                fieldErrors.add(new FieldError(
-                    "email",
-                    "Email length must be between "
-                        + UserModel.EMAIL_MIN_LEN
-                        + " and "
-                        + UserModel.EMAIL_MAX_LEN
-                        + " characters"
-                ));
-            }
-
-            if (!user.email().matches(EMAIL_REGEX)) {
-                fieldErrors.add(new FieldError("email", "Invalid email"));
-            }
         }
 
         if (user.age() == null) {
             fieldErrors.add(new FieldError("age", "Age is required for non-anonymous users"));
-        } else if (user.age() < UserModel.AGE_MIN || user.age() > UserModel.AGE_MAX) {
-            fieldErrors.add(new FieldError(
-                "age",
-                "Age must be between " + UserModel.AGE_MIN + " and " + UserModel.AGE_MAX
-            ));
         }
     }
 }

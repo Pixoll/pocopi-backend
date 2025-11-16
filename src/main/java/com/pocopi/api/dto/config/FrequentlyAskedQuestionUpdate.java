@@ -1,15 +1,19 @@
 package com.pocopi.api.dto.config;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record FrequentlyAskedQuestionUpdate(
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Min(1)
     Integer id,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 100)
     String question,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Size(min = 1, max = 500)
     String answer
 ) {
 }

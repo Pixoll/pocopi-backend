@@ -26,8 +26,6 @@ public class UserModel {
     public static final int PASSWORD_MIN_LEN = 8;
     public static final int PASSWORD_MAX_LEN = 72;
     public static final int ENCRYPTED_PASSWORD_LEN = 60;
-    public static final String AGE_MIN_STR = AGE_MIN + "";
-    public static final String AGE_MAX_STR = AGE_MAX + "";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

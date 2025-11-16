@@ -1,7 +1,7 @@
 package com.pocopi.api.migration.entities.form;
 
 public record OldConfigFormSliderLabel(
-    short number,
+    int number,
     String label
 ) {
     public OldConfigFormSliderLabel {

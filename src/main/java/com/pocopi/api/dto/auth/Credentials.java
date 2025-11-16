@@ -1,12 +1,12 @@
 package com.pocopi.api.dto.auth;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 
 public record Credentials(
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     String username,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     String password
 ) {
 }

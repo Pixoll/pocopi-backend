@@ -12,6 +12,9 @@ import com.pocopi.api.services.ConfigService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.pocopi.api.config.OpenApiCustomizer.SECURITY_SCHEME_NAME;
 
@@ -30,15 +34,18 @@ public class ConfigController {
     private final ConfigService configService;
     private final ObjectMapper objectMapper;
     private final ApiExceptionMapper apiExceptionMapper;
+    private final Validator validator;
 
     public ConfigController(
         ConfigService configService,
         ObjectMapper objectMapper,
-        ApiExceptionMapper apiExceptionMapper
+        ApiExceptionMapper apiExceptionMapper,
+        Validator validator
     ) {
         this.configService = configService;
         this.objectMapper = objectMapper;
         this.apiExceptionMapper = apiExceptionMapper;
+        this.validator = validator;
     }
 
     @GetMapping
@@ -59,34 +66,37 @@ public class ConfigController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateLatestConfig(
         @RequestPart(name = "icon", required = false)
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "New application icon")
+        @Schema(description = "New application icon")
         MultipartFile icon,
 
         @RequestPart(name = "informationCardImages", required = false)
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the information cards")
+        @Schema(description = "Every image used in the information cards")
         List<MultipartFile> informationCardImages,
 
         @RequestPart(name = "preTestFormImages", required = false)
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the pre-test form")
+        @Schema(description = "Every image used in the pre-test form")
         List<MultipartFile> preTestFormImages,
 
         @RequestPart(name = "postTestFormImages", required = false)
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the post-test form")
+        @Schema(description = "Every image used in the post-test form")
         List<MultipartFile> postTestFormImages,
 
         @RequestPart(name = "groupImages", required = false)
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Every image used in the test groups")
+        @Schema(description = "Every image used in the test groups")
         List<MultipartFile> groupImages,
 
         @RequestPart(name = "payload")
-        @Schema(
-            implementation = ConfigUpdate.class,
-            requiredMode = Schema.RequiredMode.REQUIRED,
-            description = "Configuration update"
-        )
+        @NotNull
+        @Schema(implementation = ConfigUpdate.class, description = "Configuration update")
         String payload
     ) {
         final ConfigUpdate configUpdate = parseUpdateConfigPayload(payload);
+
+        final Set<ConstraintViolation<ConfigUpdate>> errors = validator.validate(configUpdate);
+
+        if (!errors.isEmpty()) {
+            throw apiExceptionMapper.fromValidationErrors(errors);
+        }
 
         final boolean modified = configService.updateLatestConfig(
             configUpdate,

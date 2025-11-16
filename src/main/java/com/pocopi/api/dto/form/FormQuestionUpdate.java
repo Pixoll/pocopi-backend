@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.pocopi.api.models.form.FormQuestionType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -33,131 +36,160 @@ public sealed interface FormQuestionUpdate
     FormQuestionUpdate.SliderUpdate,
     FormQuestionUpdate.TextLongUpdate,
     FormQuestionUpdate.TextShortUpdate {
-    @AllArgsConstructor
-    @NoArgsConstructor
-    final class SelectMultipleUpdate implements FormQuestionUpdate {
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Integer id;
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String category;
+    record SelectMultipleUpdate(
+        @Min(1)
+        Integer id,
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public String text;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String category,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.SELECT_MULTIPLE_NAME})
-        public FormQuestionType type;
+        @Size(min = 1, max = 200)
+        String text,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int min;
+        @NotNull
+        @Schema(allowableValues = {FormQuestionType.SELECT_MULTIPLE_NAME})
+        FormQuestionType type,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int max;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int min,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public boolean other;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int max,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public List<FormOptionUpdate> options;
+        @NotNull
+        boolean other,
+
+        @NotNull
+        @Valid
+        List<FormOptionUpdate> options
+    ) implements FormQuestionUpdate {
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    final class SelectOneUpdate implements FormQuestionUpdate {
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Integer id;
+    record SelectOneUpdate(
+        @Min(1)
+        Integer id,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String category;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String category,
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public String text;
+        @Size(min = 1, max = 200)
+        String text,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.SELECT_ONE_NAME})
-        public FormQuestionType type;
+        @NotNull
+        @Schema(allowableValues = {FormQuestionType.SELECT_ONE_NAME})
+        FormQuestionType type,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public boolean other;
+        @NotNull
+        boolean other,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public List<FormOptionUpdate> options;
+        @NotNull
+        @Valid
+        List<FormOptionUpdate> options
+    ) implements FormQuestionUpdate {
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    final class SliderUpdate implements FormQuestionUpdate {
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Integer id;
+    record SliderUpdate(
+        @Min(1)
+        Integer id,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String category;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String category,
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public String text;
+        @Size(min = 1, max = 200)
+        String text,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.SLIDER_NAME})
-        public FormQuestionType type;
+        @NotNull
+        @Schema(allowableValues = {FormQuestionType.SLIDER_NAME})
+        FormQuestionType type,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int min;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int min,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int max;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int max,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int step;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int step,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public List<SliderLabelUpdate> labels;
+        @NotNull
+        @Valid
+        List<SliderLabelUpdate> labels
+    ) implements FormQuestionUpdate {
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    final class TextLongUpdate implements FormQuestionUpdate {
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Integer id;
+    record TextLongUpdate(
+        @Min(1)
+        Integer id,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String category;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String category,
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public String text;
+        @Size(min = 1, max = 200)
+        String text,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.TEXT_LONG_NAME})
-        public FormQuestionType type;
+        @NotNull
+        @Schema(allowableValues = {FormQuestionType.TEXT_LONG_NAME})
+        FormQuestionType type,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String placeholder;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String placeholder,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int minLength;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int minLength,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int maxLength;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int maxLength
+    ) implements FormQuestionUpdate {
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    final class TextShortUpdate implements FormQuestionUpdate {
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public Integer id;
+    record TextShortUpdate(
+        @Min(1)
+        Integer id,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String category;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String category,
 
-        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        public String text;
+        @Size(min = 1, max = 200)
+        String text,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.TEXT_SHORT_NAME})
-        public FormQuestionType type;
+        @NotNull
+        @Schema(allowableValues = {FormQuestionType.TEXT_SHORT_NAME})
+        FormQuestionType type,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public String placeholder;
+        @NotNull
+        @Size(min = 1, max = 50)
+        String placeholder,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int minLength;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int minLength,
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        public int maxLength;
+        @NotNull
+        @Min(0x0000)
+        @Max(0xffff)
+        int maxLength
+    ) implements FormQuestionUpdate {
     }
 }

@@ -186,7 +186,7 @@ public class FormService {
                 .formSubmission(savedSubmission)
                 .question(question)
                 .option(option)
-                .value(answer.value() != null ? answer.value().shortValue() : null)
+                .value(answer.value())
                 .answer(answer.answer())
                 .build();
 

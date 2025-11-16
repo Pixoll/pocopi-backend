@@ -41,7 +41,7 @@ public class UserFormAnswerModel {
 
     @Builder.Default
     @Column(name = "value", columnDefinition = "int2 unsigned")
-    private Short value = null;
+    private Integer value = null;
 
     @Builder.Default
     @Size(min = 1, max = 1000)

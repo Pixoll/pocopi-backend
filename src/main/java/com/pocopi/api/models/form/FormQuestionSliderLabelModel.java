@@ -31,7 +31,7 @@ public class FormQuestionSliderLabelModel {
     private FormQuestionModel formQuestion;
 
     @Column(name = "number", nullable = false, columnDefinition = "int2 unsigned")
-    private short number;
+    private int number;
 
     @Size(min = 1, max = 50)
     @NotNull

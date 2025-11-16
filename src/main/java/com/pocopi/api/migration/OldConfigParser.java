@@ -236,12 +236,12 @@ public final class OldConfigParser {
             text,
             image,
             required,
-            min != null ? min.shortValue() : null,
-            max != null ? max.shortValue() : null,
-            step != null ? step.shortValue() : null,
+            min,
+            max,
+            step,
             other,
-            minLength != null ? minLength.shortValue() : null,
-            maxLength != null ? maxLength.shortValue() : null,
+            minLength,
+            maxLength,
             placeholder,
             options,
             labels
@@ -259,11 +259,11 @@ public final class OldConfigParser {
         final ArrayList<OldConfigFormSliderLabel> sliderLabels = new ArrayList<>();
 
         labelsMap.forEach((rawNumber, rawLabel) -> {
-            final short number = castNonNull(
+            final int number = castNonNull(
                 rawNumber,
                 Integer.class,
                 "Form question slider label number must be an integer"
-            ).shortValue();
+            );
             final String label = castNonNull(rawLabel, String.class, "Form question slider label must be a string");
 
             final OldConfigFormSliderLabel sliderLabel = new OldConfigFormSliderLabel(number, label);

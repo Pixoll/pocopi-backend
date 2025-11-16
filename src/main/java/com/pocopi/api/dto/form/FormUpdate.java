@@ -1,17 +1,21 @@
 package com.pocopi.api.dto.form;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
 public record FormUpdate(
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Min(1)
     Integer id,
 
-    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Size(min = 1, max = 100)
     String title,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Form questions")
+    @NotNull
+    @Valid
     List<FormQuestionUpdate> questions
 ) {
 }

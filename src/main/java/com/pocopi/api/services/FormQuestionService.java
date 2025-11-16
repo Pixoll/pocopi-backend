@@ -58,8 +58,8 @@ public class FormQuestionService {
 
             switch (formQuestionUpdate) {
                 case FormQuestionUpdate.SelectMultipleUpdate questionUpdate -> {
-                    final boolean isNew = questionUpdate.id == null
-                        || !storedQuestionsMap.containsKey(questionUpdate.id);
+                    final boolean isNew = questionUpdate.id() == null
+                        || !storedQuestionsMap.containsKey(questionUpdate.id());
 
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
@@ -73,21 +73,21 @@ public class FormQuestionService {
                         final FormQuestionModel newQuestion = FormQuestionModel.builder()
                             .form(form)
                             .order(order++)
-                            .category(questionUpdate.category)
-                            .text(questionUpdate.text)
+                            .category(questionUpdate.category())
+                            .text(questionUpdate.text())
                             .image(questionImage)
                             .required(true)
                             .type(FormQuestionType.SELECT_MULTIPLE)
-                            .min((short) questionUpdate.min)
-                            .max((short) questionUpdate.max)
-                            .other(questionUpdate.other)
+                            .min(questionUpdate.min())
+                            .max(questionUpdate.max())
+                            .other(questionUpdate.other())
                             .build();
 
                         final FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
                         formOptionService.updateOptions(
                             savedNewQuestion,
-                            questionUpdate.options,
+                            questionUpdate.options(),
                             storedOptionsMap,
                             processedOptions,
                             imageIndex,
@@ -98,23 +98,23 @@ public class FormQuestionService {
                         continue;
                     }
 
-                    final Integer questionId = questionUpdate.id;
+                    final Integer questionId = questionUpdate.id();
                     final FormQuestionModel storedQuestion = storedQuestionsMap.get(questionId);
 
                     processedQuestions.put(questionId, true);
 
-                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category)
-                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text)
-                        || storedQuestion.getMin() != questionUpdate.min
-                        || storedQuestion.getMax() != questionUpdate.max
-                        || storedQuestion.getOther() != questionUpdate.other
+                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category())
+                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text())
+                        || storedQuestion.getMin() != questionUpdate.min()
+                        || storedQuestion.getMax() != questionUpdate.max()
+                        || storedQuestion.getOther() != questionUpdate.other()
                         || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
                         final boolean modifiedOptions = formOptionService.updateOptions(
                             storedQuestion,
-                            questionUpdate.options,
+                            questionUpdate.options(),
                             storedOptionsMap,
                             processedOptions,
                             imageIndex,
@@ -128,11 +128,11 @@ public class FormQuestionService {
 
                     final ImageModel storedImage = storedQuestion.getImage();
 
-                    storedQuestion.setCategory(questionUpdate.category);
-                    storedQuestion.setText(questionUpdate.text);
-                    storedQuestion.setMax((short) questionUpdate.max);
-                    storedQuestion.setMin((short) questionUpdate.min);
-                    storedQuestion.setOther(questionUpdate.other);
+                    storedQuestion.setCategory(questionUpdate.category());
+                    storedQuestion.setText(questionUpdate.text());
+                    storedQuestion.setMax(questionUpdate.max());
+                    storedQuestion.setMin(questionUpdate.min());
+                    storedQuestion.setOther(questionUpdate.other());
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
@@ -158,7 +158,7 @@ public class FormQuestionService {
 
                     formOptionService.updateOptions(
                         updatedQuestion,
-                        questionUpdate.options,
+                        questionUpdate.options(),
                         storedOptionsMap,
                         processedOptions,
                         imageIndex,
@@ -169,8 +169,8 @@ public class FormQuestionService {
                 }
 
                 case FormQuestionUpdate.SelectOneUpdate questionUpdate -> {
-                    final boolean isNew = questionUpdate.id == null
-                        || !storedQuestionsMap.containsKey(questionUpdate.id);
+                    final boolean isNew = questionUpdate.id() == null
+                        || !storedQuestionsMap.containsKey(questionUpdate.id());
 
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
@@ -184,19 +184,19 @@ public class FormQuestionService {
                         final FormQuestionModel newQuestion = FormQuestionModel.builder()
                             .form(form)
                             .order(order++)
-                            .category(questionUpdate.category)
-                            .text(questionUpdate.text)
+                            .category(questionUpdate.category())
+                            .text(questionUpdate.text())
                             .image(questionImage)
                             .required(true)
                             .type(FormQuestionType.SELECT_ONE)
-                            .other(questionUpdate.other)
+                            .other(questionUpdate.other())
                             .build();
 
                         final FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
                         formOptionService.updateOptions(
                             savedNewQuestion,
-                            questionUpdate.options,
+                            questionUpdate.options(),
                             storedOptionsMap,
                             processedOptions,
                             imageIndex,
@@ -207,21 +207,21 @@ public class FormQuestionService {
                         continue;
                     }
 
-                    final Integer questionId = questionUpdate.id;
+                    final Integer questionId = questionUpdate.id();
                     final FormQuestionModel storedQuestion = storedQuestionsMap.get(questionId);
 
                     processedQuestions.put(questionId, true);
 
-                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category)
-                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text)
-                        || storedQuestion.getOther() != questionUpdate.other
+                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category())
+                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text())
+                        || storedQuestion.getOther() != questionUpdate.other()
                         || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
                         final boolean modifiedOptions = formOptionService.updateOptions(
                             storedQuestion,
-                            questionUpdate.options,
+                            questionUpdate.options(),
                             storedOptionsMap,
                             processedOptions,
                             imageIndex,
@@ -235,9 +235,9 @@ public class FormQuestionService {
 
                     final ImageModel storedImage = storedQuestion.getImage();
 
-                    storedQuestion.setCategory(questionUpdate.category);
-                    storedQuestion.setText(questionUpdate.text);
-                    storedQuestion.setOther(questionUpdate.other);
+                    storedQuestion.setCategory(questionUpdate.category());
+                    storedQuestion.setText(questionUpdate.text());
+                    storedQuestion.setOther(questionUpdate.other());
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
@@ -263,7 +263,7 @@ public class FormQuestionService {
 
                     formOptionService.updateOptions(
                         updatedQuestion,
-                        questionUpdate.options,
+                        questionUpdate.options(),
                         storedOptionsMap,
                         processedOptions,
                         imageIndex,
@@ -274,8 +274,8 @@ public class FormQuestionService {
                 }
 
                 case FormQuestionUpdate.SliderUpdate questionUpdate -> {
-                    final boolean isNew = questionUpdate.id == null
-                        || !storedQuestionsMap.containsKey(questionUpdate.id);
+                    final boolean isNew = questionUpdate.id() == null
+                        || !storedQuestionsMap.containsKey(questionUpdate.id());
 
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
@@ -289,21 +289,21 @@ public class FormQuestionService {
                         final FormQuestionModel newQuestion = FormQuestionModel.builder()
                             .form(form)
                             .order(order++)
-                            .category(questionUpdate.category)
-                            .text(questionUpdate.text)
+                            .category(questionUpdate.category())
+                            .text(questionUpdate.text())
                             .image(questionImage)
                             .required(true)
                             .type(FormQuestionType.SLIDER)
-                            .min((short) questionUpdate.min)
-                            .max((short) questionUpdate.max)
-                            .step((short) questionUpdate.step)
+                            .min(questionUpdate.min())
+                            .max(questionUpdate.max())
+                            .step(questionUpdate.step())
                             .build();
 
                         final FormQuestionModel savedNewQuestion = formQuestionRepository.save(newQuestion);
 
                         formSliderLabelService.updateSliderLabels(
                             savedNewQuestion,
-                            questionUpdate.labels,
+                            questionUpdate.labels(),
                             storedSliderLabelsMap,
                             processedSliderLabels
                         );
@@ -312,23 +312,23 @@ public class FormQuestionService {
                         continue;
                     }
 
-                    final Integer questionId = questionUpdate.id;
+                    final Integer questionId = questionUpdate.id();
                     final FormQuestionModel storedQuestion = storedQuestionsMap.get(questionId);
 
                     processedQuestions.put(questionId, true);
 
-                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category)
-                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text)
-                        || storedQuestion.getMin() != questionUpdate.min
-                        || storedQuestion.getMax() != questionUpdate.max
-                        || storedQuestion.getStep() != questionUpdate.step
+                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category())
+                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text())
+                        || storedQuestion.getMin() != questionUpdate.min()
+                        || storedQuestion.getMax() != questionUpdate.max()
+                        || storedQuestion.getStep() != questionUpdate.step()
                         || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
                     if (!updated) {
                         final boolean modifiedSliderLabels = formSliderLabelService.updateSliderLabels(
                             storedQuestion,
-                            questionUpdate.labels,
+                            questionUpdate.labels(),
                             storedSliderLabelsMap,
                             processedSliderLabels
                         );
@@ -340,11 +340,11 @@ public class FormQuestionService {
 
                     final ImageModel storedImage = storedQuestion.getImage();
 
-                    storedQuestion.setCategory(questionUpdate.category);
-                    storedQuestion.setText(questionUpdate.text);
-                    storedQuestion.setMax((short) questionUpdate.max);
-                    storedQuestion.setMin((short) questionUpdate.min);
-                    storedQuestion.setStep((short) questionUpdate.step);
+                    storedQuestion.setCategory(questionUpdate.category());
+                    storedQuestion.setText(questionUpdate.text());
+                    storedQuestion.setMax(questionUpdate.max());
+                    storedQuestion.setMin(questionUpdate.min());
+                    storedQuestion.setStep(questionUpdate.step());
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
@@ -370,7 +370,7 @@ public class FormQuestionService {
 
                     formSliderLabelService.updateSliderLabels(
                         updatedQuestion,
-                        questionUpdate.labels,
+                        questionUpdate.labels(),
                         storedSliderLabelsMap,
                         processedSliderLabels
                     );
@@ -379,8 +379,8 @@ public class FormQuestionService {
                 }
 
                 case FormQuestionUpdate.TextShortUpdate questionUpdate -> {
-                    final boolean isNew = questionUpdate.id == null
-                        || !storedQuestionsMap.containsKey(questionUpdate.id);
+                    final boolean isNew = questionUpdate.id() == null
+                        || !storedQuestionsMap.containsKey(questionUpdate.id());
 
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
@@ -394,14 +394,14 @@ public class FormQuestionService {
                         final FormQuestionModel newQuestion = FormQuestionModel.builder()
                             .form(form)
                             .order(order++)
-                            .category(questionUpdate.category)
-                            .text(questionUpdate.text)
+                            .category(questionUpdate.category())
+                            .text(questionUpdate.text())
                             .image(questionImage)
                             .required(true)
                             .type(FormQuestionType.TEXT_SHORT)
-                            .minLength((short) questionUpdate.minLength)
-                            .maxLength((short) questionUpdate.maxLength)
-                            .placeholder(questionUpdate.placeholder)
+                            .minLength(questionUpdate.minLength())
+                            .maxLength(questionUpdate.maxLength())
+                            .placeholder(questionUpdate.placeholder())
                             .build();
 
                         formQuestionRepository.save(newQuestion);
@@ -409,16 +409,16 @@ public class FormQuestionService {
                         continue;
                     }
 
-                    final Integer questionId = questionUpdate.id;
+                    final Integer questionId = questionUpdate.id();
                     final FormQuestionModel storedQuestion = storedQuestionsMap.get(questionId);
 
                     processedQuestions.put(questionId, true);
 
-                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category)
-                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text)
-                        || !Objects.equals(storedQuestion.getPlaceholder(), questionUpdate.placeholder)
-                        || storedQuestion.getMinLength() != questionUpdate.minLength
-                        || storedQuestion.getMaxLength() != questionUpdate.maxLength
+                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category())
+                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text())
+                        || !Objects.equals(storedQuestion.getPlaceholder(), questionUpdate.placeholder())
+                        || storedQuestion.getMinLength() != questionUpdate.minLength()
+                        || storedQuestion.getMaxLength() != questionUpdate.maxLength()
                         || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
@@ -429,11 +429,11 @@ public class FormQuestionService {
 
                     final ImageModel storedImage = storedQuestion.getImage();
 
-                    storedQuestion.setCategory(questionUpdate.category);
-                    storedQuestion.setText(questionUpdate.text);
-                    storedQuestion.setMaxLength((short) questionUpdate.maxLength);
-                    storedQuestion.setMinLength((short) questionUpdate.minLength);
-                    storedQuestion.setPlaceholder(questionUpdate.placeholder);
+                    storedQuestion.setCategory(questionUpdate.category());
+                    storedQuestion.setText(questionUpdate.text());
+                    storedQuestion.setMaxLength(questionUpdate.maxLength());
+                    storedQuestion.setMinLength(questionUpdate.minLength());
+                    storedQuestion.setPlaceholder(questionUpdate.placeholder());
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
@@ -461,8 +461,8 @@ public class FormQuestionService {
                 }
 
                 case FormQuestionUpdate.TextLongUpdate questionUpdate -> {
-                    final boolean isNew = questionUpdate.id == null
-                        || !storedQuestionsMap.containsKey(questionUpdate.id);
+                    final boolean isNew = questionUpdate.id() == null
+                        || !storedQuestionsMap.containsKey(questionUpdate.id());
 
                     if (isNew) {
                         final ImageModel questionImage = questionImageFile != null && !questionImageFile.isEmpty()
@@ -476,14 +476,14 @@ public class FormQuestionService {
                         final FormQuestionModel newQuestion = FormQuestionModel.builder()
                             .form(form)
                             .order(order++)
-                            .category(questionUpdate.category)
-                            .text(questionUpdate.text)
+                            .category(questionUpdate.category())
+                            .text(questionUpdate.text())
                             .image(questionImage)
                             .required(true)
                             .type(FormQuestionType.TEXT_LONG)
-                            .minLength((short) questionUpdate.minLength)
-                            .maxLength((short) questionUpdate.maxLength)
-                            .placeholder(questionUpdate.placeholder)
+                            .minLength(questionUpdate.minLength())
+                            .maxLength(questionUpdate.maxLength())
+                            .placeholder(questionUpdate.placeholder())
                             .build();
 
                         formQuestionRepository.save(newQuestion);
@@ -491,16 +491,16 @@ public class FormQuestionService {
                         continue;
                     }
 
-                    final Integer questionId = questionUpdate.id;
+                    final Integer questionId = questionUpdate.id();
                     final FormQuestionModel storedQuestion = storedQuestionsMap.get(questionId);
 
                     processedQuestions.put(questionId, true);
 
-                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category)
-                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text)
-                        || !Objects.equals(storedQuestion.getPlaceholder(), questionUpdate.placeholder)
-                        || storedQuestion.getMinLength() != questionUpdate.minLength
-                        || storedQuestion.getMaxLength() != questionUpdate.maxLength
+                    final boolean updated = !Objects.equals(storedQuestion.getCategory(), questionUpdate.category())
+                        || !Objects.equals(storedQuestion.getText(), questionUpdate.text())
+                        || !Objects.equals(storedQuestion.getPlaceholder(), questionUpdate.placeholder())
+                        || storedQuestion.getMinLength() != questionUpdate.minLength()
+                        || storedQuestion.getMaxLength() != questionUpdate.maxLength()
                         || storedQuestion.getOrder() != order
                         || questionImageFile != null;
 
@@ -511,11 +511,11 @@ public class FormQuestionService {
 
                     final ImageModel storedImage = storedQuestion.getImage();
 
-                    storedQuestion.setCategory(questionUpdate.category);
-                    storedQuestion.setText(questionUpdate.text);
-                    storedQuestion.setMaxLength((short) questionUpdate.maxLength);
-                    storedQuestion.setMinLength((short) questionUpdate.minLength);
-                    storedQuestion.setPlaceholder(questionUpdate.placeholder);
+                    storedQuestion.setCategory(questionUpdate.category());
+                    storedQuestion.setText(questionUpdate.text());
+                    storedQuestion.setMaxLength(questionUpdate.maxLength());
+                    storedQuestion.setMinLength(questionUpdate.minLength());
+                    storedQuestion.setPlaceholder(questionUpdate.placeholder());
                     storedQuestion.setOrder(order++);
 
                     if (questionImageFile != null) {
