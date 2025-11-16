@@ -115,7 +115,6 @@ create table form_question (
     foreign key (image_id) references image (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_form_question
     before insert
     on form_question
@@ -126,10 +125,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_form_question
     before update
     on form_question
@@ -139,9 +134,6 @@ begin
         signal sqlstate '45000' set message_text = 'text and image cannot be null at the same time';
     end if;
 end;
-
-$$
-delimiter ;
 
 create table form_question_option (
     id               int4 unsigned primary key not null auto_increment,
@@ -154,7 +146,6 @@ create table form_question_option (
     foreign key (image_id) references image (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_form_question_option
     before insert
     on form_question_option
@@ -177,10 +168,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_form_question_option
     before update
     on form_question_option
@@ -205,9 +192,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
 create table form_question_slider_label (
     id               int4 unsigned primary key not null auto_increment,
     form_question_id int4 unsigned             not null,
@@ -217,7 +201,6 @@ create table form_question_slider_label (
     foreign key (form_question_id) references form_question (id) on delete cascade
 );
 
-delimiter $$
 create trigger before_insert_form_question_slider_label
     before insert
     on form_question_slider_label
@@ -235,10 +218,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_form_question_slider_label
     before update
     on form_question_slider_label
@@ -257,9 +236,6 @@ begin
         end if;
     end if;
 end;
-
-$$
-delimiter ;
 
 create table test_group (
     id             int4 unsigned primary key not null auto_increment,
@@ -286,7 +262,6 @@ create table test_protocol (
     foreign key (group_id) references test_group (id) on delete set null
 );
 
-delimiter $$
 create trigger before_insert_test_protocol
     before insert
     on test_protocol
@@ -304,10 +279,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_test_protocol
     before update
     on test_protocol
@@ -324,9 +295,6 @@ begin
         end if;
     end if;
 end;
-
-$$
-delimiter ;
 
 create table test_phase (
     id                  int4 unsigned primary key not null auto_increment,
@@ -349,7 +317,6 @@ create table test_question (
     foreign key (image_id) references image (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_test_question
     before insert
     on test_question
@@ -360,10 +327,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_test_question
     before update
     on test_question
@@ -373,9 +336,6 @@ begin
         signal sqlstate '45000' set message_text = 'text and image cannot be null at the same time';
     end if;
 end;
-
-$$
-delimiter ;
 
 create table test_option (
     id          int4 unsigned primary key not null auto_increment,
@@ -389,7 +349,6 @@ create table test_option (
     foreign key (image_id) references image (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_test_option
     before insert
     on test_option
@@ -400,10 +359,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_test_option
     before update
     on test_option
@@ -413,9 +368,6 @@ begin
         signal sqlstate '45000' set message_text = 'text and image cannot be null at the same time';
     end if;
 end;
-
-$$
-delimiter ;
 
 create table user (
     id        int4 unsigned primary key not null auto_increment,
@@ -442,7 +394,6 @@ create table user_form_submission (
     foreign key (form_id) references form (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_update_user_form_submission
     before update
     on user_form_submission
@@ -450,9 +401,6 @@ create trigger before_update_user_form_submission
 begin
     signal sqlstate '45000' set message_text = 'user_form_submission\'s rows cannot be updated';
 end;
-
-$$
-delimiter ;
 
 create table user_form_answer (
     id          int4 unsigned primary key not null auto_increment,
@@ -467,7 +415,6 @@ create table user_form_answer (
     foreign key (option_id) references form_question_option (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_user_form_answer
     before insert
     on user_form_answer
@@ -568,10 +515,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_user_form_answer
     before update
     on user_form_answer
@@ -579,9 +522,6 @@ create trigger before_update_user_form_answer
 begin
     signal sqlstate '45000' set message_text = 'user_form_answer\'s rows cannot be updated';
 end;
-
-$$
-delimiter ;
 
 create table user_test_attempt (
     id       int8 unsigned primary key not null auto_increment,
@@ -594,7 +534,6 @@ create table user_test_attempt (
     foreign key (group_id) references test_group (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_update_user_test_attempt
     before update
     on user_test_attempt
@@ -602,9 +541,6 @@ create trigger before_update_user_test_attempt
 begin
     signal sqlstate '45000' set message_text = 'user_test_attempt\'s rows cannot be updated';
 end;
-
-$$
-delimiter ;
 
 create table user_test_question_log (
     id          int8 unsigned primary key not null auto_increment,
@@ -617,7 +553,6 @@ create table user_test_question_log (
     foreign key (question_id) references test_question (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_user_test_question_log
     before insert
     on user_test_question_log
@@ -639,10 +574,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_user_test_question_log
     before update
     on user_test_question_log
@@ -650,9 +581,6 @@ create trigger before_update_user_test_question_log
 begin
     signal sqlstate '45000' set message_text = 'user_test_question_log\'s rows cannot be updated';
 end;
-
-$$
-delimiter ;
 
 create table user_test_option_log (
     id         int8 unsigned primary key            not null auto_increment,
@@ -665,7 +593,6 @@ create table user_test_option_log (
     foreign key (option_id) references test_option (id) on delete restrict
 );
 
-delimiter $$
 create trigger before_insert_user_test_option_log
     before insert
     on user_test_option_log
@@ -688,10 +615,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_update_user_test_option_log
     before update
     on user_test_option_log
@@ -699,9 +622,6 @@ create trigger before_update_user_test_option_log
 begin
     signal sqlstate '45000' set message_text = 'user_test_option_log\'s rows cannot be updated';
 end;
-
-$$
-delimiter ;
 
 insert into config (title, subtitle, description, informed_consent, anonymous)
     values ('PoCoPI Test',

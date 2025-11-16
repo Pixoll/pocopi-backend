@@ -40,7 +40,6 @@ drop trigger if exists before_insert_user_test_question_log;
 
 drop trigger if exists before_insert_user_test_option_log;
 
-delimiter $$
 create trigger before_insert_user_test_question_log
     before insert
     on user_test_question_log
@@ -61,10 +60,6 @@ begin
     end if;
 end;
 
-$$
-delimiter ;
-
-delimiter $$
 create trigger before_insert_user_test_option_log
     before insert
     on user_test_option_log
@@ -85,8 +80,5 @@ begin
             'option_id.question_id.phase_id.group_id must match attempt_id.group_id';
     end if;
 end;
-
-$$
-delimiter ;
 
 drop table test_protocol;

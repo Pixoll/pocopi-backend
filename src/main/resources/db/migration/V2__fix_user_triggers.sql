@@ -1,6 +1,5 @@
 drop trigger if exists before_update_user_test_attempt;
 
-delimiter $$
 create trigger before_update_user_test_attempt
     before update
     on user_test_attempt
@@ -10,6 +9,3 @@ begin
         signal sqlstate '45000' set message_text = 'only row "end" of user_test_attempt can be updated';
     end if;
 end;
-
-$$
-delimiter ;

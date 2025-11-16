@@ -1,6 +1,5 @@
 drop trigger if exists before_insert_user_form_answer;
 
-delimiter $$
 create trigger before_insert_user_form_answer
     before insert
     on user_form_answer
@@ -119,6 +118,3 @@ begin
             'answer should not be present when question_id.type is neither text-short or text-long';
     end if;
 end;
-
-$$
-delimiter ;
