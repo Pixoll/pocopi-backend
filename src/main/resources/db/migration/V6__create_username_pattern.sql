@@ -10,7 +10,6 @@ insert into pattern (name, regex)
 
 alter table config
     add column username_pattern_id int4 unsigned default null,
-    add constraint fk_config_username_pattern
-        foreign key (username_pattern_id)
-            references pattern (id)
-            on delete set null;
+    add foreign key (username_pattern_id)
+        references pattern (id)
+        on delete set null;
