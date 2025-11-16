@@ -59,7 +59,8 @@ public class FormResultsService {
         final Set<Integer> formIds = forms.stream().map(FormModel::getId).collect(Collectors.toSet());
 
         // Filtramos todas las respuestas del usuario que correspondan a los formularios de la última config
-        final List<UserFormAnswerModel> userAnswers = userFormAnswerRepository.findAllByFormSubmission_User_Id(userId)
+        final List<UserFormAnswerModel> userAnswers = userFormAnswerRepository
+            .findAllByFormSubmissionAttemptUserId(userId)
             .stream()
             .filter(ans -> formIds.contains(ans.getQuestion().getForm().getId()))
             .toList();

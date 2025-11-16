@@ -6,7 +6,7 @@ import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.form.*;
-import com.pocopi.api.models.user.UserModel;
+import com.pocopi.api.models.test.UserTestAttemptModel;
 import com.pocopi.api.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +29,7 @@ public class FormService {
     private final UserFormSubmissionRepository userFormSubmissionRepository;
     private final UserFormAnswerRepository userFormAnswerRepository;
     private final ImageService imageService;
+    private final UserTestAttemptRepository userTestAttemptRepository;
 
     public FormService(
         ConfigRepository configRepository,
@@ -39,7 +40,8 @@ public class FormService {
         FormQuestionSliderLabelRepository formQuestionSliderLabelRepository,
         UserFormSubmissionRepository userFormSubmissionRepository,
         UserFormAnswerRepository userFormAnswerRepository,
-        ImageService imageService
+        ImageService imageService,
+        UserTestAttemptRepository userTestAttemptRepository
     ) {
         this.configRepository = configRepository;
         this.formRepository = formRepository;
@@ -50,6 +52,7 @@ public class FormService {
         this.userFormSubmissionRepository = userFormSubmissionRepository;
         this.userFormAnswerRepository = userFormAnswerRepository;
         this.imageService = imageService;
+        this.userTestAttemptRepository = userTestAttemptRepository;
     }
 
     public Map<FormType, Form> getFormsByConfigVersion(int configVersion) {
@@ -119,14 +122,22 @@ public class FormService {
     }
 
     @Transactional
-    public void saveUserFormAnswers(UserModel user, FormType formType, NewFormAnswers formAnswers) {
+    public void saveUserFormAnswers(int userId, FormType formType, NewFormAnswers formAnswers) {
         final int configVersion = configRepository.findLastConfig().getVersion();
+
+        final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
+            .findUnfinishedAttempt(configVersion, userId)
+            .orElseThrow(() -> HttpException.notFound("User has not started an attempt yet"));
 
         final FormModel form = formRepository.findByTypeAndConfigVersion(formType, configVersion)
             .orElseThrow(() -> HttpException.notFound("Form of type " + formType + " not found"));
 
+        if (userFormSubmissionRepository.hasAnsweredForm(unfinishedAttempt.getId(), form.getId())) {
+            throw HttpException.conflict("User has already answered form of type " + formType);
+        }
+
         final UserFormSubmissionModel formSubmission = UserFormSubmissionModel.builder()
-            .user(user)
+            .attempt(unfinishedAttempt)
             .form(form)
             .timestamp(Instant.now())
             .build();

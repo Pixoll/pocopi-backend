@@ -27,7 +27,7 @@ public class FormController {
         @RequestBody @Valid NewFormAnswers formAnswers,
         @AuthenticationPrincipal AuthUser authUser
     ) {
-        formService.saveUserFormAnswers(authUser.user(), formType, formAnswers);
+        formService.saveUserFormAnswers(authUser.getId(), formType, formAnswers);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

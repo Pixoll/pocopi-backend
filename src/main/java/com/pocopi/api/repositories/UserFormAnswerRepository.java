@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface UserFormAnswerRepository extends JpaRepository<UserFormAnswerModel, Integer> {
-    List<UserFormAnswerModel> findAllByFormSubmission_User_Id(int userId);
+    List<UserFormAnswerModel> findAllByFormSubmissionAttemptUserId(int formSubmissionAttemptUserId);
 }
