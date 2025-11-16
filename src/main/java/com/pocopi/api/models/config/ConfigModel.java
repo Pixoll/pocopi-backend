@@ -60,4 +60,10 @@ public class ConfigModel {
     @NotNull
     @Column(name = "anonymous", nullable = false)
     private boolean anonymous = true;
+
+    @Builder.Default
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "username_pattern_id")
+    private PatternModel usernamePattern = null;
 }

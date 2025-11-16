@@ -25,6 +25,9 @@ public record FullConfig(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean anonymous,
 
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    Pattern usernamePattern,
+
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<InformationCard> informationCards,
 

@@ -3,14 +3,18 @@ package com.pocopi.api.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pocopi.api.dto.api.FieldError;
 import com.pocopi.api.dto.config.*;
 import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.test.TestGroup;
 import com.pocopi.api.exception.HttpException;
+import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.ImageModel;
+import com.pocopi.api.models.config.PatternModel;
 import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.repositories.ConfigRepository;
+import com.pocopi.api.repositories.PatternRepository;
 import com.pocopi.api.repositories.TranslationValueRepository;
 import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
@@ -21,12 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.PatternSyntaxException;
 
 @Service
 public class ConfigService {
     private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final ConfigRepository configRepository;
+    private final PatternRepository patternRepository;
     private final TranslationValueRepository translationValueRepository;
     private final FormService formService;
     private final HomeFaqService homeFaqService;
@@ -36,6 +42,7 @@ public class ConfigService {
 
     public ConfigService(
         ConfigRepository configRepository,
+        PatternRepository patternRepository,
         TranslationValueRepository translationValueRepository,
         FormService formService,
         HomeFaqService homeFaqService,
@@ -44,6 +51,7 @@ public class ConfigService {
         TestGroupService testGroupService
     ) {
         this.configRepository = configRepository;
+        this.patternRepository = patternRepository;
         this.translationValueRepository = translationValueRepository;
         this.formService = formService;
         this.homeFaqService = homeFaqService;
@@ -60,6 +68,12 @@ public class ConfigService {
         final Image icon = configModel.getIcon() != null
             ? imageService.getImageById(configModel.getIcon().getId())
             : null;
+
+        final Pattern usernamePattern = configModel.getUsernamePattern() != null ? new Pattern(
+            configModel.getUsernamePattern().getId(),
+            configModel.getUsernamePattern().getName(),
+            configModel.getUsernamePattern().getRegex()
+        ) : null;
 
         final Map<String, String> translations = translationValueRepository
             .findAllByConfigVersion(configVersion)
@@ -84,6 +98,7 @@ public class ConfigService {
             configModel.getSubtitle(),
             configModel.getDescription(),
             configModel.isAnonymous(),
+            usernamePattern,
             informationCards,
             configModel.getInformedConsent(),
             frequentlyAskedQuestions,
@@ -101,6 +116,12 @@ public class ConfigService {
         final Image icon = configModel.getIcon() != null
             ? imageService.getImageById(configModel.getIcon().getId())
             : null;
+
+        final Pattern usernamePattern = configModel.getUsernamePattern() != null ? new Pattern(
+            configModel.getUsernamePattern().getId(),
+            configModel.getUsernamePattern().getName(),
+            configModel.getUsernamePattern().getRegex()
+        ) : null;
 
         final List<Translation> translations = translationValueRepository
             .findAllByConfigVersionWithDetails(configVersion)
@@ -130,6 +151,7 @@ public class ConfigService {
             configModel.getSubtitle(),
             configModel.getDescription(),
             configModel.isAnonymous(),
+            usernamePattern,
             informationCards,
             configModel.getInformedConsent(),
             frequentlyAskedQuestions,
@@ -202,6 +224,55 @@ public class ConfigService {
             savedConfig = storedConfig;
         }
 
+        boolean modifiedUsernamePattern = false;
+
+        if (configUpdate.usernamePattern() == null) {
+            if (savedConfig.getUsernamePattern() != null) {
+                savedConfig.setUsernamePattern(null);
+
+                configRepository.save(savedConfig);
+                modifiedUsernamePattern = true;
+            }
+        } else {
+            final PatternUpdate patternUpdate = configUpdate.usernamePattern();
+
+            try {
+                java.util.regex.Pattern.compile(patternUpdate.regex());
+            } catch (PatternSyntaxException e) {
+                throw new MultiFieldException(
+                    "Invalid configuration update",
+                    List.of(new FieldError("usernamePattern", "Invalid Java matching pattern"))
+                );
+            }
+
+            final PatternModel patternModel = patternUpdate.id() != null
+                ? patternRepository.findById(patternUpdate.id()).orElse(null)
+                : null;
+
+            if (patternModel == null) {
+                final PatternModel newPattern = PatternModel.builder()
+                    .name(patternUpdate.name())
+                    .regex(patternUpdate.regex())
+                    .build();
+
+                final PatternModel savedPattern = patternRepository.save(newPattern);
+
+                savedConfig.setUsernamePattern(savedPattern);
+
+                configRepository.save(savedConfig);
+                modifiedUsernamePattern = true;
+            } else if (
+                !Objects.equals(patternModel.getName(), patternUpdate.name())
+                    || !Objects.equals(patternModel.getRegex(), patternUpdate.regex())
+            ) {
+                patternModel.setName(patternModel.getName());
+                patternModel.setRegex(patternUpdate.regex());
+
+                patternRepository.save(patternModel);
+                modifiedUsernamePattern = true;
+            }
+        }
+
         final boolean modifiedCards = homeInfoCardService.updateCards(
             savedConfig,
             configUpdate.informationCards(),
@@ -227,6 +298,7 @@ public class ConfigService {
         );
 
         return modifiedGeneral
+            || modifiedUsernamePattern
             || modifiedCards
             || modifiedFaq
             || modifiedPreTestForm

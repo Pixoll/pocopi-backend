@@ -26,6 +26,9 @@ public record ConfigUpdate(
     @NotNull
     boolean anonymous,
 
+    @Valid
+    PatternUpdate usernamePattern,
+
     @NotNull
     @Size(min = ConfigModel.INFORMED_CONSENT_MIN_LEN, max = ConfigModel.INFORMED_CONSENT_MAX_LEN)
     String informedConsent,

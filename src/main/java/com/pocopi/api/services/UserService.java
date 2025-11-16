@@ -5,6 +5,8 @@ import com.pocopi.api.dto.auth.NewUser;
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
+import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.config.PatternModel;
 import com.pocopi.api.models.user.Role;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
@@ -61,11 +63,13 @@ public class UserService {
 
     @Transactional
     public void createUser(NewUser user) {
-        final boolean anonymous = configRepository.findLastConfig().isAnonymous();
+        final ConfigModel config = configRepository.findLastConfig();
+        final boolean anonymous = config.isAnonymous();
+        final PatternModel usernamePattern = config.getUsernamePattern();
 
         final List<FieldError> fieldErrors = new ArrayList<>();
 
-        validateNewUser(user, fieldErrors, anonymous);
+        validateNewUser(user, fieldErrors, anonymous, usernamePattern);
 
         if (user.username() != null
             && !user.username().isEmpty()
@@ -98,9 +102,18 @@ public class UserService {
         userRepository.save(newUser);
     }
 
-    private void validateNewUser(NewUser user, List<FieldError> fieldErrors, boolean anonymous) {
+    private void validateNewUser(
+        NewUser user,
+        List<FieldError> fieldErrors,
+        boolean anonymous,
+        PatternModel usernamePattern
+    ) {
         if (user.username().contains(" ")) {
             fieldErrors.add(new FieldError("username", "Username cannot contain spaces"));
+        }
+
+        if (usernamePattern != null && !usernamePattern.getPattern().matcher(user.username()).matches()) {
+            fieldErrors.add(new FieldError("username", "Username is not a valid " + usernamePattern.getName()));
         }
 
         if (user.password().contains(" ")) {
