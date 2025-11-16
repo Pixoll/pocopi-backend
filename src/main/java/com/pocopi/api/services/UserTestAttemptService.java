@@ -2,16 +2,19 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.test.AssignedTestGroup;
 import com.pocopi.api.dto.test.UserTestAttempt;
+import com.pocopi.api.dto.test.UserTestAttemptAnswer;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.test.UserTestAttemptModel;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserTestAttemptRepository;
+import com.pocopi.api.repositories.projections.FormsCompletionStatusProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class UserTestAttemptService {
@@ -48,7 +51,13 @@ public class UserTestAttemptService {
 
         userTestAttemptRepository.save(newAttempt);
 
-        return new UserTestAttempt(false, 0, assignedGroup);
+        return new UserTestAttempt(
+            false,
+            false,
+            false,
+            List.of(),
+            assignedGroup
+        );
     }
 
     @Transactional
@@ -61,7 +70,26 @@ public class UserTestAttemptService {
 
         final AssignedTestGroup assignedGroup = testGroupService.getAssignedGroup(unfinishedAttempt.getGroup());
 
-        return new UserTestAttempt(false, 0, assignedGroup);
+        final int totalQuestions = assignedGroup.phases().stream()
+            .reduce(0, (subtotal, phase) -> subtotal + phase.questions().size(), Integer::sum);
+
+        final FormsCompletionStatusProjection formsCompletionStatus = userTestAttemptRepository
+            .getFormsCompletionStatus(unfinishedAttempt.getId());
+
+        final List<UserTestAttemptAnswer> testAnswers = userTestAttemptRepository
+            .getTestAnswers(unfinishedAttempt.getId())
+            .stream().map(answer -> new UserTestAttemptAnswer(answer.getQuestionId(), answer.getOptionId()))
+            .toList();
+
+        final boolean completedTest = testAnswers.size() == totalQuestions;
+
+        return new UserTestAttempt(
+            formsCompletionStatus.getCompletedPreTestForm() == 1,
+            completedTest,
+            formsCompletionStatus.getCompletedPostTestForm() == 1,
+            testAnswers,
+            assignedGroup
+        );
     }
 
     @Transactional

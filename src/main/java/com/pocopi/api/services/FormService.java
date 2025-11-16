@@ -55,6 +55,7 @@ public class FormService {
         this.userTestAttemptRepository = userTestAttemptRepository;
     }
 
+    @Transactional
     public Map<FormType, Form> getFormsByConfigVersion(int configVersion) {
         final Map<FormType, Form> formsMap = formRepository.findAllByConfigVersion(configVersion).stream()
             .collect(Collectors.toMap(
