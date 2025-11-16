@@ -112,10 +112,6 @@ public class UserService {
             fieldErrors.add(new FieldError("username", "Username cannot contain spaces"));
         }
 
-        if (usernamePattern != null && !usernamePattern.getPattern().matcher(user.username()).matches()) {
-            fieldErrors.add(new FieldError("username", "Username is not a valid " + usernamePattern.getName()));
-        }
-
         if (user.password().contains(" ")) {
             fieldErrors.add(new FieldError("password", "Password cannot contain spaces"));
         }
@@ -134,6 +130,10 @@ public class UserService {
             }
 
             return;
+        }
+
+        if (usernamePattern != null && !usernamePattern.getPattern().matcher(user.username()).matches()) {
+            fieldErrors.add(new FieldError("username", "Username is not a valid " + usernamePattern.getName()));
         }
 
         if (user.name() == null || user.name().isEmpty()) {
