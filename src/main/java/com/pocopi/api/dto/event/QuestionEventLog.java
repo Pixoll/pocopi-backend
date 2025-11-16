@@ -24,6 +24,9 @@ public record QuestionEventLog(
     int totalOptionHovers,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    List<OptionSelectionEvent> optionSelections,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<OptionEventLog> events
 ) {
 }

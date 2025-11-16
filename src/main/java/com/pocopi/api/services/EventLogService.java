@@ -66,6 +66,7 @@ public class EventLogService {
                 questionEvent.getSkipped() == 1,
                 questionEvent.getTotalOptionChanges().intValue(),
                 questionEvent.getTotalOptionHovers().intValue(),
+                new ArrayList<>(),
                 new ArrayList<>()
             );
 
@@ -82,6 +83,15 @@ public class EventLogService {
             );
 
             questionEvent.events().add(eventLog);
+
+            if (eventLog.type() == TestOptionEventType.SELECT) {
+                final OptionSelectionEvent selectionEvent = new OptionSelectionEvent(
+                    eventLog.optionId(),
+                    eventLog.timestamp()
+                );
+
+                questionEvent.optionSelections().add(selectionEvent);
+            }
         }
 
         return questionEventLogs.values().stream().toList();
@@ -106,6 +116,7 @@ public class EventLogService {
                 questionEvent.getSkipped() == 1,
                 questionEvent.getTotalOptionChanges().intValue(),
                 questionEvent.getTotalOptionHovers().intValue(),
+                new ArrayList<>(),
                 new ArrayList<>()
             );
 
@@ -122,6 +133,15 @@ public class EventLogService {
             );
 
             questionEvent.events().add(eventLog);
+
+            if (eventLog.type() == TestOptionEventType.SELECT) {
+                final OptionSelectionEvent selectionEvent = new OptionSelectionEvent(
+                    eventLog.optionId(),
+                    eventLog.timestamp()
+                );
+
+                questionEvent.optionSelections().add(selectionEvent);
+            }
         }
 
         return questionEventLogs.values().stream().toList();
