@@ -41,8 +41,8 @@ public record ConfigUpdate(
     @Valid
     FormUpdate postTestForm,
 
-    @Valid
     @NotNull
+    @Valid
     List<TestGroupUpdate> groups,
 
     // TODO add checks to keys and values

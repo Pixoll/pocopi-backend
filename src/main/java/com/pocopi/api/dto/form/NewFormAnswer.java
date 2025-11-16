@@ -1,23 +1,23 @@
 package com.pocopi.api.dto.form;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record NewFormAnswer(
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Min(1)
     int questionId,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Min(1)
     Integer optionId,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Min(0x0000)
+    @Max(0xffff)
     Integer value,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(min = 1, max = 1000)
     String answer
 ) {
-    public NewFormAnswer {
-        if (answer != null && answer.trim().isEmpty()) {
-            answer = null;
-        }
-    }
 }

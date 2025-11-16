@@ -1,15 +1,19 @@
 package com.pocopi.api.dto.event;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 public record NewQuestionEventLog(
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Integer questionId,
+    @NotNull
+    @Min(1)
+    int questionId,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Long timestamp,
+    @NotNull
+    @Min(0)
+    long timestamp,
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Integer duration
+    @NotNull
+    @Min(0)
+    int duration
 ) {
 }

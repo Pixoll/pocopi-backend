@@ -4,6 +4,7 @@ import com.pocopi.api.config.auth.AuthUser;
 import com.pocopi.api.dto.form.NewFormAnswers;
 import com.pocopi.api.services.FormService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class FormController {
     @PostMapping("/{formId}/answers")
     public ResponseEntity<Void> submitFormAnswers(
         @PathVariable int formId,
-        @RequestBody NewFormAnswers formAnswers,
+        @RequestBody @Valid NewFormAnswers formAnswers,
         @AuthenticationPrincipal AuthUser authUser
     ) {
         formService.saveUserFormAnswers(authUser.user(), formId, formAnswers);

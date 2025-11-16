@@ -3,15 +3,13 @@ package com.pocopi.api.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.api.FieldError;
 import com.pocopi.api.dto.event.*;
 import com.pocopi.api.exception.HttpException;
-import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.models.test.*;
 import com.pocopi.api.repositories.*;
 import com.pocopi.api.repositories.projections.OptionEventProjection;
-import com.pocopi.api.repositories.projections.QuestionEventProjection;
 import com.pocopi.api.repositories.projections.OptionEventWithUserIdProjection;
+import com.pocopi.api.repositories.projections.QuestionEventProjection;
 import com.pocopi.api.repositories.projections.QuestionEventWithUserIdProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -131,8 +129,6 @@ public class EventLogService {
 
     @Transactional
     public void saveQuestionEventLog(NewQuestionEventLog questionEventLog, int userId) {
-        validateQuestionEventLog(questionEventLog);
-
         final int configVersion = configRepository.findLastConfig().getVersion();
 
         final UserTestAttemptModel testAttempt = userTestAttemptRepository
@@ -159,8 +155,6 @@ public class EventLogService {
 
     @Transactional
     public void saveOptionEventLog(NewOptionEventLog optionEventLog, int userId) {
-        validateOptionEventLog(optionEventLog);
-
         final int configVersion = configRepository.findLastConfig().getVersion();
 
         final UserTestAttemptModel testAttempt = userTestAttemptRepository
@@ -183,56 +177,6 @@ public class EventLogService {
             .build();
 
         userTestOptionLogRepository.save(newOptionLog);
-    }
-
-    private static void validateQuestionEventLog(NewQuestionEventLog questionEventLog) {
-        final ArrayList<FieldError> errors = new ArrayList<>();
-
-        if (questionEventLog.questionId() == null) {
-            errors.add(new FieldError("questionId", "Question id is required"));
-        } else if (questionEventLog.questionId() < 1) {
-            errors.add(new FieldError("questionId", "Question id must be a positive integer"));
-        }
-
-        if (questionEventLog.timestamp() == null) {
-            errors.add(new FieldError("timestamp", "Timestamp is required"));
-        } else if (questionEventLog.timestamp() <= 0) {
-            errors.add(new FieldError("timestamp", "Timestamp must be a positive integer"));
-        }
-
-        if (questionEventLog.duration() == null) {
-            errors.add(new FieldError("duration", "Duration is required"));
-        } else if (questionEventLog.duration() < 0) {
-            errors.add(new FieldError("duration", "Duration must be a positive integer"));
-        }
-
-        if (!errors.isEmpty()) {
-            throw new MultiFieldException("Missing or invalid fields", errors);
-        }
-    }
-
-    private static void validateOptionEventLog(NewOptionEventLog optionEventLog) {
-        final ArrayList<FieldError> errors = new ArrayList<>();
-
-        if (optionEventLog.optionId() == null) {
-            errors.add(new FieldError("optionId", "Option id is required"));
-        } else if (optionEventLog.optionId() < 1) {
-            errors.add(new FieldError("optionId", "Option id must be a positive integer"));
-        }
-
-        if (optionEventLog.type() == null) {
-            errors.add(new FieldError("type", "Type is required"));
-        }
-
-        if (optionEventLog.timestamp() == null) {
-            errors.add(new FieldError("timestamp", "Timestamp is required"));
-        } else if (optionEventLog.timestamp() <= 0) {
-            errors.add(new FieldError("timestamp", "Timestamp must be a positive integer"));
-        }
-
-        if (!errors.isEmpty()) {
-            throw new MultiFieldException("Missing or invalid fields", errors);
-        }
     }
 
     private static List<QuestionTimestamp> parseJsonTimestampArray(String json) {
