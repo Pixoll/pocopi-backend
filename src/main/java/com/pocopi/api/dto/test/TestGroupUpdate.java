@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.test;
 
+import com.pocopi.api.models.test.TestGroupModel;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -13,15 +14,15 @@ public record TestGroupUpdate(
     Integer id,
 
     @NotNull
-    @Min(0)
-    @Max(100)
+    @Min(TestGroupModel.PROBABILITY_MIN)
+    @Max(TestGroupModel.PROBABILITY_MAX)
     int probability,
 
     @NotNull
-    @Size(min = 1, max = 25)
+    @Size(min = TestGroupModel.LABEL_MIN_LEN, max = TestGroupModel.LABEL_MAX_LEN)
     String label,
 
-    @Size(min = 1, max = 2000)
+    @Size(min = TestGroupModel.GREETING_MIN_LEN, max = TestGroupModel.GREETING_MAX_LEN)
     String greeting,
 
     @NotNull

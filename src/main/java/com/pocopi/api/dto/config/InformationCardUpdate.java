@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.config;
 
+import com.pocopi.api.models.config.HomeInfoCardModel;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -10,11 +11,11 @@ public record InformationCardUpdate(
     Integer id,
 
     @NotNull
-    @Size(min = 1, max = 50)
+    @Size(min = HomeInfoCardModel.TITLE_MIN_LEN, max = HomeInfoCardModel.TITLE_MAX_LEN)
     String title,
 
     @NotNull
-    @Size(min = 1, max = 100)
+    @Size(min = HomeInfoCardModel.DESCRIPTION_MIN_LEN, max = HomeInfoCardModel.DESCRIPTION_MAX_LEN)
     String description,
 
     @NotNull

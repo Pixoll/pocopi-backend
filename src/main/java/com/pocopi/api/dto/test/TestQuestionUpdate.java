@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.test;
 
+import com.pocopi.api.models.test.TestQuestionModel;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +12,7 @@ public record TestQuestionUpdate(
     @Min(1)
     Integer id,
 
-    @Size(min = 1, max = 100)
+    @Size(min = TestQuestionModel.TEXT_MIN_LEN, max = TestQuestionModel.TEXT_MAX_LEN)
     String text,
 
     @NotNull
@@ -21,9 +22,4 @@ public record TestQuestionUpdate(
     @Valid
     List<TestOptionUpdate> options
 ) {
-    public TestQuestionUpdate {
-        if (text != null && text.isEmpty()) {
-            text = null;
-        }
-    }
 }

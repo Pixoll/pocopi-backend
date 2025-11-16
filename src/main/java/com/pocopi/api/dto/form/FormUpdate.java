@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.form;
 
+import com.pocopi.api.models.form.FormModel;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +12,7 @@ public record FormUpdate(
     @Min(1)
     Integer id,
 
-    @Size(min = 1, max = 100)
+    @Size(min = FormModel.TITLE_MIN_LEN, max = FormModel.TITLE_MAX_LEN)
     String title,
 
     @NotNull

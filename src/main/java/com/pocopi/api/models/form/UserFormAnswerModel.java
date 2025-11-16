@@ -15,6 +15,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class UserFormAnswerModel {
+    public static final int ANSWER_MIN_LEN = 1;
+    public static final int ANSWER_MAX_LEN = 1000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int unsigned")
@@ -44,7 +47,7 @@ public class UserFormAnswerModel {
     private Integer value = null;
 
     @Builder.Default
-    @Size(min = 1, max = 1000)
-    @Column(name = "answer", length = 1000)
+    @Size(min = ANSWER_MIN_LEN, max = ANSWER_MAX_LEN)
+    @Column(name = "answer", length = ANSWER_MAX_LEN)
     private String answer = null;
 }

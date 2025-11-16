@@ -2,6 +2,7 @@ package com.pocopi.api.dto.form;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.pocopi.api.models.form.FormQuestionModel;
 import com.pocopi.api.models.form.FormQuestionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -42,10 +43,10 @@ public sealed interface FormQuestionUpdate
         Integer id,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.CATEGORY_MIN_LEN, max = FormQuestionModel.CATEGORY_MAX_LEN)
         String category,
 
-        @Size(min = 1, max = 200)
+        @Size(min = FormQuestionModel.TEXT_MIN_LEN, max = FormQuestionModel.TEXT_MAX_LEN)
         String text,
 
         @NotNull
@@ -76,10 +77,10 @@ public sealed interface FormQuestionUpdate
         Integer id,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.CATEGORY_MIN_LEN, max = FormQuestionModel.CATEGORY_MAX_LEN)
         String category,
 
-        @Size(min = 1, max = 200)
+        @Size(min = FormQuestionModel.TEXT_MIN_LEN, max = FormQuestionModel.TEXT_MAX_LEN)
         String text,
 
         @NotNull
@@ -100,10 +101,10 @@ public sealed interface FormQuestionUpdate
         Integer id,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.CATEGORY_MIN_LEN, max = FormQuestionModel.CATEGORY_MAX_LEN)
         String category,
 
-        @Size(min = 1, max = 200)
+        @Size(min = FormQuestionModel.TEXT_MIN_LEN, max = FormQuestionModel.TEXT_MAX_LEN)
         String text,
 
         @NotNull
@@ -136,10 +137,10 @@ public sealed interface FormQuestionUpdate
         Integer id,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.CATEGORY_MIN_LEN, max = FormQuestionModel.CATEGORY_MAX_LEN)
         String category,
 
-        @Size(min = 1, max = 200)
+        @Size(min = FormQuestionModel.TEXT_MIN_LEN, max = FormQuestionModel.TEXT_MAX_LEN)
         String text,
 
         @NotNull
@@ -147,7 +148,7 @@ public sealed interface FormQuestionUpdate
         FormQuestionType type,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.PLACEHOLDER_MIN_LEN, max = FormQuestionModel.PLACEHOLDER_MAX_LEN)
         String placeholder,
 
         @NotNull
@@ -167,10 +168,10 @@ public sealed interface FormQuestionUpdate
         Integer id,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.CATEGORY_MIN_LEN, max = FormQuestionModel.CATEGORY_MAX_LEN)
         String category,
 
-        @Size(min = 1, max = 200)
+        @Size(min = FormQuestionModel.TEXT_MIN_LEN, max = FormQuestionModel.TEXT_MAX_LEN)
         String text,
 
         @NotNull
@@ -178,7 +179,7 @@ public sealed interface FormQuestionUpdate
         FormQuestionType type,
 
         @NotNull
-        @Size(min = 1, max = 50)
+        @Size(min = FormQuestionModel.PLACEHOLDER_MIN_LEN, max = FormQuestionModel.PLACEHOLDER_MAX_LEN)
         String placeholder,
 
         @NotNull

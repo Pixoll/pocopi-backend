@@ -16,6 +16,11 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class HomeInfoCardModel {
+    public static final int TITLE_MIN_LEN = 1;
+    public static final int TITLE_MAX_LEN = 50;
+    public static final int DESCRIPTION_MIN_LEN = 1;
+    public static final int DESCRIPTION_MAX_LEN = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -31,14 +36,14 @@ public class HomeInfoCardModel {
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
-    @Size(min = 1, max = 50)
+    @Size(min = TITLE_MIN_LEN, max = TITLE_MAX_LEN)
     @NotNull
-    @Column(name = "title", nullable = false, length = 50)
+    @Column(name = "title", nullable = false, length = TITLE_MAX_LEN)
     private String title;
 
-    @Size(min = 1, max = 100)
+    @Size(min = DESCRIPTION_MIN_LEN, max = DESCRIPTION_MAX_LEN)
     @NotNull
-    @Column(name = "description", nullable = false, length = 100)
+    @Column(name = "description", nullable = false, length = DESCRIPTION_MAX_LEN)
     private String description;
 
     @Builder.Default

@@ -18,6 +18,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class FormQuestionSliderLabelModel {
+    public static final int LABEL_MIN_LEN = 1;
+    public static final int LABEL_MAX_LEN = 50;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -33,8 +36,8 @@ public class FormQuestionSliderLabelModel {
     @Column(name = "number", nullable = false, columnDefinition = "int2 unsigned")
     private int number;
 
-    @Size(min = 1, max = 50)
+    @Size(min = LABEL_MIN_LEN, max = LABEL_MAX_LEN)
     @NotNull
-    @Column(name = "label", nullable = false, length = 50)
+    @Column(name = "label", nullable = false, length = LABEL_MAX_LEN)
     private String label;
 }

@@ -17,6 +17,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class FormModel {
+    public static final int TITLE_MIN_LEN = 1;
+    public static final int TITLE_MAX_LEN = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -30,8 +33,8 @@ public class FormModel {
     private ConfigModel config;
 
     @Builder.Default
-    @Size(min = 1, max = 100)
-    @Column(name = "title", length = 100)
+    @Size(min = TITLE_MIN_LEN, max = TITLE_MAX_LEN)
+    @Column(name = "title", length = TITLE_MAX_LEN)
     private String title = null;
 
     @NotNull

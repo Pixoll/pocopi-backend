@@ -15,6 +15,11 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class HomeFaqModel {
+    public static final int QUESTION_MIN_LEN = 1;
+    public static final int QUESTION_MAX_LEN = 100;
+    public static final int ANSWER_MIN_LEN = 1;
+    public static final int ANSWER_MAX_LEN = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -30,13 +35,13 @@ public class HomeFaqModel {
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
-    @Size(min = 1, max = 100)
+    @Size(min = QUESTION_MIN_LEN, max = QUESTION_MAX_LEN)
     @NotNull
-    @Column(name = "question", nullable = false, length = 100)
+    @Column(name = "question", nullable = false, length = QUESTION_MAX_LEN)
     private String question;
 
-    @Size(min = 1, max = 500)
+    @Size(min = ANSWER_MIN_LEN, max = ANSWER_MAX_LEN)
     @NotNull
-    @Column(name = "answer", nullable = false, length = 500)
+    @Column(name = "answer", nullable = false, length = ANSWER_MAX_LEN)
     private String answer;
 }

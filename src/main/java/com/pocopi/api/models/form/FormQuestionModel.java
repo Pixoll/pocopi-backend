@@ -17,6 +17,13 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class FormQuestionModel {
+    public static final int CATEGORY_MIN_LEN = 1;
+    public static final int CATEGORY_MAX_LEN = 50;
+    public static final int TEXT_MIN_LEN = 1;
+    public static final int TEXT_MAX_LEN = 200;
+    public static final int PLACEHOLDER_MIN_LEN = 1;
+    public static final int PLACEHOLDER_MAX_LEN = 50;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -32,14 +39,14 @@ public class FormQuestionModel {
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
     private byte order;
 
-    @Size(min = 1, max = 50)
+    @Size(min = CATEGORY_MIN_LEN, max = CATEGORY_MAX_LEN)
     @NotNull
-    @Column(name = "category", nullable = false, length = 50)
+    @Column(name = "category", nullable = false, length = CATEGORY_MAX_LEN)
     private String category;
 
     @Builder.Default
-    @Size(min = 1, max = 200)
-    @Column(name = "text", length = 200)
+    @Size(min = TEXT_MIN_LEN, max = TEXT_MAX_LEN)
+    @Column(name = "text", length = TEXT_MAX_LEN)
     private String text = null;
 
     @Builder.Default
@@ -78,8 +85,8 @@ public class FormQuestionModel {
     private Integer maxLength = null;
 
     @Builder.Default
-    @Size(min = 1, max = 50)
-    @Column(name = "placeholder", length = 50)
+    @Size(min = PLACEHOLDER_MIN_LEN, max = PLACEHOLDER_MAX_LEN)
+    @Column(name = "placeholder", length = PLACEHOLDER_MAX_LEN)
     private String placeholder = null;
 
     @NotNull

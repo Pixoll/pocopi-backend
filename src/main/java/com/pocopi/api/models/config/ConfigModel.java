@@ -15,6 +15,15 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class ConfigModel {
+    public static final int TITLE_MIN_LEN = 1;
+    public static final int TITLE_MAX_LEN = 100;
+    public static final int SUBTITLE_MIN_LEN = 1;
+    public static final int SUBTITLE_MAX_LEN = 200;
+    public static final int DESCRIPTION_MIN_LEN = 1;
+    public static final int DESCRIPTION_MAX_LEN = 2000;
+    public static final int INFORMED_CONSENT_MIN_LEN = 1;
+    public static final int INFORMED_CONSENT_MAX_LEN = 2000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "version", nullable = false, columnDefinition = "int4 unsigned")
@@ -27,24 +36,24 @@ public class ConfigModel {
     @JoinColumn(name = "icon_id")
     private ImageModel icon = null;
 
-    @Size(min = 1, max = 100)
+    @Size(min = TITLE_MIN_LEN, max = TITLE_MAX_LEN)
     @NotNull
-    @Column(name = "title", nullable = false, length = 100)
+    @Column(name = "title", nullable = false, length = TITLE_MAX_LEN)
     private String title;
 
     @Builder.Default
-    @Size(min = 1, max = 200)
-    @Column(name = "subtitle", length = 200)
+    @Size(min = SUBTITLE_MIN_LEN, max = SUBTITLE_MAX_LEN)
+    @Column(name = "subtitle", length = SUBTITLE_MAX_LEN)
     private String subtitle = null;
 
-    @Size(min = 1, max = 2000)
+    @Size(min = DESCRIPTION_MIN_LEN, max = DESCRIPTION_MAX_LEN)
     @NotNull
-    @Column(name = "description", nullable = false, length = 2000)
+    @Column(name = "description", nullable = false, length = DESCRIPTION_MAX_LEN)
     private String description;
 
-    @Size(min = 1, max = 2000)
+    @Size(min = INFORMED_CONSENT_MIN_LEN, max = INFORMED_CONSENT_MAX_LEN)
     @NotNull
-    @Column(name = "informed_consent", nullable = false, length = 2000)
+    @Column(name = "informed_consent", nullable = false, length = INFORMED_CONSENT_MAX_LEN)
     private String informedConsent;
 
     @Builder.Default

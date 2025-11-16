@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.form;
 
+import com.pocopi.api.models.form.FormQuestionSliderLabelModel;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +16,7 @@ public record SliderLabelUpdate(
     int number,
 
     @NotNull
-    @Size(min = 1, max = 50)
+    @Size(min = FormQuestionSliderLabelModel.LABEL_MIN_LEN, max = FormQuestionSliderLabelModel.LABEL_MAX_LEN)
     String label
 ) {
 }

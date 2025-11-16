@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.form;
 
+import com.pocopi.api.models.form.UserFormAnswerModel;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +18,7 @@ public record NewFormAnswer(
     @Max(0xffff)
     Integer value,
 
-    @Size(min = 1, max = 1000)
+    @Size(min = UserFormAnswerModel.ANSWER_MIN_LEN, max = UserFormAnswerModel.ANSWER_MAX_LEN)
     String answer
 ) {
 }

@@ -16,6 +16,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class TestOptionModel {
+    public static final int TEXT_MIN_LEN = 1;
+    public static final int TEXT_MAX_LEN = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int4 unsigned")
@@ -32,8 +35,8 @@ public class TestOptionModel {
     private byte order;
 
     @Builder.Default
-    @Size(min = 1, max = 100)
-    @Column(name = "text", length = 100)
+    @Size(min = TEXT_MIN_LEN, max = TEXT_MAX_LEN)
+    @Column(name = "text", length = TEXT_MAX_LEN)
     private String text = null;
 
     @Builder.Default
