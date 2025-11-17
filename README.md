@@ -95,6 +95,14 @@ Run this command to migrate the old configuration from [PoCoPI](https://github.c
 docker compose exec app java -jar app.jar --server.port=9090 --migrate-old-config
 ```
 
+### Create admin
+
+Run this command to create a new admin user. You need this to access the dashboard and settings panel in the frontend.
+
+```shell
+docker compose exec app java -jar app.jar --server.port=9090 --create-admin
+```
+
 ### Port Configuration
 
 | Service | Default Port | Environment Variable | Description         |

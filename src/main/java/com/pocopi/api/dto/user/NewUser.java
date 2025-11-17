@@ -1,4 +1,4 @@
-package com.pocopi.api.dto.auth;
+package com.pocopi.api.dto.user;
 
 import com.pocopi.api.models.user.UserModel;
 import jakarta.validation.constraints.*;

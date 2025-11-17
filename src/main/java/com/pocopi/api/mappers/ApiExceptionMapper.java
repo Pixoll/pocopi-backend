@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.pocopi.api.dto.api.FieldError;
-import com.pocopi.api.dto.config.ConfigUpdate;
 import com.pocopi.api.exception.ApiException;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
@@ -128,7 +127,7 @@ public class ApiExceptionMapper {
         }
     }
 
-    public ApiException fromValidationErrors(Set<ConstraintViolation<ConfigUpdate>> errors) {
+    public <T> MultiFieldException fromValidationErrors(Set<ConstraintViolation<T>> errors) {
         return new MultiFieldException(
             "Errors in some fields",
             errors.stream()
@@ -137,7 +136,7 @@ public class ApiExceptionMapper {
         );
     }
 
-    public ApiException fromValidationErrors(List<ObjectError> errors) {
+    public MultiFieldException fromValidationErrors(List<ObjectError> errors) {
         return new MultiFieldException(
             "Errors in some fields",
             errors.stream()

@@ -47,17 +47,20 @@ public class UserModel {
     @Column(name = "anonymous", nullable = false)
     private boolean anonymous;
 
+    @Builder.Default
     @Length(min = NAME_MIN_LEN, max = NAME_MAX_LEN)
     @Column(name = "name", length = NAME_MAX_LEN)
-    private String name;
+    private String name = null;
 
+    @Builder.Default
     @Length(min = EMAIL_MIN_LEN, max = EMAIL_MAX_LEN)
     @Column(name = "email", length = EMAIL_MAX_LEN, unique = true)
-    private String email;
+    private String email = null;
 
+    @Builder.Default
     @Range(min = AGE_MIN, max = AGE_MAX)
     @Column(name = "age", columnDefinition = "int1 unsigned")
-    private Byte age;
+    private Byte age = null;
 
     @Length(min = ENCRYPTED_PASSWORD_LEN, max = ENCRYPTED_PASSWORD_LEN)
     @NotNull

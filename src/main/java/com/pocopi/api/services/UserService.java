@@ -1,22 +1,27 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.api.FieldError;
-import com.pocopi.api.dto.auth.NewUser;
+import com.pocopi.api.dto.user.NewAdmin;
+import com.pocopi.api.dto.user.NewUser;
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.exception.MultiFieldException;
+import com.pocopi.api.mappers.ApiExceptionMapper;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.PatternModel;
 import com.pocopi.api.models.user.Role;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.repositories.ConfigRepository;
 import com.pocopi.api.repositories.UserRepository;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,15 +29,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConfigRepository configRepository;
+    private final Validator validator;
+    private final ApiExceptionMapper apiExceptionMapper;
 
     public UserService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        ConfigRepository configRepository
+        ConfigRepository configRepository,
+        Validator validator,
+        ApiExceptionMapper apiExceptionMapper
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.configRepository = configRepository;
+        this.validator = validator;
+        this.apiExceptionMapper = apiExceptionMapper;
     }
 
     public List<User> getAll() {
@@ -71,17 +82,11 @@ public class UserService {
 
         validateNewUser(user, fieldErrors, anonymous, usernamePattern);
 
-        if (user.username() != null
-            && !user.username().isEmpty()
-            && userRepository.existsByUsername(user.username())
-        ) {
+        if (userRepository.existsByUsername(user.username())) {
             fieldErrors.add(new FieldError("username", "User with that username already exists"));
         }
 
-        if (user.email() != null
-            && !user.email().isEmpty()
-            && userRepository.existsByEmail(user.email())
-        ) {
+        if (user.email() != null && userRepository.existsByEmail(user.email())) {
             fieldErrors.add(new FieldError("email", "User with that email already exists"));
         }
 
@@ -91,7 +96,6 @@ public class UserService {
 
         final UserModel newUser = UserModel.builder()
             .username(user.username())
-            .role(Role.USER)
             .anonymous(anonymous)
             .name(user.name())
             .email(user.email())
@@ -100,6 +104,33 @@ public class UserService {
             .build();
 
         userRepository.save(newUser);
+    }
+
+    @Transactional
+    public void createAdmin(NewAdmin admin) {
+        final Set<ConstraintViolation<NewAdmin>> errors = validator.validate(admin);
+        final ArrayList<FieldError> fieldErrors = new ArrayList<>(
+            apiExceptionMapper.fromValidationErrors(errors).getErrors()
+        );
+
+        validateNewAdmin(admin, fieldErrors);
+
+        if (userRepository.existsByUsername(admin.username())) {
+            fieldErrors.add(new FieldError("username", "Admin with that username already exists"));
+        }
+
+        if (!fieldErrors.isEmpty()) {
+            throw new MultiFieldException("Invalid admin", fieldErrors);
+        }
+
+        final UserModel newAdmin = UserModel.builder()
+            .username(admin.username())
+            .role(Role.ADMIN)
+            .anonymous(true)
+            .password(passwordEncoder.encode(admin.password()))
+            .build();
+
+        userRepository.save(newAdmin);
     }
 
     private void validateNewUser(
@@ -146,6 +177,16 @@ public class UserService {
 
         if (user.age() == null) {
             fieldErrors.add(new FieldError("age", "Age is required for non-anonymous users"));
+        }
+    }
+
+    private void validateNewAdmin(NewAdmin admin, List<FieldError> fieldErrors) {
+        if (admin.username().contains(" ")) {
+            fieldErrors.add(new FieldError("username", "Username cannot contain spaces"));
+        }
+
+        if (admin.password().contains(" ")) {
+            fieldErrors.add(new FieldError("password", "Password cannot contain spaces"));
         }
     }
 }

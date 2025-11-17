@@ -65,14 +65,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiHttpError> methodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        final ApiException apiException = apiExceptionMapper
+        final MultiFieldException apiException = apiExceptionMapper
             .fromValidationErrors(exception.getBindingResult().getAllErrors());
 
-        return switch (apiException) {
-            case HttpException httpException -> httpException(httpException);
-            case MultiFieldException multiFieldException -> multiFieldException(multiFieldException);
-            default -> genericException(apiException);
-        };
+        return multiFieldException(apiException);
     }
 
     @ExceptionHandler(Exception.class)

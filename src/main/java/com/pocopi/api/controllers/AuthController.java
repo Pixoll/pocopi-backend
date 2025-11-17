@@ -2,7 +2,7 @@ package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.auth.JwtUtil;
 import com.pocopi.api.dto.auth.Credentials;
-import com.pocopi.api.dto.auth.NewUser;
+import com.pocopi.api.dto.user.NewUser;
 import com.pocopi.api.dto.auth.Token;
 import com.pocopi.api.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
