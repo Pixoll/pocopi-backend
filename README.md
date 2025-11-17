@@ -92,7 +92,7 @@ docker compose exec db mysql -u root -p
 Run this command to migrate the old configuration from [PoCoPI](https://github.com/Pixoll/pocopi-frontend)
 
 ```shell
-docker exec app java -jar app.jar --server.port=9090 --migrate-old-config
+docker compose exec app java -jar app.jar --server.port=9090 --migrate-old-config
 ```
 
 ### Port Configuration
