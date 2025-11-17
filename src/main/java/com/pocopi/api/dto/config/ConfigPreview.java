@@ -16,6 +16,9 @@ public record ConfigPreview(
     String subtitle,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String description
+    String description,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean canDelete
 ) {
 }

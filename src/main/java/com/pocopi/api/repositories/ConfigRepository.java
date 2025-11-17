@@ -1,15 +1,34 @@
 package com.pocopi.api.repositories;
 
 import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.user.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface ConfigRepository extends JpaRepository<ConfigModel, String> {
-    @Query(
-        value = "select * from config c where c.version = (select max(c2.version) from config c2)",
-        nativeQuery = true
-    )
+    @NativeQuery("select * from config c where c.version = (select max(c2.version) from config c2)")
     ConfigModel findLastConfig();
+
+    @NativeQuery(
+        """
+            select u.*
+                from config                      c
+                    inner join test_group        g on g.config_version = c.version
+                    inner join user_test_attempt ta on ta.group_id = g.id
+                    inner join user              u on u.id = ta.user_id
+                where c.version = :configVersion
+                group by u.id
+            """
+    )
+    List<UserModel> findAllUsersAssociatedWithConfig(int configVersion);
+
+    default boolean hasUsersAssociatedWithConfig(int configVersion) {
+        return !findAllUsersAssociatedWithConfig(configVersion).isEmpty();
+    }
+
+    void deleteByVersion(int version);
 }

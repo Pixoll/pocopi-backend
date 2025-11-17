@@ -62,12 +62,16 @@ public class ConfigService {
 
     @Transactional
     public List<ConfigPreview> getAllConfigs() {
+        final int lastConfigVersion = configRepository.findLastConfig().getVersion();
+
         return configRepository.findAll().stream().map(config -> new ConfigPreview(
             config.getVersion(),
             config.getIcon() != null ? imageService.getImageById(config.getIcon().getId()) : null,
             config.getTitle(),
             config.getSubtitle(),
-            config.getDescription()
+            config.getDescription(),
+            config.getVersion() != lastConfigVersion
+                && !configRepository.hasUsersAssociatedWithConfig(config.getVersion())
         )).toList();
     }
 
