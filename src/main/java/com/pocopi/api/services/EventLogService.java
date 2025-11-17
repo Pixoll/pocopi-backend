@@ -48,7 +48,7 @@ public class EventLogService {
 
     @Transactional
     public List<QuestionEventLogWithUserId> getAllEventLogs() {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final List<QuestionEventWithUserIdProjection> questionEvents = userTestQuestionLogRepository
             .findAllQuestionEvents(configVersion);
@@ -99,7 +99,7 @@ public class EventLogService {
 
     @Transactional
     public List<QuestionEventLog> getEventLogsByUserId(int userId) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final List<QuestionEventProjection> questionEvents = userTestQuestionLogRepository
             .findAllQuestionEventsByUserId(configVersion, userId);
@@ -149,7 +149,7 @@ public class EventLogService {
 
     @Transactional
     public void saveQuestionEventLog(NewQuestionEventLog questionEventLog, int userId) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel testAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)
@@ -175,7 +175,7 @@ public class EventLogService {
 
     @Transactional
     public void saveOptionEventLog(NewOptionEventLog optionEventLog, int userId) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel testAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)

@@ -47,7 +47,7 @@ public class TestGroupService {
     }
 
     public TestGroupModel sampleGroup() {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final List<TestGroupModel> groups = testGroupRepository.findAllByConfigVersion(configVersion);
 

@@ -34,7 +34,7 @@ public class UserTestAttemptService {
 
     @Transactional
     public UserTestAttempt beginAttempt(UserModel user) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         if (userTestAttemptRepository.hasUnfinishedAttempt(configVersion, user.getId())) {
             throw HttpException.conflict("User has already started an attempt");
@@ -62,7 +62,7 @@ public class UserTestAttemptService {
 
     @Transactional
     public UserTestAttempt continueAttempt(int userId) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)
@@ -94,7 +94,7 @@ public class UserTestAttemptService {
 
     @Transactional
     public void discardAttempt(int userId) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)
@@ -105,7 +105,7 @@ public class UserTestAttemptService {
 
     @Transactional
     public void endAttempt(int userId) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)

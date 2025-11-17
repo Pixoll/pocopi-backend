@@ -56,7 +56,7 @@ public class SummaryService {
 
     public UserSummary getUserSummary(int userId) {
         final UserModel user = userRepository.getUserByUserId(userId);
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel attempt = userTestAttemptRepository
             .findLatestFinishedAttempt(configVersion, userId)

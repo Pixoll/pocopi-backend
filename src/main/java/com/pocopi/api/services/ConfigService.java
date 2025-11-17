@@ -62,7 +62,7 @@ public class ConfigService {
 
     @Transactional
     public List<ConfigPreview> getAllConfigs() {
-        final int lastConfigVersion = configRepository.findLastConfig().getVersion();
+        final int lastConfigVersion = configRepository.getLastConfig().getVersion();
 
         return configRepository.findAll().stream().map(config -> new ConfigPreview(
             config.getVersion(),
@@ -77,7 +77,10 @@ public class ConfigService {
 
     @Transactional
     public void deleteConfig(int version) {
-        final int lastConfigVersion = configRepository.findLastConfig().getVersion();
+        configRepository.findByVersion(version)
+            .orElseThrow(() -> HttpException.notFound("Config with version " + version + " not found"));
+
+        final int lastConfigVersion = configRepository.getLastConfig().getVersion();
 
         if (lastConfigVersion == version) {
             throw HttpException.conflict("Current configuration cannot be deleted");
@@ -91,8 +94,26 @@ public class ConfigService {
     }
 
     @Transactional
-    public TrimmedConfig getLatestTrimmedConfig() {
-        final ConfigModel configModel = configRepository.findLastConfig();
+    public void setConfigAsActive(int version) {
+        final ConfigModel newActiveConfig = configRepository.findByVersion(version)
+            .orElseThrow(() -> HttpException.notFound("Config with version " + version + " not found"));
+
+        final ConfigModel activeConfig = configRepository.getLastConfig();
+
+        if (activeConfig.getVersion() == version) {
+            return;
+        }
+
+        activeConfig.setActive(false);
+        newActiveConfig.setActive(true);
+
+        configRepository.save(newActiveConfig);
+        configRepository.save(activeConfig);
+    }
+
+    @Transactional
+    public TrimmedConfig getTrimmedActiveConfig() {
+        final ConfigModel configModel = configRepository.getLastConfig();
         final int configVersion = configModel.getVersion();
 
         final Image icon = configModel.getIcon() != null
@@ -139,8 +160,8 @@ public class ConfigService {
     }
 
     @Transactional
-    public FullConfig getLatestFullConfig() {
-        final ConfigModel configModel = configRepository.findLastConfig();
+    public FullConfig getFullActiveConfig() {
+        final ConfigModel configModel = configRepository.getLastConfig();
         return getFullConfig(configModel);
     }
 
@@ -205,7 +226,7 @@ public class ConfigService {
     }
 
     @Transactional
-    public boolean updateLatestConfig(
+    public boolean updateActiveConfig(
         ConfigUpdate configUpdate,
         MultipartFile iconFile,
         List<MultipartFile> informationCardImageFiles,
@@ -213,7 +234,7 @@ public class ConfigService {
         List<MultipartFile> postTestFormImageFiles,
         List<MultipartFile> groupImageFiles
     ) {
-        final ConfigModel storedConfig = configRepository.findLastConfig();
+        final ConfigModel storedConfig = configRepository.getLastConfig();
 
         if (!configUpdate.groups().isEmpty()) {
             final int probabilitySum = configUpdate.groups().stream()

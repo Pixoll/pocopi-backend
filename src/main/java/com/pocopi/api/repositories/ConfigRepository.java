@@ -11,8 +11,29 @@ import java.util.Optional;
 
 @Repository
 public interface ConfigRepository extends JpaRepository<ConfigModel, String> {
-    @NativeQuery("select * from config c where c.version = (select max(c2.version) from config c2)")
-    ConfigModel findLastConfig();
+    @NativeQuery(
+        """
+            select *
+                from config
+                where version = coalesce(
+                    (
+                        select version
+                            from config
+                            where active = true
+                            order by version desc
+                            limit 1
+                        ),
+                    (
+                        select version
+                            from config
+                            order by version desc
+                            limit 1
+                        )
+                    )
+                limit 1;
+            """
+    )
+    ConfigModel getLastConfig();
 
     Optional<ConfigModel> findByVersion(int version);
 

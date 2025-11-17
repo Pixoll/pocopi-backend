@@ -66,4 +66,9 @@ public class ConfigModel {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "username_pattern_id")
     private PatternModel usernamePattern = null;
+
+    @Builder.Default
+    @NotNull
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
 }

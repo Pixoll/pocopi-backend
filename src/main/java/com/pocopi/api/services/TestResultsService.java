@@ -41,7 +41,7 @@ public class TestResultsService {
             throw new IllegalArgumentException("Usuario no encontrado");
         }
 
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
         final List<QuestionEventProjection> rows = userTestQuestionLogRepository
             .findAllQuestionEventsByUserId(configVersion, userId);
 

@@ -124,7 +124,7 @@ public class FormService {
 
     @Transactional
     public void saveUserFormAnswers(int userId, FormType formType, NewFormAnswers formAnswers) {
-        final int configVersion = configRepository.findLastConfig().getVersion();
+        final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel unfinishedAttempt = userTestAttemptRepository
             .findUnfinishedAttempt(configVersion, userId)

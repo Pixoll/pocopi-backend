@@ -29,8 +29,8 @@ import java.util.Set;
 import static com.pocopi.api.config.OpenApiCustomizer.SECURITY_SCHEME_NAME;
 
 @RestController
-@RequestMapping("/api/config")
-@Tag(name = "Config")
+@RequestMapping("/api/configs")
+@Tag(name = "Configurations")
 public class ConfigController {
     private final ConfigService configService;
     private final ObjectMapper objectMapper;
@@ -70,27 +70,34 @@ public class ConfigController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/latest")
-    public ResponseEntity<TrimmedConfig> getLastestConfigAsUser() {
-        final TrimmedConfig config = configService.getLatestTrimmedConfig();
+    @PostMapping("/{version}/activate")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> setConfigAsActive(@PathVariable int version) {
+        configService.setConfigAsActive(version);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<TrimmedConfig> getActiveConfigAsUser() {
+        final TrimmedConfig config = configService.getTrimmedActiveConfig();
         return ResponseEntity.ok(config);
     }
 
-    @GetMapping("/latest/full")
+    @GetMapping("/active/full")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<FullConfig> getLastestConfigAsAdmin() {
-        final FullConfig config = configService.getLatestFullConfig();
+    public ResponseEntity<FullConfig> getActiveConfigAsAdmin() {
+        final FullConfig config = configService.getFullActiveConfig();
         return ResponseEntity.ok(config);
     }
 
     @SecurityRequirement(name = SECURITY_SCHEME_NAME)
     @PatchMapping(
-        path = "/latest",
+        path = "/active",
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Void> updateLatestConfig(
+    public ResponseEntity<Void> updateActiveConfig(
         @RequestPart(name = "icon", required = false)
         @Schema(description = "New application icon")
         MultipartFile icon,
@@ -124,7 +131,7 @@ public class ConfigController {
             throw apiExceptionMapper.fromValidationErrors(errors);
         }
 
-        final boolean modified = configService.updateLatestConfig(
+        final boolean modified = configService.updateActiveConfig(
             configUpdate,
             icon,
             informationCardImages != null ? informationCardImages : List.of(),

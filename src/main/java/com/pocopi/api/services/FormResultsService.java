@@ -47,7 +47,7 @@ public class FormResultsService {
         }
 
         // Obtenemos la última configuración disponible
-        final ConfigModel config = configRepository.findLastConfig();
+        final ConfigModel config = configRepository.getLastConfig();
         if (config == null) {
             throw new IllegalStateException("No configuration found");
         }

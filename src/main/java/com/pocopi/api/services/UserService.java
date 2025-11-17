@@ -63,7 +63,7 @@ public class UserService {
 
     @Transactional
     public void createUser(NewUser user) {
-        final ConfigModel config = configRepository.findLastConfig();
+        final ConfigModel config = configRepository.getLastConfig();
         final boolean anonymous = config.isAnonymous();
         final PatternModel usernamePattern = config.getUsernamePattern();
 
