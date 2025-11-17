@@ -1,6 +1,7 @@
 package com.pocopi.api.config;
 
 import com.pocopi.api.dto.api.ApiHttpError;
+import com.pocopi.api.dto.form.FormQuestionUpdate;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -48,6 +49,15 @@ public class OpenApiCustomizer implements GlobalOpenApiCustomizer {
         );
 
         final Components components = openApi.getComponents();
+
+        final Schema<?> formQuestionUpdateSchema = components.getSchemas()
+            .get(FormQuestionUpdate.class.getSimpleName());
+
+        if (formQuestionUpdateSchema != null) {
+            formQuestionUpdateSchema.setDiscriminator(null);
+            formQuestionUpdateSchema.setProperties(null);
+            formQuestionUpdateSchema.setRequired(null);
+        }
 
         components.addSecuritySchemes(
             SECURITY_SCHEME_NAME,

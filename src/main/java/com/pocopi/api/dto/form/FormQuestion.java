@@ -29,7 +29,7 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
         public Image image;
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.SELECT_MULTIPLE_NAME})
         public FormQuestionType type;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -59,7 +59,7 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
         public Image image;
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.SELECT_ONE_NAME})
         public FormQuestionType type;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -83,7 +83,7 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
         public Image image;
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.SLIDER_NAME})
         public FormQuestionType type;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -113,7 +113,7 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
         public Image image;
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.TEXT_LONG_NAME})
         public FormQuestionType type;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -140,7 +140,7 @@ public sealed interface FormQuestion
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
         public Image image;
 
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {FormQuestionType.TEXT_SHORT_NAME})
         public FormQuestionType type;
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
