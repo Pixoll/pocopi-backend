@@ -56,6 +56,13 @@ public class ConfigController {
         return ResponseEntity.ok(configs);
     }
 
+    @DeleteMapping("/{version}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> deleteConfig(@PathVariable int version) {
+        configService.deleteConfig(version);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/latest")
     public ResponseEntity<TrimmedConfig> getLastestConfigAsUser() {
         final TrimmedConfig config = configService.getLatestConfigTrimmed();
