@@ -19,6 +19,9 @@ public record ConfigPreview(
     String description,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    boolean active,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean canDelete
 ) {
 }

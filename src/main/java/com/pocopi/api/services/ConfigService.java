@@ -70,6 +70,7 @@ public class ConfigService {
             config.getTitle(),
             config.getSubtitle(),
             config.getDescription(),
+            config.isActive(),
             config.getVersion() != lastConfigVersion
                 && !configRepository.hasUsersAssociatedWithConfig(config.getVersion())
         )).toList();
