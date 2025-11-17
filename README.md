@@ -1,6 +1,6 @@
 # PoCoPI backend
 
-This project uses Docker Compose to run a full-stack application with MySQL database, application server, and Nginx.
+This project uses Docker Compose to run a full-stack application with MySQL database, Spring Boot, and Nginx.
 
 ## Application Setup Guide
 
