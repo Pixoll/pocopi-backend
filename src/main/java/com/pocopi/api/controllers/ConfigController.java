@@ -56,6 +56,13 @@ public class ConfigController {
         return ResponseEntity.ok(configs);
     }
 
+    @GetMapping("/{version}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<FullConfig> getConfigByVersion(@PathVariable int version) {
+        final FullConfig config = configService.getFullConfigByVersion(version);
+        return ResponseEntity.ok(config);
+    }
+
     @DeleteMapping("/{version}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteConfig(@PathVariable int version) {
@@ -65,14 +72,14 @@ public class ConfigController {
 
     @GetMapping("/latest")
     public ResponseEntity<TrimmedConfig> getLastestConfigAsUser() {
-        final TrimmedConfig config = configService.getLatestConfigTrimmed();
+        final TrimmedConfig config = configService.getLatestTrimmedConfig();
         return ResponseEntity.ok(config);
     }
 
     @GetMapping("/latest/full")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<FullConfig> getLastestConfigAsAdmin() {
-        final FullConfig config = configService.getLatestConfigFull();
+        final FullConfig config = configService.getLatestFullConfig();
         return ResponseEntity.ok(config);
     }
 

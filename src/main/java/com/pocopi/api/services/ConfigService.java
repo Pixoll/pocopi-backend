@@ -91,7 +91,7 @@ public class ConfigService {
     }
 
     @Transactional
-    public TrimmedConfig getLatestConfigTrimmed() {
+    public TrimmedConfig getLatestTrimmedConfig() {
         final ConfigModel configModel = configRepository.findLastConfig();
         final int configVersion = configModel.getVersion();
 
@@ -139,8 +139,20 @@ public class ConfigService {
     }
 
     @Transactional
-    public FullConfig getLatestConfigFull() {
+    public FullConfig getLatestFullConfig() {
         final ConfigModel configModel = configRepository.findLastConfig();
+        return getFullConfig(configModel);
+    }
+
+    @Transactional
+    public FullConfig getFullConfigByVersion(int version) {
+        final ConfigModel config = configRepository.findByVersion(version)
+            .orElseThrow(() -> HttpException.notFound("Config with version " + version + " not found"));
+        return getFullConfig(config);
+    }
+
+    @Transactional
+    public FullConfig getFullConfig(ConfigModel configModel) {
         final int configVersion = configModel.getVersion();
 
         final Image icon = configModel.getIcon() != null

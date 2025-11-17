@@ -7,11 +7,14 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ConfigRepository extends JpaRepository<ConfigModel, String> {
     @NativeQuery("select * from config c where c.version = (select max(c2.version) from config c2)")
     ConfigModel findLastConfig();
+
+    Optional<ConfigModel> findByVersion(int version);
 
     @NativeQuery(
         """
