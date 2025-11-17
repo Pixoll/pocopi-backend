@@ -77,6 +77,12 @@ public class ConfigService {
 
     @Transactional
     public void deleteConfig(int version) {
+        final int lastConfigVersion = configRepository.findLastConfig().getVersion();
+
+        if (lastConfigVersion == version) {
+            throw HttpException.conflict("Current configuration cannot be deleted");
+        }
+
         if (configRepository.hasUsersAssociatedWithConfig(version)) {
             throw HttpException.conflict("Configuration has user data associated with it and cannot be deleted");
         }
