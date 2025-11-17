@@ -61,6 +61,17 @@ public class ConfigService {
     }
 
     @Transactional
+    public List<ConfigPreview> getAllConfigs() {
+        return configRepository.findAll().stream().map(config -> new ConfigPreview(
+            config.getVersion(),
+            config.getIcon() != null ? imageService.getImageById(config.getIcon().getId()) : null,
+            config.getTitle(),
+            config.getSubtitle(),
+            config.getDescription()
+        )).toList();
+    }
+
+    @Transactional
     public TrimmedConfig getLatestConfigTrimmed() {
         final ConfigModel configModel = configRepository.findLastConfig();
         final int configVersion = configModel.getVersion();

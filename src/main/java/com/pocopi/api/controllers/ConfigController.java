@@ -3,6 +3,7 @@ package com.pocopi.api.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pocopi.api.dto.config.ConfigPreview;
 import com.pocopi.api.dto.config.ConfigUpdate;
 import com.pocopi.api.dto.config.FullConfig;
 import com.pocopi.api.dto.config.TrimmedConfig;
@@ -49,12 +50,19 @@ public class ConfigController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<ConfigPreview>> getAllConfigs() {
+        final List<ConfigPreview> configs = configService.getAllConfigs();
+        return ResponseEntity.ok(configs);
+    }
+
+    @GetMapping("/latest")
     public ResponseEntity<TrimmedConfig> getLastestConfigAsUser() {
         final TrimmedConfig config = configService.getLatestConfigTrimmed();
         return ResponseEntity.ok(config);
     }
 
-    @GetMapping("/full")
+    @GetMapping("/latest/full")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<FullConfig> getLastestConfigAsAdmin() {
         final FullConfig config = configService.getLatestConfigFull();
@@ -62,7 +70,11 @@ public class ConfigController {
     }
 
     @SecurityRequirement(name = SECURITY_SCHEME_NAME)
-    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(
+        path = "/latest",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateLatestConfig(
         @RequestPart(name = "icon", required = false)

@@ -8,7 +8,7 @@ import java.util.List;
 
 public record FullConfig(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int id,
+    int version,
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
     Image icon,
