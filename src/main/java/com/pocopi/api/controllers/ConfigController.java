@@ -143,7 +143,6 @@ public class ConfigController {
         return new ResponseEntity<>(modified ? HttpStatus.OK : HttpStatus.NOT_MODIFIED);
     }
 
-    @SuppressWarnings("JvmTaintAnalysis")
     private ConfigUpdate parseUpdateConfigPayload(String json) {
         if (json == null || json.isBlank()) {
             throw HttpException.badRequest("Config update payload json cannot be empty");
