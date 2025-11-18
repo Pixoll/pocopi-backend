@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.asciidoctor)
+    jacoco
 }
 
 group = "com.pocopi"
@@ -68,17 +69,32 @@ dependencies {
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
 
-    // testing
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.security.test)
+    testRuntimeOnly(libs.junit.launcher)
 
     testRuntimeOnly(libs.junit.launcher)
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.test {
     outputs.dir(project.extra["snippetsDir"]!!)
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
 }
 
 tasks.asciidoctor {
