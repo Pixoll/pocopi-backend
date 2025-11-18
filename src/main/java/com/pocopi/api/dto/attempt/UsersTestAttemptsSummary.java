@@ -1,23 +1,20 @@
-package com.pocopi.api.dto.test;
+package com.pocopi.api.dto.attempt;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record UserTestAttempt(
+public record UsersTestAttemptsSummary(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    boolean completedPreTestForm,
+    double averageAccuracy,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    boolean completedTest,
+    double averageTimeTaken,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    boolean completedPostTestForm,
+    int totalQuestionsAnswered,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<UserTestAttemptAnswer> testAnswers,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    AssignedTestGroup assignedGroup
+    List<UserTestAttemptSummary> users
 ) {
 }

@@ -1,17 +1,22 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.user.UserSummary;
-import com.pocopi.api.dto.user.UsersSummary;
+import com.pocopi.api.dto.attempt.UserTestAttemptSummary;
+import com.pocopi.api.dto.attempt.UsersTestAttemptsSummary;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.test.UserTestAttemptModel;
 import com.pocopi.api.models.user.UserModel;
-import com.pocopi.api.repositories.*;
+import com.pocopi.api.repositories.ConfigRepository;
+import com.pocopi.api.repositories.UserRepository;
+import com.pocopi.api.repositories.UserTestAttemptRepository;
+import com.pocopi.api.repositories.UserTestOptionLogRepository;
+import com.pocopi.api.repositories.projections.LastSelectedOptionProjection;
+import com.pocopi.api.repositories.projections.LastSelectedOptionWithAttemptProjection;
+import com.pocopi.api.repositories.projections.UserTestAttemptWithGroupProjection;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SummaryService {
@@ -32,70 +37,169 @@ public class SummaryService {
         this.userTestAttemptRepository = userTestAttemptRepository;
     }
 
-    public UsersSummary getAllUserSummaries() {
-        final List<Integer> userIds = userRepository.getAllUserIds();
-        final List<UserSummary> userSummaries = new ArrayList<>();
-        double totalCorrect = 0;
+    @Transactional
+    public UsersTestAttemptsSummary getAllUsersTestAttemptsSummary() {
+        final int configVersion = configRepository.getLastConfig().getVersion();
+
+        final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository
+            .findFinishedAttemptsByConfigVersion(configVersion);
+
+        final ArrayList<Long> testAttemptIds = new ArrayList<>();
+        final HashMap<Long, UserTestAttemptWithGroupProjection> testAttemptsById = new HashMap<>();
+
+        for (final UserTestAttemptWithGroupProjection testAttempt : testAttempts) {
+            testAttemptIds.add(testAttempt.getId());
+            testAttemptsById.put(testAttempt.getId(), testAttempt);
+        }
+
+        final Map<Integer, UserModel> usersById = userRepository.findAllUsersByAttemptIds(testAttemptIds).stream()
+            .collect(Collectors.toMap(UserModel::getId, (u) -> u, (a, b) -> b));
+
+        final List<LastSelectedOptionWithAttemptProjection> lastSelectedOptions = userTestOptionLogRepository
+            .findLastSelectedOptionsByAttemptIds(testAttemptIds);
+
+        final HashMap<Long, TempUserTestAttemptSummary> tempSummariesByAttemptId = new HashMap<>();
+
+        for (final LastSelectedOptionWithAttemptProjection lastSelectedOption : lastSelectedOptions) {
+            final UserTestAttemptWithGroupProjection testAttempt = testAttemptsById
+                .get(lastSelectedOption.getAttemptId());
+            final UserModel user = usersById.get(lastSelectedOption.getUserId());
+
+            if (!tempSummariesByAttemptId.containsKey(lastSelectedOption.getAttemptId())) {
+                final TempUserTestAttemptSummary tempSummary = new TempUserTestAttemptSummary(testAttempt, user);
+                tempSummary.processSelectedOption(lastSelectedOption);
+
+                tempSummariesByAttemptId.put(lastSelectedOption.getAttemptId(), tempSummary);
+
+                continue;
+            }
+
+            final TempUserTestAttemptSummary tempSummary = tempSummariesByAttemptId
+                .get(lastSelectedOption.getAttemptId());
+
+            tempSummary.processSelectedOption(lastSelectedOption);
+        }
+
+        final ArrayList<UserTestAttemptSummary> testSummaries = new ArrayList<>();
+
+        int totalCorrect = 0;
         int totalTime = 0;
         int totalQuestionsAnswered = 0;
 
-        for (final Integer userId : userIds) {
-            final UserSummary userSummaryResponse = getUserSummary(userId);
-            totalCorrect += userSummaryResponse.correctQuestions();
-            totalQuestionsAnswered += userSummaryResponse.questionsAnswered();
-            totalTime += userSummaryResponse.timeTaken();
-            userSummaries.add(getUserSummary(userId));
+        for (final TempUserTestAttemptSummary tempSummary : tempSummariesByAttemptId.values()) {
+            final UserTestAttemptSummary testAttemptSummary = tempSummary.toUserTestAttemptSummary();
+
+            totalCorrect += testAttemptSummary.correctQuestions();
+            totalQuestionsAnswered += testAttemptSummary.questionsAnswered();
+            totalTime += testAttemptSummary.timeTaken();
+
+            testSummaries.add(testAttemptSummary);
         }
-        return new UsersSummary(
-            totalCorrect / totalQuestionsAnswered,
+
+        return new UsersTestAttemptsSummary(
+            (double) totalCorrect / totalQuestionsAnswered,
             (double) totalTime / totalQuestionsAnswered,
             totalQuestionsAnswered,
-            userSummaries
+            testSummaries
         );
     }
 
-    public UserSummary getUserSummary(int userId) {
+    @Transactional
+    public UserTestAttemptSummary getUserTestAttemptSummary(int userId) {
         final UserModel user = userRepository.getUserByUserId(userId);
         final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel attempt = userTestAttemptRepository
             .findLatestFinishedAttempt(configVersion, userId)
-            .orElseThrow(() -> HttpException.notFound("User with id " + userId + " does not have any test attempts"));
+            .orElseThrow(() ->
+                HttpException.notFound("User with id " + userId + " does not have any completed test attempts")
+            );
 
         final long start = attempt.getStart().toEpochMilli();
         final long end = attempt.getEnd().toEpochMilli();
 
-        final List<Object[]> options = userTestOptionLogRepository.findAllLastOptionsByUserId(userId, configVersion);
+        final List<LastSelectedOptionProjection> lastSelectedOptions = userTestOptionLogRepository
+            .findLastSelectedOptionsByAttemptId(attempt.getId());
+
         int questionsAnswered = 0;
-        int questionsCorrect = 0;
+        int correctQuestions = 0;
 
         final Set<Integer> countedQuestions = new HashSet<>();
 
-        for (final Object[] row : options) {
-            final Integer questionId = ((Number) row[0]).intValue();
-            final Boolean correct = (Boolean) row[3];
+        for (final LastSelectedOptionProjection lastSelectedOption : lastSelectedOptions) {
+            final int questionId = lastSelectedOption.getQuestionId();
 
             if (!countedQuestions.contains(questionId)) {
                 countedQuestions.add(questionId);
                 questionsAnswered++;
-                if (Boolean.TRUE.equals(correct)) {
-                    questionsCorrect++;
+                if (lastSelectedOption.getCorrect()) {
+                    correctQuestions++;
                 }
             }
         }
 
-        final double percentage = questionsAnswered > 0 ? ((double) questionsCorrect / questionsAnswered) * 100 : 0.0;
+        final double percentage = questionsAnswered > 0 ? ((double) correctQuestions / questionsAnswered) * 100 : 0.0;
 
-        return new UserSummary(
+        return new UserTestAttemptSummary(
             user.getId(),
+            user.getUsername(),
             user.getName(),
             user.getEmail(),
             user.getAge() != null ? user.getAge().intValue() : null,
+            attempt.getGroup().getLabel(),
             start,
             Math.toIntExact(end - start),
+            correctQuestions,
             questionsAnswered,
-            questionsCorrect,
             percentage
         );
+    }
+
+    private static class TempUserTestAttemptSummary {
+        private final UserTestAttemptWithGroupProjection attempt;
+        private final UserModel user;
+        private int correctQuestions = 0;
+        private int questionsAnswered = 0;
+
+        private final Set<Integer> countedQuestions = new HashSet<>();
+
+        public TempUserTestAttemptSummary(UserTestAttemptWithGroupProjection attempt, UserModel user) {
+            this.attempt = attempt;
+            this.user = user;
+        }
+
+        public void processSelectedOption(LastSelectedOptionWithAttemptProjection selectedOption) {
+            if (countedQuestions.contains(selectedOption.getQuestionId())) {
+                return;
+            }
+
+            countedQuestions.add(selectedOption.getQuestionId());
+            questionsAnswered++;
+            if (selectedOption.getCorrect()) {
+                correctQuestions++;
+            }
+        }
+
+        public UserTestAttemptSummary toUserTestAttemptSummary() {
+            final long start = attempt.getStart();
+            final long end = attempt.getEnd();
+            final double percentage = questionsAnswered > 0
+                ? ((double) correctQuestions / questionsAnswered) * 100
+                : 0.0;
+
+            return new UserTestAttemptSummary(
+                user.getId(),
+                user.getUsername(),
+                user.getName(),
+                user.getEmail(),
+                user.getAge() != null ? user.getAge().intValue() : null,
+                attempt.getGroup(),
+                start,
+                Math.toIntExact(end - start),
+                correctQuestions,
+                questionsAnswered,
+                percentage
+            );
+        }
     }
 }

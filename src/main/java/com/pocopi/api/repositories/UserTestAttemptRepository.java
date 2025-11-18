@@ -3,6 +3,7 @@ package com.pocopi.api.repositories;
 import com.pocopi.api.models.test.UserTestAttemptModel;
 import com.pocopi.api.repositories.projections.FormsCompletionStatusProjection;
 import com.pocopi.api.repositories.projections.TestAnswerProjection;
+import com.pocopi.api.repositories.projections.UserTestAttemptWithGroupProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 
@@ -35,6 +36,21 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
             """
     )
     Optional<UserTestAttemptModel> findLatestFinishedAttempt(int configVersion, int userId);
+
+    @NativeQuery(
+        """
+            select ta.id,
+                   g.label as `group`,
+                   cast(unix_timestamp(ta.start) * 1000 as unsigned) as start,
+                   cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
+                from user_test_attempt    ta
+                    inner join test_group g on g.id = ta.group_id
+                where g.config_version = :configVersion
+                  and ta.end is not null
+                order by ta.start
+            """
+    )
+    List<UserTestAttemptWithGroupProjection> findFinishedAttemptsByConfigVersion(int configVersion);
 
     @NativeQuery(
         """

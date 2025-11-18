@@ -1,7 +1,7 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.auth.AuthUser;
-import com.pocopi.api.dto.test.UserTestAttempt;
+import com.pocopi.api.dto.attempt.UserTestAttempt;
 import com.pocopi.api.services.UserTestAttemptService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;

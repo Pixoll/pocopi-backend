@@ -1,10 +1,13 @@
-package com.pocopi.api.dto.user;
+package com.pocopi.api.dto.attempt;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record UserSummary(
+public record UserTestAttemptSummary(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int id,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    String username,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String name,
@@ -14,6 +17,9 @@ public record UserSummary(
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Integer age,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    String group,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     long timestamp,

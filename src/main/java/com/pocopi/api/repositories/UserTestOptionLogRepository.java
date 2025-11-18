@@ -1,6 +1,8 @@
 package com.pocopi.api.repositories;
 
 import com.pocopi.api.models.test.UserTestOptionLogModel;
+import com.pocopi.api.repositories.projections.LastSelectedOptionProjection;
+import com.pocopi.api.repositories.projections.LastSelectedOptionWithAttemptProjection;
 import com.pocopi.api.repositories.projections.OptionEventProjection;
 import com.pocopi.api.repositories.projections.OptionEventWithUserIdProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,34 +15,52 @@ import java.util.List;
 public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptionLogModel, Integer> {
     @NativeQuery(
         """
-            with question_log as (
-                select
-                    o.question_id,
-                    ol.timestamp,
-                    ol.type,
-                    o.correct,
-                    row_number() over (partition by o.question_id order by ol.timestamp desc) as first
-                from user_test_option_log ol
-                    inner join user_test_attempt ta on ta.id = ol.attempt_id
-                    inner join test_option o on o.id = ol.option_id
-                    inner join test_question q on q.id = o.question_id
-                    inner join test_phase ph on ph.id = q.phase_id
-                    inner join test_group tg on tg.id = ph.group_id
-                    inner join config c on c.version = tg.config_version
-                where ta.user_id = :userId
-                    and c.version = :configVersion
-                    and ol.type in ('select', 'deselect')
-            )
-            select
-                question_id,
-                timestamp,
-                type,
-                correct
-            from question_log
-            where first = 1
+            with
+                question_log as (
+                    select o.question_id,
+                           ol.type,
+                           o.correct,
+                           row_number() over (partition by o.question_id order by ol.timestamp desc) as first
+                        from user_test_option_log        ol
+                            inner join test_option       o on o.id = ol.option_id
+                        where ol.attempt_id = :attemptId
+                          and ol.type in ('select', 'deselect')
+                    )
+            select question_id,
+                   correct
+                from question_log
+                where first = 1 and type = 'select'
             """
     )
-    List<Object[]> findAllLastOptionsByUserId(int userId, int configVersion);
+    List<LastSelectedOptionProjection> findLastSelectedOptionsByAttemptId(long attemptId);
+
+    @NativeQuery(
+        """
+            with
+                question_log as (
+                    select ol.attempt_id,
+                           ta.user_id,
+                           o.question_id,
+                           ol.type,
+                           o.correct,
+                           row_number() over (partition by o.question_id order by ol.timestamp desc) as first
+                        from user_test_option_log        ol
+                            inner join user_test_attempt ta on ta.id = ol.attempt_id
+                            inner join test_option       o on o.id = ol.option_id
+                        where ol.attempt_id in :attemptIds
+                          and ol.type in ('select', 'deselect')
+                    )
+            select attempt_id,
+                   user_id,
+                   question_id,
+                   correct
+                from question_log
+                where first = 1
+                  and type = 'select'
+            
+            """
+    )
+    List<LastSelectedOptionWithAttemptProjection> findLastSelectedOptionsByAttemptIds(List<Long> attemptIds);
 
     @NativeQuery(
         """

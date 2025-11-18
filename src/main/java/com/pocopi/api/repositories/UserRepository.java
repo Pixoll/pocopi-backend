@@ -2,18 +2,15 @@ package com.pocopi.api.repositories;
 
 import com.pocopi.api.models.user.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserModel, Integer> {
-    @Query(value = "select * from user u where u.id = :userId", nativeQuery = true)
+    @NativeQuery("select * from user u where u.id = :userId")
     UserModel getUserByUserId(@Param("userId") int userId);
-
-    @Query(value = "select u.id from user u", nativeQuery = true)
-    List<Integer> getAllUserIds();
 
     boolean existsByUsername(String username);
 
@@ -21,6 +18,17 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
     boolean existsByEmail(String email);
 
-    @Query(value = "select * from user", nativeQuery = true)
+    @NativeQuery("select * from user")
     List<UserModel> getAllUsers();
+
+    @NativeQuery(
+        """
+            select u.*
+                from user_test_attempt ta
+                    inner join user    u on u.id = ta.user_id
+                where ta.id in :attemptIds
+                group by u.id
+            """
+    )
+    List<UserModel> findAllUsersByAttemptIds(List<Long> attemptIds);
 }

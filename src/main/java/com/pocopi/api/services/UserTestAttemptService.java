@@ -1,8 +1,8 @@
 package com.pocopi.api.services;
 
+import com.pocopi.api.dto.attempt.UserTestAttempt;
+import com.pocopi.api.dto.attempt.UserTestAttemptAnswer;
 import com.pocopi.api.dto.test.AssignedTestGroup;
-import com.pocopi.api.dto.test.UserTestAttempt;
-import com.pocopi.api.dto.test.UserTestAttemptAnswer;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.test.TestGroupModel;
 import com.pocopi.api.models.test.UserTestAttemptModel;
