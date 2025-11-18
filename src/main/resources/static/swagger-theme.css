@@ -1,0 +1,232 @@
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* primary colors */
+        --all-bg-color: #282a36;
+        --block-bg-color: #414450;
+        --secondary-bg-color: #282a35;
+        --selecter-bg-color: #3a3d4c;
+        --topbar-bg-color: #3a3d4c;
+        --block-border-color: rgba(255, 255, 255, 0.25);
+
+        /* text */
+        --primary-text-color: #ffffff;
+        --secondary-text-color: #c1c0c0;
+        --tertiary-text-color: #808080;
+        --required-text-color: #ff6060;
+        --attribute-type-text-color: #8888d8;
+    }
+
+    html, #swagger-ui {
+        background-color: var(--all-bg-color);
+    }
+
+    .swagger-ui {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .topbar {
+        background-color: var(--topbar-bg-color);
+    }
+
+    .swagger-ui .topbar .download-url-wrapper input[type=text] {
+        background-color: var(--all-bg-color);
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .info .title {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .scheme-container {
+        background-color: var(--secondary-bg-color);
+    }
+
+    .swagger-ui .servers-title {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui select {
+        color: var(--primary-text-color);
+        background: var(--selecter-bg-color) url("data:image/svg+xml;charset=utf-8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"white\"><path d=\"M13.418 7.859a.695.695 0 0 1 .978 0 .68.68 0 0 1 0 .969l-3.908 3.83a.697.697 0 0 1-.979 0l-3.908-3.83a.68.68 0 0 1 0-.969.695.695 0 0 1 .978 0L10 11z\"/></svg>") right 10px center no-repeat;
+    }
+
+    .swagger-ui select[disabled] {
+        background-color: var(--selecter-bg-color);
+        color: var(--secondary-text-color);
+        border-color: var(--block-border-color);
+    }
+
+    .swagger-ui .dialog-ux .modal-ux {
+        background-color: var(--block-bg-color);
+        border-color: var(--block-border-color);
+    }
+
+    .swagger-ui .dialog-ux .modal-ux-header {
+        border-bottom-color: var(--block-border-color);
+    }
+
+    .swagger-ui .dialog-ux .modal-ux-header svg {
+        fill: var(--secondary-text-color);
+    }
+
+    .swagger-ui .dialog-ux .modal-ux-header h3,
+    .swagger-ui .dialog-ux .modal-ux-content h4,
+    .swagger-ui .dialog-ux .modal-ux-content h5,
+    .swagger-ui .dialog-ux .modal-ux-content h6,
+    .swagger-ui .dialog-ux .modal-ux-content code {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .dialog-ux .modal-ux-content p {
+        color: var(--secondary-text-color);
+    }
+
+    .swagger-ui label {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui input[type="email"],
+    .swagger-ui input[type="file"],
+    .swagger-ui input[type="password"],
+    .swagger-ui input[type="search"],
+    .swagger-ui input[type="text"],
+    .swagger-ui textarea {
+        background-color: var(--secondary-bg-color);
+        border-color: var(--block-border-color);
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .auth-btn-wrapper {
+        gap: 1rem;
+    }
+
+    .swagger-ui .btn {
+        border-color: var(--block-border-color);
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .authorization__btn svg {
+        fill: var(--secondary-text-color);
+    }
+
+    .swagger-ui .expand-methods svg, .swagger-ui .expand-operation svg {
+        fill: var(--secondary-text-color);
+    }
+
+    .swagger-ui .opblock-control-arrow svg {
+        fill: var(--secondary-text-color);
+    }
+
+    .swagger-ui .opblock-tag {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .opblock .opblock-summary-operation-id,
+    .swagger-ui .opblock .opblock-summary-path,
+    .swagger-ui .opblock .opblock-summary-path__deprecated {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .opblock .opblock-section-header {
+        background-color: var(--secondary-bg-color);
+    }
+
+    .swagger-ui .opblock .opblock-section-header h4 {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .opblock-description-wrapper p,
+    .swagger-ui .opblock-external-docs-wrapper p,
+    .swagger-ui .opblock-title_normal p {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .response-col_status {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui table thead tr td, .swagger-ui table thead tr th {
+        border-bottom-color: var(--block-border-color);
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .response-col_links {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .tab li {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .tab li:first-of-type:after {
+        background-color: rgba(255, 255, 255, .2);
+    }
+
+    .swagger-ui .parameter__name {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .parameter__type {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .prop-format {
+        color: var(--secondary-text-color);
+    }
+
+    .swagger-ui .parameter__name.required span,
+    .swagger-ui .parameter__name.required:after {
+        color: var(--required-text-color);
+    }
+
+    .swagger-ui section.models h4 {
+        color: var(--secondary-text-color);
+    }
+
+    .swagger-ui section.models h4 svg {
+        fill: var(--primary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-accordion {
+        background-color: transparent;
+    }
+
+    .swagger-ui .json-schema-2020-12-expand-deep-button {
+        background-color: transparent;
+    }
+
+    .swagger-ui .json-schema-2020-12__title {
+        color: var(--secondary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-property .json-schema-2020-12__title {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-keyword__name--primary {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-accordion__icon svg {
+        fill: var(--primary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-keyword--enum .json-schema-2020-12-json-viewer__name,
+    .swagger-ui .json-schema-2020-12-keyword--enum .json-schema-2020-12-json-viewer__value,
+    .swagger-ui .json-schema-2020-12-keyword--examples .json-schema-2020-12-json-viewer__name,
+    .swagger-ui .json-schema-2020-12-keyword--examples .json-schema-2020-12-json-viewer__value {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-keyword--description {
+        color: var(--tertiary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-property--required > .json-schema-2020-12:first-of-type > .json-schema-2020-12-head .json-schema-2020-12__title:after {
+        color: var(--required-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12__attribute--primary {
+        color: var(--attribute-type-text-color);
+    }
+}
