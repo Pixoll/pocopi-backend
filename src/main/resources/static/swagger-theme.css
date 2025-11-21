@@ -1,6 +1,5 @@
 @media (prefers-color-scheme: dark) {
     :root {
-        /* primary colors */
         --all-bg-color: #282a36;
         --block-bg-color: #414450;
         --secondary-bg-color: #282a35;
@@ -8,9 +7,8 @@
         --topbar-bg-color: #3a3d4c;
         --block-border-color: rgba(255, 255, 255, 0.25);
 
-        /* text */
-        --primary-text-color: #ffffff;
-        --secondary-text-color: #c1c0c0;
+        --primary-text-color: #f0f0f0;
+        --secondary-text-color: #c0c0c0;
         --tertiary-text-color: #808080;
         --required-text-color: #ff6060;
         --attribute-type-text-color: #8888d8;
@@ -121,6 +119,10 @@
         color: var(--primary-text-color);
     }
 
+    .swagger-ui .opblock .opblock-summary-description {
+        color: var(--primary-text-color);
+    }
+
     .swagger-ui .opblock .opblock-summary-operation-id,
     .swagger-ui .opblock .opblock-summary-path,
     .swagger-ui .opblock .opblock-summary-path__deprecated {
@@ -228,5 +230,22 @@
 
     .swagger-ui .json-schema-2020-12__attribute--primary {
         color: var(--attribute-type-text-color);
+    }
+
+    .swagger-ui .errors-wrapper hgroup h4 {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .errors-wrapper .errors h4 {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .loading-container .loading:before {
+        border-color: rgba(168, 168, 168, 0.1);
+        border-top-color: rgba(255, 255, 255, .6);
+    }
+
+    .swagger-ui .loading-container .loading:after {
+        color: var(--primary-text-color);
     }
 }
