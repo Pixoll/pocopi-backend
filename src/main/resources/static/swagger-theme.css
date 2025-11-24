@@ -156,6 +156,10 @@
         color: var(--primary-text-color);
     }
 
+    .swagger-ui .responses-inner h4, .swagger-ui .responses-inner h5 {
+        color: var(--primary-text-color);
+    }
+
     .swagger-ui .tab li {
         color: var(--primary-text-color);
     }
@@ -217,6 +221,11 @@
     .swagger-ui .json-schema-2020-12-keyword--enum .json-schema-2020-12-json-viewer__value,
     .swagger-ui .json-schema-2020-12-keyword--examples .json-schema-2020-12-json-viewer__name,
     .swagger-ui .json-schema-2020-12-keyword--examples .json-schema-2020-12-json-viewer__value {
+        color: var(--primary-text-color);
+    }
+
+    .swagger-ui .json-schema-2020-12-keyword--default .json-schema-2020-12-json-viewer__name,
+    .swagger-ui .json-schema-2020-12-keyword--default .json-schema-2020-12-json-viewer__value {
         color: var(--primary-text-color);
     }
 
