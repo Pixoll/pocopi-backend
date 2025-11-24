@@ -3,18 +3,14 @@ package com.pocopi.api.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocopi.api.dto.api.FieldError;
 import com.pocopi.api.dto.config.*;
 import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.test.TestGroup;
 import com.pocopi.api.exception.HttpException;
-import com.pocopi.api.exception.MultiFieldException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.ImageModel;
-import com.pocopi.api.models.config.PatternModel;
 import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.repositories.ConfigRepository;
-import com.pocopi.api.repositories.PatternRepository;
 import com.pocopi.api.repositories.TranslationValueRepository;
 import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
@@ -25,39 +21,38 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.PatternSyntaxException;
 
 @Service
 public class ConfigService {
     private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final ConfigRepository configRepository;
-    private final PatternRepository patternRepository;
     private final TranslationValueRepository translationValueRepository;
     private final FormService formService;
     private final HomeFaqService homeFaqService;
     private final HomeInfoCardService homeInfoCardService;
     private final ImageService imageService;
     private final TestGroupService testGroupService;
+    private final PatternService patternService;
 
     public ConfigService(
         ConfigRepository configRepository,
-        PatternRepository patternRepository,
         TranslationValueRepository translationValueRepository,
         FormService formService,
         HomeFaqService homeFaqService,
         HomeInfoCardService homeInfoCardService,
         ImageService imageService,
-        TestGroupService testGroupService
+        TestGroupService testGroupService,
+        PatternService patternService
     ) {
         this.configRepository = configRepository;
-        this.patternRepository = patternRepository;
         this.translationValueRepository = translationValueRepository;
         this.formService = formService;
         this.homeFaqService = homeFaqService;
         this.homeInfoCardService = homeInfoCardService;
         this.imageService = imageService;
         this.testGroupService = testGroupService;
+        this.patternService = patternService;
     }
 
     @Transactional
@@ -288,55 +283,8 @@ public class ConfigService {
             savedConfig = storedConfig;
         }
 
-        boolean modifiedUsernamePattern = false;
-
-        if (configUpdate.usernamePattern() == null) {
-            if (savedConfig.getUsernamePattern() != null) {
-                savedConfig.setUsernamePattern(null);
-
-                configRepository.save(savedConfig);
-                modifiedUsernamePattern = true;
-            }
-        } else {
-            final PatternUpdate patternUpdate = configUpdate.usernamePattern();
-
-            try {
-                java.util.regex.Pattern.compile(patternUpdate.regex());
-            } catch (PatternSyntaxException e) {
-                throw new MultiFieldException(
-                    "Invalid configuration update",
-                    List.of(new FieldError("usernamePattern", "Invalid Java matching pattern"))
-                );
-            }
-
-            final PatternModel patternModel = patternUpdate.id() != null
-                ? patternRepository.findById(patternUpdate.id()).orElse(null)
-                : null;
-
-            if (patternModel == null) {
-                final PatternModel newPattern = PatternModel.builder()
-                    .name(patternUpdate.name())
-                    .regex(patternUpdate.regex())
-                    .build();
-
-                final PatternModel savedPattern = patternRepository.save(newPattern);
-
-                savedConfig.setUsernamePattern(savedPattern);
-
-                configRepository.save(savedConfig);
-                modifiedUsernamePattern = true;
-            } else if (
-                !Objects.equals(patternModel.getName(), patternUpdate.name())
-                    || !Objects.equals(patternModel.getRegex(), patternUpdate.regex())
-            ) {
-                patternModel.setName(patternModel.getName());
-                patternModel.setRegex(patternUpdate.regex());
-
-                patternRepository.save(patternModel);
-                modifiedUsernamePattern = true;
-            }
-        }
-
+        final boolean modifiedUsernamePattern = patternService
+            .updatePattern(savedConfig, configUpdate.usernamePattern());
         final boolean modifiedCards = homeInfoCardService.updateCards(
             savedConfig,
             configUpdate.informationCards(),
