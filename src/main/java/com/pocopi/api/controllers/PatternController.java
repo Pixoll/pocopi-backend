@@ -24,7 +24,7 @@ public class PatternController {
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<Pattern>> getAllPatterns() {
-        final List<Pattern> patterns = patternService.getAll();
+        final List<Pattern> patterns = patternService.getAllPatterns();
         return ResponseEntity.ok(patterns);
     }
 }

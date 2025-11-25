@@ -17,15 +17,18 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class TranslationKeyModel {
+    public static final int KEY_MIN_LENGTH = 1;
+    public static final int KEY_MAX_LENGTH = 50;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int unsigned")
     @Setter(AccessLevel.NONE)
     private int id;
 
-    @Size(max = 50)
+    @Size(max = KEY_MAX_LENGTH)
     @NotNull
-    @Column(name = "`key`", nullable = false, length = 50)
+    @Column(name = "`key`", nullable = false, length = KEY_MAX_LENGTH)
     private String key;
 
     @Size(max = 500)

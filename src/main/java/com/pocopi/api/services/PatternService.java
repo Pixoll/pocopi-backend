@@ -25,7 +25,7 @@ public class PatternService {
         this.configRepository = configRepository;
     }
 
-    public List<Pattern> getAll() {
+    public List<Pattern> getAllPatterns() {
         return patternRepository.findAll().stream()
             .map(pattern -> new Pattern(pattern.getId(), pattern.getName(), pattern.getRegex()))
             .toList();

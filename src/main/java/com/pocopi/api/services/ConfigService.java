@@ -11,13 +11,11 @@ import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.form.FormType;
 import com.pocopi.api.repositories.ConfigRepository;
-import com.pocopi.api.repositories.TranslationValueRepository;
 import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,32 +25,32 @@ public class ConfigService {
     private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final ConfigRepository configRepository;
-    private final TranslationValueRepository translationValueRepository;
     private final FormService formService;
     private final HomeFaqService homeFaqService;
     private final HomeInfoCardService homeInfoCardService;
     private final ImageService imageService;
     private final TestGroupService testGroupService;
     private final PatternService patternService;
+    private final TranslationService translationService;
 
     public ConfigService(
         ConfigRepository configRepository,
-        TranslationValueRepository translationValueRepository,
         FormService formService,
         HomeFaqService homeFaqService,
         HomeInfoCardService homeInfoCardService,
         ImageService imageService,
         TestGroupService testGroupService,
-        PatternService patternService
+        PatternService patternService,
+        TranslationService translationService
     ) {
         this.configRepository = configRepository;
-        this.translationValueRepository = translationValueRepository;
         this.formService = formService;
         this.homeFaqService = homeFaqService;
         this.homeInfoCardService = homeInfoCardService;
         this.imageService = imageService;
         this.testGroupService = testGroupService;
         this.patternService = patternService;
+        this.translationService = translationService;
     }
 
     @Transactional
@@ -122,14 +120,7 @@ public class ConfigService {
             configModel.getUsernamePattern().getRegex()
         ) : null;
 
-        final Map<String, String> translations = translationValueRepository
-            .findAllByConfigVersion(configVersion)
-            .stream()
-            .collect(
-                HashMap::new,
-                (map, translation) -> map.put(translation.getKey(), translation.getValue()),
-                HashMap::putAll
-            );
+        final Map<String, String> translations = translationService.getAllTranslationKeyValues(configVersion);
 
         final Map<FormType, Form> forms = formService.getFormsByConfigVersion(configVersion);
         final Form preTest = forms.get(FormType.PRE);
@@ -182,16 +173,7 @@ public class ConfigService {
             configModel.getUsernamePattern().getRegex()
         ) : null;
 
-        final List<Translation> translations = translationValueRepository
-            .findAllByConfigVersionWithDetails(configVersion)
-            .stream()
-            .map((translation) -> new Translation(
-                translation.getKey(),
-                translation.getValue(),
-                translation.getDescription(),
-                parseJsonStringArray(translation.getArgumentsJson())
-            ))
-            .toList();
+        final List<Translation> translations = translationService.getAllTranslations(configVersion);
 
         final Map<FormType, Form> forms = formService.getFormsByConfigVersion(configVersion);
         final Form preTest = forms.get(FormType.PRE);
@@ -308,6 +290,10 @@ public class ConfigService {
             configUpdate.groups(),
             groupImageFiles
         );
+        final boolean modifiedTranslations = translationService.updateTranslations(
+            savedConfig,
+            configUpdate.translations()
+        );
 
         return modifiedGeneral
             || modifiedUsernamePattern
@@ -315,7 +301,8 @@ public class ConfigService {
             || modifiedFaq
             || modifiedPreTestForm
             || modifiedPostTestForm
-            || modifiedGroups;
+            || modifiedGroups
+            || modifiedTranslations;
     }
 
     @Transactional

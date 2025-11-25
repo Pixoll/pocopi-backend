@@ -27,5 +27,7 @@ public interface TranslationValueRepository extends JpaRepository<TranslationVal
                     left join translation_value v on k.id = v.key_id and v.config_version = :configVersion
             """
     )
-    List<TranslationProjection> findAllByConfigVersion(int configVersion);
+    List<TranslationProjection> findAllKeyValuePairsByConfigVersion(int configVersion);
+
+    List<TranslationValueModel> findAllByConfigVersion(int configVersion);
 }

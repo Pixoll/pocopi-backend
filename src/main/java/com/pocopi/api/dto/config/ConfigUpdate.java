@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
-import java.util.Map;
 
 public record ConfigUpdate(
     @NotNull
@@ -49,8 +48,8 @@ public record ConfigUpdate(
     @Valid
     List<TestGroupUpdate> groups,
 
-    // TODO add checks to keys and values
     @NotNull
-    Map<String, String> translations
+    @Valid
+    List<TranslationUpdate> translations
 ) {
 }
