@@ -328,6 +328,7 @@ public class ConfigService {
             : null;
 
         final ConfigModel newConfig = configRepository.save(ConfigModel.builder()
+            .active(false)
             .icon(newIcon)
             .title(config.getTitle())
             .subtitle(config.getSubtitle())
