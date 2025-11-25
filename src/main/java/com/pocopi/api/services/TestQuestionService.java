@@ -33,6 +33,28 @@ public class TestQuestionService {
     }
 
     @Transactional
+    public void cloneQuestions(int originalPhaseId, TestPhaseModel phase) {
+        final List<TestQuestionModel> questions = testQuestionRepository.findAllByPhaseId(originalPhaseId);
+
+        for (final TestQuestionModel question : questions) {
+            final ImageModel newImage = question.getImage() != null
+                ? imageService.cloneImage(question.getImage())
+                : null;
+
+            final TestQuestionModel newQuestion = testQuestionRepository.save(TestQuestionModel.builder()
+                .phase(phase)
+                .order(question.getOrder())
+                .text(question.getText())
+                .image(newImage)
+                .randomizeOptions(question.isRandomizeOptions())
+                .build()
+            );
+
+            testOptionService.cloneOptions(question.getId(), newQuestion);
+        }
+    }
+
+    @Transactional
     public boolean updateQuestions(
         TestPhaseModel phase,
         List<TestQuestionUpdate> questionsUpdates,

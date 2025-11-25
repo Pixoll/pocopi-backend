@@ -32,6 +32,23 @@ public class HomeFaqService {
     }
 
     @Transactional
+    public void cloneFaqs(int originalConfigVersion, ConfigModel config) {
+        final List<HomeFaqModel> faqs = homeFaqRepository
+            .findAllByConfigVersion(originalConfigVersion);
+
+        for (final HomeFaqModel faq : faqs) {
+            final HomeFaqModel newFaq = HomeFaqModel.builder()
+                .config(config)
+                .order(faq.getOrder())
+                .question(faq.getQuestion())
+                .answer(faq.getAnswer())
+                .build();
+
+            homeFaqRepository.save(newFaq);
+        }
+    }
+
+    @Transactional
     public boolean updateFaqs(ConfigModel config, List<FrequentlyAskedQuestionUpdate> updateFaqs) {
         final List<HomeFaqModel> storedFaqs = homeFaqRepository.findAllByConfigVersion(config.getVersion());
 

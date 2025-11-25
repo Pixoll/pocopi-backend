@@ -47,6 +47,27 @@ public class HomeInfoCardService {
     }
 
     @Transactional
+    public void cloneCards(int originalConfigVersion, ConfigModel config) {
+        final List<HomeInfoCardModel> cards = homeInfoCardRepository
+            .findAllByConfigVersion(originalConfigVersion);
+
+        for (final HomeInfoCardModel card : cards) {
+            final ImageModel newIcon = card.getIcon() != null ? imageService.cloneImage(card.getIcon()) : null;
+
+            final HomeInfoCardModel newCard = HomeInfoCardModel.builder()
+                .config(config)
+                .order(card.getOrder())
+                .title(card.getTitle())
+                .description(card.getDescription())
+                .icon(newIcon)
+                .color(card.getColor())
+                .build();
+
+            homeInfoCardRepository.save(newCard);
+        }
+    }
+
+    @Transactional
     public boolean updateCards(
         ConfigModel config,
         List<InformationCardUpdate> informationCardsUpdates,

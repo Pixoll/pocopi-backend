@@ -318,6 +318,32 @@ public class ConfigService {
             || modifiedGroups;
     }
 
+    @Transactional
+    public void cloneConfig(int version) {
+        final ConfigModel config = configRepository.findByVersion(version)
+            .orElseThrow(() -> HttpException.notFound("Config with version " + version + " not found"));
+
+        final ImageModel newIcon = config.getIcon() != null
+            ? imageService.cloneImage(config.getIcon())
+            : null;
+
+        final ConfigModel newConfig = configRepository.save(ConfigModel.builder()
+            .icon(newIcon)
+            .title(config.getTitle())
+            .subtitle(config.getSubtitle())
+            .description(config.getDescription())
+            .anonymous(config.isAnonymous())
+            .informedConsent(config.getInformedConsent())
+            .usernamePattern(config.getUsernamePattern())
+            .build()
+        );
+
+        homeInfoCardService.cloneCards(version, newConfig);
+        homeFaqService.cloneFaqs(version, newConfig);
+        formService.cloneForms(version, newConfig);
+        testGroupService.cloneGroups(version, newConfig);
+    }
+
     private static List<String> parseJsonStringArray(String json) {
         if (json == null || json.isBlank()) {
             return List.of();

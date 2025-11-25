@@ -34,6 +34,37 @@ public class FormQuestionService {
     }
 
     @Transactional
+    public void cloneQuestions(int originalFormId, FormModel form) {
+        final List<FormQuestionModel> questions = formQuestionRepository.findAllByFormId(originalFormId);
+
+        for (final FormQuestionModel question : questions) {
+            final ImageModel newImage = question.getImage() != null
+                ? imageService.cloneImage(question.getImage())
+                : null;
+
+            final FormQuestionModel newQuestion = formQuestionRepository.save(FormQuestionModel.builder()
+                .form(form)
+                .order(question.getOrder())
+                .type(question.getType())
+                .category(question.getCategory())
+                .text(question.getText())
+                .image(newImage)
+                .required(question.isRequired())
+                .min(question.getMin())
+                .max(question.getMax())
+                .step(question.getStep())
+                .other(question.getOther())
+                .minLength(question.getMinLength())
+                .maxLength(question.getMaxLength())
+                .placeholder(question.getPlaceholder())
+                .build()
+            );
+
+            formOptionService.cloneOptions(question.getId(), newQuestion);
+        }
+    }
+
+    @Transactional
     public boolean updateQuestions(
         FormModel form,
         List<FormQuestionUpdate> formQuestionsUpdates,

@@ -260,6 +260,27 @@ public class TestGroupService {
     }
 
     @Transactional
+    public void cloneGroups(int originalConfigVersion, ConfigModel config) {
+        final List<TestGroupModel> groups = testGroupRepository.findAllByConfigVersion(originalConfigVersion);
+
+        for (final TestGroupModel group : groups) {
+            final TestGroupModel newGroup = testGroupRepository.save(TestGroupModel.builder()
+                .config(config)
+                .label(group.getLabel())
+                .probability(group.getProbability())
+                .greeting(group.getGreeting())
+                .allowPreviousPhase(group.isAllowPreviousPhase())
+                .allowPreviousQuestion(group.isAllowPreviousQuestion())
+                .allowSkipQuestion(group.isAllowSkipQuestion())
+                .randomizePhases(group.isRandomizePhases())
+                .build()
+            );
+
+            testPhaseService.clonePhases(group.getId(), newGroup);
+        }
+    }
+
+    @Transactional
     public boolean updateGroups(
         ConfigModel config,
         List<TestGroupUpdate> groupsUpdates,

@@ -29,6 +29,25 @@ public class FormOptionService {
     }
 
     @Transactional
+    public void cloneOptions(int originalQuestionId, FormQuestionModel question) {
+        final List<FormQuestionOptionModel> options = formQuestionOptionRepository
+            .findAllByFormQuestionId(originalQuestionId);
+
+        for (final FormQuestionOptionModel option : options) {
+            final ImageModel newImage = option.getImage() != null ? imageService.cloneImage(option.getImage()) : null;
+
+            final FormQuestionOptionModel newOption = FormQuestionOptionModel.builder()
+                .formQuestion(question)
+                .order(option.getOrder())
+                .text(option.getText())
+                .image(newImage)
+                .build();
+
+            formQuestionOptionRepository.save(newOption);
+        }
+    }
+
+    @Transactional
     public boolean updateOptions(
         FormQuestionModel question,
         List<FormOptionUpdate> optionsUpdates,

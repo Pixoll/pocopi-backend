@@ -77,6 +77,13 @@ public class ConfigController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{version}/clone")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> cloneConfigByVersion(@PathVariable int version) {
+        configService.cloneConfig(version);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/active")
     public ResponseEntity<TrimmedConfig> getActiveConfigAsUser() {
         final TrimmedConfig config = configService.getTrimmedActiveConfig();

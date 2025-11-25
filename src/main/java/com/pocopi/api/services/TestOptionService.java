@@ -7,6 +7,7 @@ import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.TestOptionRepository;
 import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -24,6 +25,26 @@ public class TestOptionService {
         this.imageService = imageService;
     }
 
+    @Transactional
+    public void cloneOptions(int originalQuestionId, TestQuestionModel question) {
+        final List<TestOptionModel> options = testOptionRepository.findAllByQuestionId(originalQuestionId);
+
+        for (final TestOptionModel option : options) {
+            final ImageModel newImage = option.getImage() != null ? imageService.cloneImage(option.getImage()) : null;
+
+            final TestOptionModel newOption = TestOptionModel.builder()
+                .question(question)
+                .order(option.getOrder())
+                .text(option.getText())
+                .image(newImage)
+                .correct(option.isCorrect())
+                .build();
+
+            testOptionRepository.save(newOption);
+        }
+    }
+
+    @Transactional
     public boolean updateOptions(
         TestQuestionModel question,
         List<TestOptionUpdate> optionsUpdates,

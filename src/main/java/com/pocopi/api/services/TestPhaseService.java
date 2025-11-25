@@ -25,6 +25,22 @@ public class TestPhaseService {
     }
 
     @Transactional
+    public void clonePhases(int originalGroupId, TestGroupModel group) {
+        final List<TestPhaseModel> phases = testPhaseRepository.findAllByGroupId(originalGroupId);
+
+        for (final TestPhaseModel phase : phases) {
+            final TestPhaseModel newPhase = testPhaseRepository.save(TestPhaseModel.builder()
+                .group(group)
+                .order(phase.getOrder())
+                .randomizeQuestions(phase.isRandomizeQuestions())
+                .build()
+            );
+
+            testQuestionService.cloneQuestions(phase.getId(), newPhase);
+        }
+    }
+
+    @Transactional
     public boolean updatePhases(
         TestGroupModel group,
         List<TestPhaseUpdate> phasesUpdates,

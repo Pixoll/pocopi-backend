@@ -230,6 +230,22 @@ public class FormService {
     }
 
     @Transactional
+    public void cloneForms(int originalConfigVersion, ConfigModel config) {
+        final List<FormModel> forms = formRepository.findAllByConfigVersion(originalConfigVersion);
+
+        for (final FormModel form : forms) {
+            final FormModel newForm = formRepository.save(FormModel.builder()
+                .config(config)
+                .type(form.getType())
+                .title(form.getTitle())
+                .build()
+            );
+
+            formQuestionService.cloneQuestions(form.getId(), newForm);
+        }
+    }
+
+    @Transactional
     public boolean updateForm(
         ConfigModel config,
         FormType type,

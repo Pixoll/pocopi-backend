@@ -11,6 +11,7 @@ import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -18,10 +19,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ImageService {
@@ -29,6 +33,7 @@ public class ImageService {
 
     private static final int MAX_FILE_SIZE = 5_000_000;
     private static final String MAX_FILE_SIZE_STR = MAX_FILE_SIZE / 1_000_000 + " MB";
+    private static final Pattern FILE_TIMESTAMP_PATTERN = Pattern.compile("^\\d{8}_\\d{6}");
 
     private static final List<String> SUPPORTED_IMAGE_TYPES = List.of("image/gif", "image/png", "image/jpeg");
 
@@ -64,6 +69,27 @@ public class ImageService {
         imageModel.setAlt(alt);
 
         return imageRepository.save(imageModel);
+    }
+
+    @Transactional
+    public ImageModel cloneImage(ImageModel image) {
+        final Path oldPath = resolveFullPath(image.getPath());
+        final String newRelativePath = updatePathTimestamp(image.getPath());
+        final Path newPath = resolveFullPath(newRelativePath);
+
+        final ImageModel newImage = ImageModel.builder()
+            .path(newRelativePath)
+            .alt(image.getAlt())
+            .build();
+
+        try {
+            Files.copy(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            LOGGER.error("Could not update image file", e);
+            throw HttpException.internalServerError("Could not update image file", e);
+        }
+
+        return imageRepository.save(newImage);
     }
 
     public void updateImageFile(ImageCategory category, ImageModel image, MultipartFile newFile) {
@@ -135,6 +161,21 @@ public class ImageService {
         final String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
 
         return String.format("images/%s/%s_%s", category, timestamp, sanitizedFilename);
+    }
+
+    private String updatePathTimestamp(String path) {
+        final String[] parts = path.split("/");
+        final String filename = parts[parts.length - 1];
+        final String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+
+        final Matcher timestampMatcher = FILE_TIMESTAMP_PATTERN.matcher(filename);
+        final String newFilename = timestampMatcher.matches()
+            ? timestampMatcher.replaceFirst(timestamp)
+            : String.format("%s_%s", timestamp, filename);
+
+        parts[parts.length - 1] = newFilename;
+
+        return String.join("/", parts);
     }
 
     private String buildPublicUrl(String relativePath) {

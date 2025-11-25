@@ -10,5 +10,7 @@ import java.util.List;
 public interface TestPhaseRepository extends JpaRepository<TestPhaseModel, Integer> {
     List<TestPhaseModel> findAllByGroupConfigVersionOrderByOrder(int groupConfigVersion);
 
+    List<TestPhaseModel> findAllByGroupId(int groupId);
+
     List<TestPhaseModel> findAllByGroupIdOrderByOrder(int groupId);
 }
