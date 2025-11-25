@@ -106,6 +106,22 @@ public class TranslationService {
         return modified;
     }
 
+    @Transactional
+    public void cloneTranslations(int originalConfigVersion, ConfigModel config) {
+        final List<TranslationValueModel> translationValues = translationValueRepository
+            .findAllByConfigVersion(originalConfigVersion);
+
+        for (final TranslationValueModel translationValue : translationValues) {
+            final TranslationValueModel newTranslationValue = TranslationValueModel.builder()
+                .config(config)
+                .key(translationValue.getKey())
+                .value(translationValue.getValue())
+                .build();
+
+            translationValueRepository.save(newTranslationValue);
+        }
+    }
+
     private static List<String> parseJsonStringArray(String json) {
         if (json == null || json.isBlank()) {
             return List.of();

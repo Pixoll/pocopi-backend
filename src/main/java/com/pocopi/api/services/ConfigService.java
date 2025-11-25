@@ -1,8 +1,5 @@
 package com.pocopi.api.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocopi.api.dto.config.*;
 import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.test.TestGroup;
@@ -22,8 +19,6 @@ import java.util.Objects;
 
 @Service
 public class ConfigService {
-    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private final ConfigRepository configRepository;
     private final FormService formService;
     private final HomeFaqService homeFaqService;
@@ -330,20 +325,6 @@ public class ConfigService {
         homeFaqService.cloneFaqs(version, newConfig);
         formService.cloneForms(version, newConfig);
         testGroupService.cloneGroups(version, newConfig);
-    }
-
-    private static List<String> parseJsonStringArray(String json) {
-        if (json == null || json.isBlank()) {
-            return List.of();
-        }
-
-        try {
-            return OBJECT_MAPPER.readValue(
-                json, new TypeReference<>() {
-                }
-            );
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse arguments JSON", e);
-        }
+        translationService.cloneTranslations(version, newConfig);
     }
 }
