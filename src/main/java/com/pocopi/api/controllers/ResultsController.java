@@ -150,7 +150,7 @@ public class ResultsController {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
             // TODO changed from findAllByGroup_Config_Version(lastConfig.getVersion());
-            final List<UserModel> users = userRepository.getAllUsers();
+            final List<UserModel> users = userRepository.findAll();
 
             final List<ResultsByUser> userResults = users.stream()
                 .map(user -> resultsService.getUserAllResults(user.getId()))
@@ -184,7 +184,7 @@ public class ResultsController {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
             // TODO changed from findAllByGroup_Config_Version(lastConfig.getVersion());
-            final List<UserModel> users = userRepository.getAllUsers();
+            final List<UserModel> users = userRepository.findAll();
 
             final List<FormAnswersByUser> userFormResults = users.stream()
                 .map(user -> formResultsService.getUserFormResults(user.getId()))
@@ -218,7 +218,7 @@ public class ResultsController {
         try {
             // ConfigModel lastConfig = configRepository.findLastConfig();
             // TODO changed from findAllByGroup_Config_Version(lastConfig.getVersion());
-            final List<UserModel> users = userRepository.getAllUsers();
+            final List<UserModel> users = userRepository.findAll();
 
             final List<TestResultByUser> userTestResults = users.stream()
                 .map(user -> testResultsService.getUserTestResults(user.getId()))

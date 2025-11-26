@@ -1,5 +1,6 @@
 package com.pocopi.api.repositories;
 
+import com.pocopi.api.models.user.Role;
 import com.pocopi.api.models.user.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
@@ -18,9 +19,6 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
     boolean existsByEmail(String email);
 
-    @NativeQuery("select * from user")
-    List<UserModel> getAllUsers();
-
     @NativeQuery(
         """
             select u.*
@@ -31,4 +29,6 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
             """
     )
     List<UserModel> findAllUsersByAttemptIds(List<Long> attemptIds);
+
+    List<UserModel> findAllByRole(Role role);
 }

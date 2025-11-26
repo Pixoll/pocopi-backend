@@ -46,9 +46,19 @@ public class UserService {
         this.apiExceptionMapper = apiExceptionMapper;
     }
 
-    public List<User> getAll() {
-        final List<UserModel> users = userRepository.getAllUsers();
-        return users.stream().map(user -> new User(
+    public List<User> getAllUsers() {
+        return userRepository.findAll().stream().map(user -> new User(
+            user.getId(),
+            user.getUsername(),
+            user.isAnonymous(),
+            user.getName(),
+            user.getEmail(),
+            user.getAge() != null ? user.getAge().intValue() : null
+        )).collect(Collectors.toList());
+    }
+
+    public List<User> getAllAdmins() {
+        return userRepository.findAllByRole(Role.ADMIN).stream().map(user -> new User(
             user.getId(),
             user.getUsername(),
             user.isAnonymous(),

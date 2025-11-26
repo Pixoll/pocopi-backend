@@ -56,8 +56,8 @@ public class ResultsService {
     }
 
     public ResultsByGroup getGroupFullResults(int groupId) {
-        final List<UserModel> users = userRepository.getAllUsers(); // TODO changed from getByGroupId
-        if (users == null || users.isEmpty()) {
+        final List<UserModel> users = userRepository.findAll(); // TODO changed from getByGroupId
+        if (users.isEmpty()) {
             throw new IllegalArgumentException("No users found for this group");
         }
 
