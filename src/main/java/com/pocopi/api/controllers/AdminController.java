@@ -1,8 +1,8 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.auth.AuthUser;
+import com.pocopi.api.dto.user.Admin;
 import com.pocopi.api.dto.user.NewAdmin;
-import com.pocopi.api.dto.user.User;
 import com.pocopi.api.models.user.UserModel;
 import com.pocopi.api.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,25 +27,17 @@ public class AdminController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<List<User>> getAllAdmins() {
-        final List<User> admins = userService.getAllAdmins();
+    public ResponseEntity<List<Admin>> getAllAdmins() {
+        final List<Admin> admins = userService.getAllAdmins();
         return ResponseEntity.ok(admins);
     }
 
     @GetMapping("/me")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<User> getCurrentAdmin(@AuthenticationPrincipal AuthUser authUser) {
+    public ResponseEntity<Admin> getCurrentAdmin(@AuthenticationPrincipal AuthUser authUser) {
         final UserModel userModel = authUser.user();
-        final User user = new User(
-            userModel.getId(),
-            userModel.getUsername(),
-            userModel.isAnonymous(),
-            userModel.getName(),
-            userModel.getEmail(),
-            userModel.getAge() != null ? userModel.getAge().intValue() : null
-        );
-
-        return ResponseEntity.ok(user);
+        final Admin admin = new Admin(userModel.getId(), userModel.getUsername());
+        return ResponseEntity.ok(admin);
     }
 
     @PostMapping

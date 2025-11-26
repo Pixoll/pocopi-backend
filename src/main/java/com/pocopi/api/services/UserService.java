@@ -1,6 +1,7 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.api.FieldError;
+import com.pocopi.api.dto.user.Admin;
 import com.pocopi.api.dto.user.NewAdmin;
 import com.pocopi.api.dto.user.NewUser;
 import com.pocopi.api.dto.user.User;
@@ -57,15 +58,10 @@ public class UserService {
         )).collect(Collectors.toList());
     }
 
-    public List<User> getAllAdmins() {
-        return userRepository.findAllByRole(Role.ADMIN).stream().map(user -> new User(
-            user.getId(),
-            user.getUsername(),
-            user.isAnonymous(),
-            user.getName(),
-            user.getEmail(),
-            user.getAge() != null ? user.getAge().intValue() : null
-        )).collect(Collectors.toList());
+    public List<Admin> getAllAdmins() {
+        return userRepository.findAllByRole(Role.ADMIN).stream()
+            .map(user -> new Admin(user.getId(), user.getUsername()))
+            .collect(Collectors.toList());
     }
 
     public User getByUsername(String username) {
