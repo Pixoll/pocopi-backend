@@ -7,7 +7,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "test_phase", uniqueConstraints = {@UniqueConstraint(columnNames = {"group_id", "`order`"})})
+@Table(name = "test_phase", indexes = {@Index(columnList = "group_id")})
 @Getter
 @Setter
 @NoArgsConstructor

@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "home_faq", uniqueConstraints = @UniqueConstraint(columnNames = {"config_version", "`order`"}))
+@Table(name = "home_faq", indexes = {@Index(columnList = "config_version")})
 @Getter
 @Setter
 @NoArgsConstructor
