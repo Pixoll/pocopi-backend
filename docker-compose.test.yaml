@@ -13,19 +13,5 @@ services:
     volumes:
       - db-test:/var/lib/mysql
 
-  app-test:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file: .env.test
-    ports:
-      - "8082:8080"
-    depends_on:
-      db-test:
-        condition: service_healthy
-    volumes:
-      - ./images:/app/images
-      - ./test-data:/app/test-data:ro
-
 volumes:
   db-test:

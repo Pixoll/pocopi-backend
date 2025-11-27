@@ -24,3 +24,49 @@ jobs:
         with:
           name: jacoco-report
           path: build/reports/jacoco/test/html
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      db-test:
+        image: mysql:9.4.0
+        env:
+          MYSQL_DATABASE: pocopi_test
+          MYSQL_USER: pocopi_test_user
+          MYSQL_PASSWORD: test_password
+          MYSQL_ROOT_PASSWORD: test_root_password
+        ports:
+          - 33062:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -p${MYSQL_ROOT_PASSWORD}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --health-start-period=30s
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h "127.0.0.1" -P 33062 -u root -p"$MYSQL_ROOT_PASSWORD" --silent; then
+              echo "MySQL is up"
+              exit 0
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+          echo "MySQL did not become ready in time"
+          exit 1
+        env:
+          MYSQL_ROOT_PASSWORD: test_root_password
+
+      - name: Run integration tests
+        run: ./gradlew test --tests "com.pocopi.api.integration.*"
