@@ -18,3 +18,12 @@ logging:
     org.hibernate: ERROR
     org.flywaydb.core: ERROR
     com.pocopi.api: INFO
+
+jwt:
+  secret: test_secret_key_for_testing_purposes_only
+  expiration: 3600000
+
+app:
+  images:
+    base-path: ./test-images
+    base-url: http://localhost:8080

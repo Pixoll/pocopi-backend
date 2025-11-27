@@ -51,6 +51,4 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - name: Run integration tests (com.pocopi.api.integration)
-        env:
-          SPRING_PROFILES_ACTIVE: integration
         run: ./gradlew test --tests "com.pocopi.api.integration.*"
