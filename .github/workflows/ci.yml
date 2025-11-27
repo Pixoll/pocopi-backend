@@ -52,3 +52,9 @@ jobs:
           java-version: '21'
       - name: Run integration tests (com.pocopi.api.integration)
         run: ./gradlew test --tests "com.pocopi.api.integration.*"
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-report
+          path: build/reports/tests/test
