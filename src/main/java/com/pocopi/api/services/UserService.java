@@ -149,6 +149,10 @@ public class UserService {
             );
         }
 
+        if (!user.isAnonymous() || user.getRole() != Role.USER) {
+            throw HttpException.badRequest("Only anonymous users can change their credentials");
+        }
+
         final String originalEncodedPassword = passwordEncoder.encode(credentialsUpdate.oldPassword());
 
         if (
