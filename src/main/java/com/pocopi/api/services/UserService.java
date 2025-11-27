@@ -153,11 +153,9 @@ public class UserService {
             throw HttpException.badRequest("Only anonymous users can change their credentials");
         }
 
-        final String originalEncodedPassword = passwordEncoder.encode(credentialsUpdate.oldPassword());
-
         if (
             !credentialsUpdate.oldUsername().equals(user.getUsername())
-                || !originalEncodedPassword.equals(user.getPassword())
+                || !passwordEncoder.matches(credentialsUpdate.oldPassword(), user.getPassword())
         ) {
             throw HttpException.unauthorized("Bad credentials");
         }
