@@ -48,8 +48,13 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+
+    env:
+      DB_ROOT_PASSWORD: test_root_password
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -62,10 +67,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
       - name: Configure MySQL for Flyway functions
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ job.services.db-test.env.MYSQL_ROOT_PASSWORD }}
         run: |
-          mysql -h 127.0.0.1 -P 33062 -uroot -p"$MYSQL_ROOT_PASSWORD" \
+          mysql -h 127.0.0.1 -P 33062 -uroot -p"${DB_ROOT_PASSWORD}" \
             -e "SET GLOBAL log_bin_trust_function_creators = 1;"
 
       - name: Run integration tests (com.pocopi.api.integration)
