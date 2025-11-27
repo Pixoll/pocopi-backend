@@ -16,6 +16,7 @@ public record FormUpdate(
     String title,
 
     @NotNull
+    @Size(max = 100)
     @Valid
     List<FormQuestionUpdate> questions
 ) {

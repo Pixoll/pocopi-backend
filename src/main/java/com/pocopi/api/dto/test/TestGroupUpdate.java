@@ -38,6 +38,7 @@ public record TestGroupUpdate(
     boolean randomizePhases,
 
     @NotNull
+    @Size(max = 100)
     @Valid
     List<TestPhaseUpdate> phases
 ) {

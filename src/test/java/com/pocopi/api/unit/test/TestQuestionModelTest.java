@@ -35,7 +35,7 @@ class TestQuestionModelTest {
                 .alt("Question Image")
                 .build();
 
-        byte order = 1;
+        short order = 1;
         String text = "What is your name?";
 
         TestQuestionModel question = TestQuestionModel.builder()

@@ -23,7 +23,7 @@ class TestPhaseModelTest {
                 .probability((byte)80)
                 .build();
 
-        byte order = 2;
+        short order = 2;
 
         TestPhaseModel phase = TestPhaseModel.builder()
                 .group(group)

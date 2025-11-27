@@ -27,7 +27,7 @@ public class TestPhaseModel {
     private TestGroupModel group;
 
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
+    private short order;
 
     @Builder.Default
     @Column(name = "randomize_questions")

@@ -42,7 +42,7 @@ class TestOptionModelTest {
                 .alt("Option image")
                 .build();
 
-        byte order = 2;
+        short order = 2;
         String text = "Four";
 
         TestOptionModel option = TestOptionModel.builder()

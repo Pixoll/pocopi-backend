@@ -34,7 +34,7 @@ public class HomeInfoCardModel {
     private ConfigModel config;
 
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
+    private short order;
 
     @Size(min = TITLE_MIN_LEN, max = TITLE_MAX_LEN)
     @NotNull

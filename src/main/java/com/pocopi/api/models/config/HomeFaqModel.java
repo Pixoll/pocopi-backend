@@ -33,7 +33,7 @@ public class HomeFaqModel {
     private ConfigModel config;
 
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
+    private short order;
 
     @Size(min = QUESTION_MIN_LEN, max = QUESTION_MAX_LEN)
     @NotNull

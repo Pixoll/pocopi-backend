@@ -32,7 +32,7 @@ public class TestOptionModel {
     private TestQuestionModel question;
 
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
+    private short order;
 
     @Builder.Default
     @Size(min = TEXT_MIN_LEN, max = TEXT_MAX_LEN)

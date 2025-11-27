@@ -67,6 +67,7 @@ public sealed interface FormQuestionUpdate
         boolean other,
 
         @NotNull
+        @Size(max = 100)
         @Valid
         List<FormOptionUpdate> options
     ) implements FormQuestionUpdate {
@@ -91,6 +92,7 @@ public sealed interface FormQuestionUpdate
         boolean other,
 
         @NotNull
+        @Size(max = 100)
         @Valid
         List<FormOptionUpdate> options
     ) implements FormQuestionUpdate {
@@ -127,6 +129,7 @@ public sealed interface FormQuestionUpdate
         int step,
 
         @NotNull
+        @Size(max = 100)
         @Valid
         List<SliderLabelUpdate> labels
     ) implements FormQuestionUpdate {

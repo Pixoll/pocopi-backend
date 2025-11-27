@@ -62,7 +62,7 @@ public class FormOptionService {
 
         boolean modified = false;
 
-        byte order = 0;
+        short order = 0;
 
         for (final FormOptionUpdate optionUpdate : optionsUpdates) {
             final MultipartFile optionImageFile = imageFiles.get(imageIndex.getAndIncrement());

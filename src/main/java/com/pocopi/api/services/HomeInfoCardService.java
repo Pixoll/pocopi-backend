@@ -107,7 +107,7 @@ public class HomeInfoCardService {
         }
 
         int imageIndex = 0;
-        byte order = 0;
+        short order = 0;
 
         for (final InformationCardUpdate cardUpdate : informationCardsUpdates) {
             final MultipartFile cardImageFile = imageFiles.get(imageIndex++);

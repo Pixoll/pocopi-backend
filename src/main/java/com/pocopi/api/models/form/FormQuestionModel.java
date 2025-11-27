@@ -37,7 +37,7 @@ public class FormQuestionModel {
     private FormModel form;
 
     @Column(name = "`order`", nullable = false, columnDefinition = "int1 unsigned")
-    private byte order;
+    private short order;
 
     @Size(min = CATEGORY_MIN_LEN, max = CATEGORY_MAX_LEN)
     @NotNull

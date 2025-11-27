@@ -27,7 +27,7 @@ class FormQuestionOptionModelTest {
                 .alt("Option")
                 .build();
 
-        byte order = 2;
+        short order = 2;
         String text = "Option Text";
 
         FormQuestionOptionModel option = FormQuestionOptionModel.builder()

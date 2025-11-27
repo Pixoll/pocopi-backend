@@ -16,7 +16,7 @@ class HomeFaqModelTest {
                 .informedConsent("Consent")
                 .build();
 
-        byte order = 1;
+        short order = 1;
         String question = "What is this app?";
         String answer = "This app is a demo.";
 

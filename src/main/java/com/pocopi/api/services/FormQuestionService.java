@@ -83,7 +83,7 @@ public class FormQuestionService {
 
         boolean modified = false;
 
-        byte order = 0;
+        short order = 0;
 
         for (final FormQuestionUpdate formQuestionUpdate : formQuestionsUpdates) {
             final MultipartFile questionImageFile = imageFiles.get(imageIndex.getAndIncrement());

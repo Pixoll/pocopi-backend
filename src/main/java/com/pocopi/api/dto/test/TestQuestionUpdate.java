@@ -19,6 +19,7 @@ public record TestQuestionUpdate(
     boolean randomizeOptions,
 
     @NotNull
+    @Size(max = 100)
     @Valid
     List<TestOptionUpdate> options
 ) {

@@ -32,9 +32,11 @@ public record ConfigUpdate(
     @Size(min = ConfigModel.INFORMED_CONSENT_MIN_LEN, max = ConfigModel.INFORMED_CONSENT_MAX_LEN)
     String informedConsent,
 
+    @Size(max = 100)
     @Valid
     List<InformationCardUpdate> informationCards,
 
+    @Size(max = 100)
     @Valid
     List<FrequentlyAskedQuestionUpdate> faq,
 

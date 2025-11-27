@@ -22,7 +22,7 @@ class HomeInfoCardModelTest {
                 .alt("Info Icon")
                 .build();
 
-        byte order = 3;
+        short order = 3;
         String title = "Card Title";
         String description = "Short description.";
         Integer color = 0x123456;

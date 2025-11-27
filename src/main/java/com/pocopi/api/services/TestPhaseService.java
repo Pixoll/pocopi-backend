@@ -59,7 +59,7 @@ public class TestPhaseService {
 
         boolean modified = false;
 
-        byte order = 0;
+        short order = 0;
 
         for (final TestPhaseUpdate phaseUpdate : phasesUpdates) {
             final boolean isNew = phaseUpdate.id() == null

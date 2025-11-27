@@ -71,7 +71,7 @@ public class TestQuestionService {
 
         boolean modified = false;
 
-        byte order = 0;
+        short order = 0;
 
         for (final TestQuestionUpdate questionUpdate : questionsUpdates) {
             final MultipartFile questionImageFile = imageFiles.get(imageIndex.getAndIncrement());

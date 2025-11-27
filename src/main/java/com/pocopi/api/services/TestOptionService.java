@@ -59,7 +59,7 @@ public class TestOptionService {
 
         boolean modified = false;
 
-        byte order = 0;
+        short order = 0;
 
         for (final TestOptionUpdate optionUpdate : optionsUpdates) {
             final MultipartFile optionImageFile = imageFiles.get(imageIndex.getAndIncrement());
