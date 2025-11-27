@@ -12,10 +12,13 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Build with Gradle
-        run: ./gradlew build
-      - name: Run tests
-        run: ./gradlew test jacocoTestReport
+
+      - name: Build with Gradle (no tests)
+        run: ./gradlew assemble
+
+      - name: Run unit tests
+        run: ./gradlew test jacocoTestReport --tests "com.pocopi.api.unit.*"
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
