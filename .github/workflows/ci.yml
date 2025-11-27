@@ -11,6 +11,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Build (assemble)
         run: ./gradlew assemble
 
@@ -23,6 +25,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Run unit tests (com.pocopi.api.unit)
         run: ./gradlew test --tests "com.pocopi.api.unit.*"
 
@@ -50,8 +54,23 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+
+      - name: Configure MySQL for Flyway functions
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ job.services.db-test.env.MYSQL_ROOT_PASSWORD }}
+        run: |
+          mysql -h 127.0.0.1 -P 33062 -uroot -p"$MYSQL_ROOT_PASSWORD" \
+            -e "SET GLOBAL log_bin_trust_function_creators = 1;"
+
       - name: Run integration tests (com.pocopi.api.integration)
-        run: ./gradlew test --tests "com.pocopi.api.integration.*"
+        run: ./gradlew test --tests "com.pocopi.api.integration.*" -Dspring.profiles.active=integration-ci
+
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4

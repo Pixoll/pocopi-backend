@@ -2,6 +2,10 @@ services:
   db-test:
     image: mysql:9.4.0
     env_file: .env.test
+    command: [
+      "mysqld",
+      "--log-bin-trust-function-creators=1"
+    ]
     ports:
       - "33062:3306"
     healthcheck:
