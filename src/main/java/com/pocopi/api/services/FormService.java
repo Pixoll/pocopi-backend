@@ -252,9 +252,9 @@ public class FormService {
         FormUpdate formUpdate,
         List<MultipartFile> imageFiles
     ) {
-        final Optional<FormModel> optionalForm = formRepository.findByTypeAndConfigVersion(type, config.getVersion());
+        final FormModel form = formRepository.findByTypeAndConfigVersion(type, config.getVersion()).orElse(null);
 
-        if (optionalForm.isEmpty()) {
+        if (form == null) {
             if (formUpdate == null) {
                 return false;
             }
@@ -285,8 +285,11 @@ public class FormService {
             return true;
         }
 
+        if (formUpdate == null && userFormSubmissionRepository.existsByFormId(form.getId())) {
+            throw HttpException.conflict("Form of type " + type + " has user data related to it and cannot be deleted");
+        }
+
         final AtomicBoolean modified = new AtomicBoolean(false);
-        final FormModel form = optionalForm.get();
         final FormModel savedForm;
 
         if (formUpdate != null && !Objects.equals(form.getTitle(), formUpdate.title())) {
@@ -363,6 +366,12 @@ public class FormService {
                 return;
             }
 
+            if (userFormAnswerRepository.existsByOptionId(optionId)) {
+                throw HttpException.conflict(
+                    "Form option with id " + optionId + " has user data related to it and cannot be deleted"
+                );
+            }
+
             final FormQuestionOptionModel option = storedOptionsMap.get(optionId);
             final ImageModel image = option.getImage();
 
@@ -378,6 +387,13 @@ public class FormService {
         processedQuestions.forEach((questionId, processed) -> {
             if (processed) {
                 return;
+            }
+
+            if (userFormAnswerRepository.existsByQuestionId(questionId)) {
+                throw HttpException.conflict(
+                    "Form question with id " + questionId + " in form of type " + type
+                        + " has user data related to it and cannot be deleted"
+                );
             }
 
             final FormQuestionModel question = storedQuestions.get(questionId);

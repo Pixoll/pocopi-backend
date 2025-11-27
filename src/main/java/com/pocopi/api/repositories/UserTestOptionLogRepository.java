@@ -1,5 +1,6 @@
 package com.pocopi.api.repositories;
 
+import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.UserTestOptionLogModel;
 import com.pocopi.api.repositories.projections.LastSelectedOptionProjection;
 import com.pocopi.api.repositories.projections.LastSelectedOptionWithAttemptProjection;
@@ -95,4 +96,10 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
             """
     )
     List<OptionEventProjection> findAllOptionEventsByUserId(int configVersion, int userId);
+
+    boolean existsByOptionId(int optionId);
+
+    int option(TestOptionModel option);
+
+    boolean existsByOptionQuestionPhaseId(int optionQuestionPhaseId);
 }

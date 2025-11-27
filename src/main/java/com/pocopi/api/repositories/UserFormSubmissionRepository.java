@@ -13,4 +13,6 @@ public interface UserFormSubmissionRepository extends JpaRepository<UserFormSubm
     default boolean hasAnsweredForm(long attemptId, int formId) {
         return findByAttemptIdAndFormId(attemptId, formId).isPresent();
     }
+
+    boolean existsByFormId(int formId);
 }

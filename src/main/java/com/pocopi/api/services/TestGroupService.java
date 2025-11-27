@@ -2,6 +2,7 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.config.Image;
 import com.pocopi.api.dto.test.*;
+import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.config.ImageModel;
 import com.pocopi.api.models.test.TestGroupModel;
@@ -27,6 +28,9 @@ public class TestGroupService {
     private final TestQuestionRepository testQuestionRepository;
     private final TestOptionRepository testOptionRepository;
     private final ImageService imageService;
+    private final UserTestOptionLogRepository userTestOptionLogRepository;
+    private final UserTestQuestionLogRepository userTestQuestionLogRepository;
+    private final UserTestAttemptRepository userTestAttemptRepository;
 
     public TestGroupService(
         TestGroupRepository testGroupRepository,
@@ -35,7 +39,10 @@ public class TestGroupService {
         TestPhaseRepository testPhaseRepository,
         TestQuestionRepository testQuestionRepository,
         TestOptionRepository testOptionRepository,
-        ImageService imageService
+        ImageService imageService,
+        UserTestOptionLogRepository userTestOptionLogRepository,
+        UserTestQuestionLogRepository userTestQuestionLogRepository,
+        UserTestAttemptRepository userTestAttemptRepository
     ) {
         this.testGroupRepository = testGroupRepository;
         this.configRepository = configRepository;
@@ -44,6 +51,9 @@ public class TestGroupService {
         this.testQuestionRepository = testQuestionRepository;
         this.testOptionRepository = testOptionRepository;
         this.imageService = imageService;
+        this.userTestOptionLogRepository = userTestOptionLogRepository;
+        this.userTestQuestionLogRepository = userTestQuestionLogRepository;
+        this.userTestAttemptRepository = userTestAttemptRepository;
     }
 
     public TestGroupModel sampleGroup() {
@@ -425,6 +435,12 @@ public class TestGroupService {
                 return;
             }
 
+            if (userTestOptionLogRepository.existsByOptionId(optionId)) {
+                throw HttpException.conflict(
+                    "Test option with id " + optionId + " has user data related to it and cannot be deleted"
+                );
+            }
+
             final TestOptionModel option = storedOptionsMap.get(optionId);
             final ImageModel image = option.getImage();
 
@@ -440,6 +456,12 @@ public class TestGroupService {
         processedQuestions.forEach((questionId, processed) -> {
             if (processed) {
                 return;
+            }
+
+            if (userTestQuestionLogRepository.existsByQuestionId(questionId)) {
+                throw HttpException.conflict(
+                    "Test question with id " + questionId + " has user data related to it and cannot be deleted"
+                );
             }
 
             final TestQuestionModel question = storedQuestionsMap.get(questionId);
@@ -459,6 +481,15 @@ public class TestGroupService {
                 return;
             }
 
+            if (
+                userTestOptionLogRepository.existsByOptionQuestionPhaseId(phaseId)
+                || userTestQuestionLogRepository.existsByQuestionPhaseId(phaseId)
+            ) {
+                throw HttpException.conflict(
+                    "Test phase with id " + phaseId + " has user data related to it and cannot be deleted"
+                );
+            }
+
             final TestPhaseModel phase = storedPhasesMap.get(phaseId);
 
             testPhaseRepository.delete(phase);
@@ -468,6 +499,12 @@ public class TestGroupService {
         processedGroups.forEach((groupId, processed) -> {
             if (processed) {
                 return;
+            }
+
+            if (userTestAttemptRepository.existsByGroupId(groupId)) {
+                throw HttpException.conflict(
+                    "Test group with id " + groupId + " has user data related to it and cannot be deleted"
+                );
             }
 
             final TestGroupModel group = storedGroupsMap.get(groupId);

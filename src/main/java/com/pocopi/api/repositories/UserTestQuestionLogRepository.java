@@ -173,4 +173,8 @@ public interface UserTestQuestionLogRepository extends JpaRepository<UserTestQue
             """
     )
     List<QuestionEventProjection> findAllQuestionEventsByUserId(int configVersion, int userId);
+
+    boolean existsByQuestionId(int questionId);
+
+    boolean existsByQuestionPhaseId(int questionPhaseId);
 }

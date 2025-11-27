@@ -91,4 +91,6 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
     default boolean hasUnfinishedAttempt(int configVersion, int userId) {
         return findUnfinishedAttempt(configVersion, userId).isPresent();
     }
+
+    boolean existsByGroupId(int groupId);
 }
