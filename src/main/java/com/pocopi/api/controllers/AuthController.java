@@ -1,7 +1,9 @@
 package com.pocopi.api.controllers;
 
+import com.pocopi.api.config.auth.AuthUser;
 import com.pocopi.api.config.auth.JwtUtil;
 import com.pocopi.api.dto.auth.Credentials;
+import com.pocopi.api.dto.auth.CredentialsUpdate;
 import com.pocopi.api.dto.user.NewUser;
 import com.pocopi.api.dto.auth.Token;
 import com.pocopi.api.services.UserService;
@@ -12,11 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,5 +48,14 @@ public class AuthController {
         userService.createUser(user);
 
         return login(new Credentials(user.username(), user.password()));
+    }
+
+    @PatchMapping("/credentials")
+    public ResponseEntity<Void> updateCredentials(
+        @RequestBody @Valid CredentialsUpdate credentialsUpdate,
+        @AuthenticationPrincipal AuthUser authUser
+    ) {
+        userService.updateCredentials(authUser.user(), credentialsUpdate);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,6 +1,7 @@
 package com.pocopi.api.services;
 
 import com.pocopi.api.dto.api.FieldError;
+import com.pocopi.api.dto.auth.CredentialsUpdate;
 import com.pocopi.api.dto.user.Admin;
 import com.pocopi.api.dto.user.NewAdmin;
 import com.pocopi.api.dto.user.NewUser;
@@ -137,6 +138,34 @@ public class UserService {
             .build();
 
         userRepository.save(newAdmin);
+    }
+
+    @Transactional
+    public void updateCredentials(UserModel user, CredentialsUpdate credentialsUpdate) {
+        if (!credentialsUpdate.newPassword().equals(credentialsUpdate.confirmNewPassword())) {
+            throw new MultiFieldException(
+                "Invalid credentials update",
+                List.of(new FieldError("confirmNewPassword", "Passwords do not match"))
+            );
+        }
+
+        final String originalEncodedPassword = passwordEncoder.encode(credentialsUpdate.oldPassword());
+
+        if (
+            !credentialsUpdate.oldUsername().equals(user.getUsername())
+                || !originalEncodedPassword.equals(user.getPassword())
+        ) {
+            throw HttpException.unauthorized("Bad credentials");
+        }
+
+        if (userRepository.existsByUsername(credentialsUpdate.newUsername())) {
+            throw HttpException.conflict("User with username " + credentialsUpdate.newUsername() + " already exists");
+        }
+
+        user.setUsername(credentialsUpdate.newUsername());
+        user.setPassword(passwordEncoder.encode(credentialsUpdate.newPassword()));
+
+        userRepository.save(user);
     }
 
     private void validateNewUser(
