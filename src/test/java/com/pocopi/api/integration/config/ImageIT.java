@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("integration")
-class ImageRepositoryIT {
+class ImageIT {
 
-    private static final Logger log = LoggerFactory.getLogger(ImageRepositoryIT.class);
+    private static final Logger log = LoggerFactory.getLogger(ImageIT.class);
 
     @Autowired
     private ImageRepository imageRepository;
