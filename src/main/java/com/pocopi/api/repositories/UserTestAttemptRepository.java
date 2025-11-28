@@ -40,17 +40,17 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
     @NativeQuery(
         """
             select ta.id,
-                   g.label as `group`,
+                   g.config_version as config_version,
+                   g.label          as `group`,
                    cast(unix_timestamp(ta.start) * 1000 as unsigned) as start,
                    cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
                 from user_test_attempt    ta
                     inner join test_group g on g.id = ta.group_id
-                where g.config_version = :configVersion
                   and ta.end is not null
                 order by ta.start
             """
     )
-    List<UserTestAttemptWithGroupProjection> findFinishedAttemptsByConfigVersion(int configVersion);
+    List<UserTestAttemptWithGroupProjection> findFinishedAttempts();
 
     @NativeQuery(
         """

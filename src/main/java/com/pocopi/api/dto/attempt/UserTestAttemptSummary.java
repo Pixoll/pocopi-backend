@@ -19,6 +19,9 @@ public record UserTestAttemptSummary(
     Integer age,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int configVersion,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String group,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

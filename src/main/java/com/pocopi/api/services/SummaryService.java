@@ -39,10 +39,7 @@ public class SummaryService {
 
     @Transactional
     public UsersTestAttemptsSummary getAllUsersTestAttemptsSummary() {
-        final int configVersion = configRepository.getLastConfig().getVersion();
-
-        final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository
-            .findFinishedAttemptsByConfigVersion(configVersion);
+        final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository.findFinishedAttempts();
 
         final ArrayList<Long> testAttemptIds = new ArrayList<>();
         final HashMap<Long, UserTestAttemptWithGroupProjection> testAttemptsById = new HashMap<>();
@@ -146,6 +143,7 @@ public class SummaryService {
             user.getName(),
             user.getEmail(),
             user.getAge() != null ? user.getAge().intValue() : null,
+            attempt.getGroup().getConfig().getVersion(),
             attempt.getGroup().getLabel(),
             start,
             Math.toIntExact(end - start),
@@ -193,6 +191,7 @@ public class SummaryService {
                 user.getName(),
                 user.getEmail(),
                 user.getAge() != null ? user.getAge().intValue() : null,
+                attempt.getConfigVersion(),
                 attempt.getGroup(),
                 start,
                 Math.toIntExact(end - start),
