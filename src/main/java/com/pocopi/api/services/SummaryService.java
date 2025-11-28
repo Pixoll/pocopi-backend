@@ -94,9 +94,14 @@ public class SummaryService {
             testSummaries.add(testAttemptSummary);
         }
 
+        final double averageAccuracy = totalQuestionsAnswered > 0
+            ? (double) totalCorrect / totalQuestionsAnswered
+            : 0.0;
+        final double averageTimeTaken = totalQuestionsAnswered > 0 ? (double) totalTime / totalQuestionsAnswered : 0.0;
+
         return new UsersTestAttemptsSummary(
-            (double) totalCorrect / totalQuestionsAnswered,
-            (double) totalTime / totalQuestionsAnswered,
+            averageAccuracy,
+            averageTimeTaken,
             totalQuestionsAnswered,
             testSummaries
         );
