@@ -2,6 +2,7 @@ package com.pocopi.api.services;
 
 import com.pocopi.api.dto.attempt.UserTestAttemptSummary;
 import com.pocopi.api.dto.attempt.UsersTestAttemptsSummary;
+import com.pocopi.api.dto.user.User;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.test.UserTestAttemptModel;
 import com.pocopi.api.models.user.UserModel;
@@ -102,8 +103,10 @@ public class SummaryService {
     }
 
     @Transactional
-    public UserTestAttemptSummary getUserTestAttemptSummary(int userId) {
-        final UserModel user = userRepository.getUserByUserId(userId);
+    public UserTestAttemptSummary getUserLatestTestAttemptSummary(int userId) {
+        final UserModel user = userRepository.findById(userId)
+            .orElseThrow(() -> HttpException.notFound("User " + userId + " not found"));
+
         final int configVersion = configRepository.getLastConfig().getVersion();
 
         final UserTestAttemptModel attempt = userTestAttemptRepository
@@ -137,12 +140,17 @@ public class SummaryService {
 
         final double percentage = questionsAnswered > 0 ? ((double) correctQuestions / questionsAnswered) * 100 : 0.0;
 
-        return new UserTestAttemptSummary(
+        final User userInfo = new User(
             user.getId(),
             user.getUsername(),
+            user.isAnonymous(),
             user.getName(),
             user.getEmail(),
-            user.getAge() != null ? user.getAge().intValue() : null,
+            user.getAge() != null ? user.getAge().intValue() : null
+        );
+
+        return new UserTestAttemptSummary(
+            userInfo,
             attempt.getGroup().getConfig().getVersion(),
             attempt.getGroup().getLabel(),
             start,
@@ -179,6 +187,15 @@ public class SummaryService {
         }
 
         public UserTestAttemptSummary toUserTestAttemptSummary() {
+            final User userInfo = new User(
+                user.getId(),
+                user.getUsername(),
+                user.isAnonymous(),
+                user.getName(),
+                user.getEmail(),
+                user.getAge() != null ? user.getAge().intValue() : null
+            );
+
             final long start = attempt.getStart();
             final long end = attempt.getEnd();
             final double percentage = questionsAnswered > 0
@@ -186,11 +203,7 @@ public class SummaryService {
                 : 0.0;
 
             return new UserTestAttemptSummary(
-                user.getId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail(),
-                user.getAge() != null ? user.getAge().intValue() : null,
+                userInfo,
                 attempt.getConfigVersion(),
                 attempt.getGroup(),
                 start,

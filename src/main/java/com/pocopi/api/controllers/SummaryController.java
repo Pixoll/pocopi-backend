@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,17 +30,10 @@ public class SummaryController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserTestAttemptSummary> getCurrentUserTestAttemptSummary(
+    public ResponseEntity<UserTestAttemptSummary> getCurrentUserLatestTestAttemptSummary(
         @AuthenticationPrincipal AuthUser authUser
     ) {
-        final UserTestAttemptSummary summary = summaryService.getUserTestAttemptSummary(authUser.getId());
-        return ResponseEntity.ok(summary);
-    }
-
-    @GetMapping("/{userId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<UserTestAttemptSummary> getUserTestAttemptSummaryById(@PathVariable int userId) {
-        final UserTestAttemptSummary summary = summaryService.getUserTestAttemptSummary(userId);
+        final UserTestAttemptSummary summary = summaryService.getUserLatestTestAttemptSummary(authUser.getId());
         return ResponseEntity.ok(summary);
     }
 }

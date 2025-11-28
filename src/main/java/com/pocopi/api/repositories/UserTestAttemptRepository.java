@@ -54,6 +54,22 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
 
     @NativeQuery(
         """
+            select ta.id,
+                   g.config_version as config_version,
+                   g.label          as `group`,
+                   cast(unix_timestamp(ta.start) * 1000 as unsigned) as start,
+                   cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
+                from user_test_attempt    ta
+                    inner join test_group g on g.id = ta.group_id
+                  and ta.end is not null
+                where ta.user_id = :userId
+                order by ta.start
+            """
+    )
+    List<UserTestAttemptWithGroupProjection> findFinishedAttemptsByUserId(int userId);
+
+    @NativeQuery(
+        """
             select coalesce(max(if(f.type = 'pre', 1, 0)) = 1, false)  as completed_pre_test_form,
                   coalesce(max(if(f.type = 'post', 1, 0)) = 1, false) as completed_post_test_form
                from user_test_attempt              ta

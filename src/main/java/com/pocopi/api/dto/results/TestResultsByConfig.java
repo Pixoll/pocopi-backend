@@ -1,15 +1,14 @@
 package com.pocopi.api.dto.results;
 
-import com.pocopi.api.dto.user.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record FormAnswersByUser(
+public record TestResultsByConfig(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    User user,
+    int configVersion,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<FormAnswersByConfig> answers
+    List<TestResult> attemptsResults
 ) {
 }

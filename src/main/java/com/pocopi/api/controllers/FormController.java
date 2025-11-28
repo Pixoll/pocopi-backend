@@ -3,7 +3,7 @@ package com.pocopi.api.controllers;
 import com.pocopi.api.config.auth.AuthUser;
 import com.pocopi.api.dto.form.NewFormAnswers;
 import com.pocopi.api.models.form.FormType;
-import com.pocopi.api.services.FormService;
+import com.pocopi.api.services.FormAnswerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/forms")
 @Tag(name = "Forms")
 public class FormController {
-    private final FormService formService;
+    private final FormAnswerService formAnswerService;
 
-    public FormController(FormService formService) {
-        this.formService = formService;
+    public FormController(FormAnswerService formAnswerService) {
+        this.formAnswerService = formAnswerService;
     }
 
     @PostMapping("/{formType}/answers")
@@ -27,7 +27,7 @@ public class FormController {
         @RequestBody @Valid NewFormAnswers formAnswers,
         @AuthenticationPrincipal AuthUser authUser
     ) {
-        formService.saveUserFormAnswers(authUser.getId(), formType, formAnswers);
+        formAnswerService.saveUserFormAnswers(authUser.getId(), formType, formAnswers);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

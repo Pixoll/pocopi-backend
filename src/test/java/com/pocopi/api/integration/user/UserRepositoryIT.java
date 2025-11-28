@@ -88,9 +88,10 @@ class UserRepositoryIT {
         assertTrue(found2.isPresent());
         assertEquals("integration2@example.com", found2.get().getEmail());
 
-        UserModel foundById = userRepository.getUserByUserId(saved1.getId());
-        assertEquals("integration_user_1", foundById.getUsername());
-        assertEquals("integration1@example.com", foundById.getEmail());
+        Optional<UserModel> foundById = userRepository.findById(saved1.getId());
+        assertTrue(foundById.isPresent());
+        assertEquals("integration_user_1", foundById.get().getUsername());
+        assertEquals("integration1@example.com", foundById.get().getEmail());
 
         List<UserModel> usersRoleUser = userRepository.findAllByRole(Role.USER);
         List<UserModel> usersRoleAdmin = userRepository.findAllByRole(Role.ADMIN);

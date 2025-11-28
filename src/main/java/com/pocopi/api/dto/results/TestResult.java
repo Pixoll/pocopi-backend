@@ -1,27 +1,33 @@
 package com.pocopi.api.dto.results;
 
-import com.pocopi.api.dto.event.QuestionTimestamp;
+import com.pocopi.api.dto.event.QuestionEventLog;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record TestQuestionResult(
+public record TestResult(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int questionId,
+    long attemptId,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<QuestionTimestamp> timestamps,
+    String group,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    boolean correct,
+    long timestamp,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    boolean skipped,
+    int timeTaken,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int totalOptionChanges,
+    int correctQuestions,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int totalOptionHovers
+    int questionsAnswered,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    double accuracy,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    List<QuestionEventLog> questionEvents
 ) {
 }
