@@ -51,6 +51,27 @@ public class ResultsService {
     }
 
     @Transactional
+    public List<ResultsByUser> getAllResults() {
+        return userRepository.findAll().stream()
+            .map(user -> getUserResults(user.getId()))
+            .toList();
+    }
+
+    @Transactional
+    public List<FormAnswersByUser> getAllFormResults() {
+        return userRepository.findAll().stream()
+            .map(user -> getUserFormResults(user.getId()))
+            .toList();
+    }
+
+    @Transactional
+    public List<TestResultsByUser> getAllTestResults() {
+        return userRepository.findAll().stream()
+            .map(user -> getUserTestResults(user.getId()))
+            .toList();
+    }
+
+    @Transactional
     public ResultsByUser getUserResults(int userId) {
         final UserModel user = userRepository.findById(userId)
             .orElseThrow(() -> HttpException.notFound("User " + userId + " not found"));

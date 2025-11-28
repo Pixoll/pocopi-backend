@@ -1,4 +1,5 @@
 [versions]
+apacheCompressVersion = "1.28.0"
 asciidoctorVersion = "3.3.2"
 dotenvVersion = "3.2.0"
 jjwtVersion = "0.13.0"
@@ -11,6 +12,7 @@ jsonSchemaValidatorVersion = "2.0.0"
 tikaCoreVersion = "2.9.1"
 
 [libraries]
+apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apacheCompressVersion" }
 dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenvVersion" }
 flyway-core = { group = "org.flywaydb", name = "flyway-core" }
 flyway-mysql = { group = "org.flywaydb", name = "flyway-mysql" }

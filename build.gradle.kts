@@ -61,6 +61,7 @@ dependencies {
 
     annotationProcessor(libs.lombok)
 
+    implementation(libs.apache.commons.compress)
     implementation(libs.dotenv)
     implementation(libs.json.schema.validator)
     implementation(libs.openApi)
