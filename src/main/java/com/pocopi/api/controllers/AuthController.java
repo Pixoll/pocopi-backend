@@ -15,7 +15,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,8 +36,8 @@ public class AuthController {
         final Authentication authentication = authenticationManager
             .authenticate(new UsernamePasswordAuthenticationToken(credentials.username(), credentials.password()));
 
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        final String token = jwtUtils.generateToken(userDetails.getUsername());
+        final AuthUser userDetails = (AuthUser) authentication.getPrincipal();
+        final String token = jwtUtils.generateToken(userDetails.getId());
 
         return new ResponseEntity<>(new Token(token), HttpStatus.CREATED);
     }

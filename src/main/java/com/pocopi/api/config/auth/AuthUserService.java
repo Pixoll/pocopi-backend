@@ -16,9 +16,16 @@ public class AuthUserService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        final UserModel user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Bad credentials"));
+    public UserDetails loadUserByUsername(String usernameOrId) throws UsernameNotFoundException {
+        UserModel user;
+
+        try {
+            user = userRepository.findById(Integer.parseInt(usernameOrId))
+                .orElseThrow(() -> new UsernameNotFoundException("Bad credentials"));
+        } catch (NumberFormatException ignored) {
+            user = userRepository.findByUsername(usernameOrId)
+                .orElseThrow(() -> new UsernameNotFoundException("Bad credentials"));
+        }
 
         return new AuthUser(user);
     }
