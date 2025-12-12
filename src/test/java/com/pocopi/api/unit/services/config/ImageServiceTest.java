@@ -1,4 +1,4 @@
-package com.pocopi.api.unit.services;
+package com.pocopi.api.unit.services.config;
 
 import com.pocopi.api.config.ImageConfig;
 import com.pocopi.api.dto.config.Image;
