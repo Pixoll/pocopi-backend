@@ -21,6 +21,12 @@ public class TestController {
         this.userTestAttemptService = userTestAttemptService;
     }
 
+    @PostMapping("/check-active")
+    public ResponseEntity<Void> hasActiveTest(@AuthenticationPrincipal AuthUser authUser) {
+        userTestAttemptService.assertActiveAttempt(authUser.user());
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/begin")
     public ResponseEntity<UserTestAttempt> beginTest(@AuthenticationPrincipal AuthUser authUser) {
         final UserTestAttempt attempt = userTestAttemptService.beginAttempt(authUser.user());

@@ -33,6 +33,15 @@ public class UserTestAttemptService {
     }
 
     @Transactional
+    public void assertActiveAttempt(UserModel user) {
+        final int configVersion = configRepository.getLastConfig().getVersion();
+
+        if (!userTestAttemptRepository.hasUnfinishedAttempt(configVersion, user.getId())) {
+            throw HttpException.notFound("User has not started an attempt");
+        }
+    }
+
+    @Transactional
     public UserTestAttempt beginAttempt(UserModel user) {
         final int configVersion = configRepository.getLastConfig().getVersion();
 
