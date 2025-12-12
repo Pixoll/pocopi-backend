@@ -140,15 +140,15 @@ public class ResultsService {
         final UserModel user = userRepository.findById(userId)
             .orElseThrow(() -> HttpException.notFound("User " + userId + " not found"));
 
-        final List<UserTestAttemptWithGroupProjection> testAttempts
-            = userTestAttemptRepository.findFinishedAttemptsByUserId(userId);
+        final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository
+            .findFinishedAttemptsByUserId(userId);
 
         final List<Long> attemptIds = testAttempts.stream().map(UserTestAttemptWithGroupProjection::getId).toList();
 
-        final List<QuestionEventProjection> questionEvents
-            = userTestQuestionLogRepository.findAllQuestionEventsByAttemptIds(attemptIds);
-        final List<OptionEventProjection> optionEvents = userTestOptionLogRepository.findAllOptionEventsByAttemptIds(
-            attemptIds);
+        final List<QuestionEventProjection> questionEvents = userTestQuestionLogRepository
+            .findAllQuestionEventsByAttemptIds(attemptIds);
+        final List<OptionEventProjection> optionEvents = userTestOptionLogRepository
+            .findAllOptionEventsByAttemptIds(attemptIds);
 
         // configVersion -> attemptId
         final HashMap<Integer, HashMap<Long, TempTestResult>> groupedTempTestResults = new HashMap<>();
@@ -156,15 +156,15 @@ public class ResultsService {
         for (final UserTestAttemptWithGroupProjection testAttempt : testAttempts) {
             groupedTempTestResults.putIfAbsent(testAttempt.getConfigVersion(), new HashMap<>());
 
-            final HashMap<Long, TempTestResult> tempTestResultsByAttemptId
-                = groupedTempTestResults.get(testAttempt.getConfigVersion());
+            final HashMap<Long, TempTestResult> tempTestResultsByAttemptId = groupedTempTestResults
+                .get(testAttempt.getConfigVersion());
 
             tempTestResultsByAttemptId.put(testAttempt.getId(), new TempTestResult(testAttempt));
         }
 
         for (final QuestionEventProjection questionEvent : questionEvents) {
-            final HashMap<Long, TempTestResult> tempTestResultsByAttemptId
-                = groupedTempTestResults.get(questionEvent.getConfigVersion());
+            final HashMap<Long, TempTestResult> tempTestResultsByAttemptId = groupedTempTestResults
+                .get(questionEvent.getConfigVersion());
 
             final TempTestResult tempTestResult = tempTestResultsByAttemptId.get(questionEvent.getAttemptId());
 
@@ -172,8 +172,8 @@ public class ResultsService {
         }
 
         for (final OptionEventProjection optionEvent : optionEvents) {
-            final HashMap<Long, TempTestResult> tempTestResultsByAttemptId
-                = groupedTempTestResults.get(optionEvent.getConfigVersion());
+            final HashMap<Long, TempTestResult> tempTestResultsByAttemptId = groupedTempTestResults
+                .get(optionEvent.getConfigVersion());
 
             final TempTestResult tempTestResult = tempTestResultsByAttemptId.get(optionEvent.getAttemptId());
 
@@ -253,7 +253,7 @@ public class ResultsService {
         }
 
         public void processOptionEvent(OptionEventProjection optionEvent) {
-            if (questionEventLogsMap.containsKey(optionEvent.getQuestionId())) {
+            if (!questionEventLogsMap.containsKey(optionEvent.getQuestionId())) {
                 return;
             }
 
