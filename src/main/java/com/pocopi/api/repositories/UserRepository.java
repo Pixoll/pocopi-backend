@@ -18,13 +18,23 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
     @NativeQuery(
         """
             select u.*
-                from user_test_attempt ta
-                    inner join user    u on u.id = ta.user_id
+                from user                        u
+                    inner join user_test_attempt ta on ta.user_id = u.id
+                where ta.id = :attemptId and ta.end is not null
+            """
+    )
+    Optional<UserModel> findByFinishedAttemptId(long attemptId);
+
+    @NativeQuery(
+        """
+            select u.*
+                from user                        u
+                    inner join user_test_attempt ta on ta.user_id = u.id
                 where ta.id in :attemptIds
                 group by u.id
             """
     )
-    List<UserModel> findAllUsersByAttemptIds(List<Long> attemptIds);
+    List<UserModel> findAllByAttemptIds(List<Long> attemptIds);
 
     List<UserModel> findAllByRole(Role role);
 }

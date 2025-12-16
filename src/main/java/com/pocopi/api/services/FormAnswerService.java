@@ -49,33 +49,13 @@ public class FormAnswerService {
     @Transactional
     public List<FormAnswersByConfig> getUserFormAnswers(int userId) {
         final List<UserFormAnswerProjection> userFormAnswers = userFormAnswerRepository.findAllByUserId(userId);
+        return parseFormAnswerProjections(userFormAnswers);
+    }
 
-        final HashMap<Integer, FormAnswersByConfig> formAnswersByConfig = new HashMap<>();
-
-        for (final UserFormAnswerProjection userFormAnswer : userFormAnswers) {
-            formAnswersByConfig.putIfAbsent(
-                userFormAnswer.getConfigVersion(),
-                new FormAnswersByConfig(userFormAnswer.getConfigVersion(), new ArrayList<>(), new ArrayList<>())
-            );
-
-            final FormAnswersByConfig answersByFormType = formAnswersByConfig
-                .get(userFormAnswer.getConfigVersion());
-
-            final List<FormAnswer> formAnswers = userFormAnswer.getFormType().equals(FormType.PRE.getName())
-                ? answersByFormType.preTestForm()
-                : answersByFormType.postTestForm();
-
-            final FormAnswer formAnswer = new FormAnswer(
-                userFormAnswer.getQuestionId(),
-                userFormAnswer.getOptionId() != null ? userFormAnswer.getOptionId() : null,
-                userFormAnswer.getValue(),
-                userFormAnswer.getAnswer()
-            );
-
-            formAnswers.add(formAnswer);
-        }
-
-        return formAnswersByConfig.values().stream().toList();
+    @Transactional
+    public List<FormAnswersByConfig> getAttemptFormAnswers(long attemptId) {
+        final List<UserFormAnswerProjection> userFormAnswers = userFormAnswerRepository.findAllByAttemptId(attemptId);
+        return parseFormAnswerProjections(userFormAnswers);
     }
 
     @Transactional
@@ -183,6 +163,35 @@ public class FormAnswerService {
         }
 
         userFormAnswerRepository.saveAll(answers);
+    }
+
+    private List<FormAnswersByConfig> parseFormAnswerProjections(List<UserFormAnswerProjection> userFormAnswers) {
+        final HashMap<Integer, FormAnswersByConfig> formAnswersByConfig = new HashMap<>();
+
+        for (final UserFormAnswerProjection userFormAnswer : userFormAnswers) {
+            formAnswersByConfig.putIfAbsent(
+                userFormAnswer.getConfigVersion(),
+                new FormAnswersByConfig(userFormAnswer.getConfigVersion(), new ArrayList<>(), new ArrayList<>())
+            );
+
+            final FormAnswersByConfig answersByFormType = formAnswersByConfig
+                .get(userFormAnswer.getConfigVersion());
+
+            final List<FormAnswer> formAnswers = userFormAnswer.getFormType().equals(FormType.PRE.getName())
+                ? answersByFormType.preTestForm()
+                : answersByFormType.postTestForm();
+
+            final FormAnswer formAnswer = new FormAnswer(
+                userFormAnswer.getQuestionId(),
+                userFormAnswer.getOptionId() != null ? userFormAnswer.getOptionId() : null,
+                userFormAnswer.getValue(),
+                userFormAnswer.getAnswer()
+            );
+
+            formAnswers.add(formAnswer);
+        }
+
+        return formAnswersByConfig.values().stream().toList();
     }
 
     private static void validateFormAnswer(NewFormAnswer answer, FormQuestionModel question) {

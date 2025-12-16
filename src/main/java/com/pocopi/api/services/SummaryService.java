@@ -46,7 +46,7 @@ public class SummaryService {
             .map(UserTestAttemptWithGroupProjection::getId)
             .collect(Collectors.toCollection(ArrayList::new));
 
-        final Map<Integer, UserModel> usersById = userRepository.findAllUsersByAttemptIds(testAttemptIds).stream()
+        final Map<Integer, UserModel> usersById = userRepository.findAllByAttemptIds(testAttemptIds).stream()
             .collect(Collectors.toMap(UserModel::getId, (u) -> u, (a, b) -> b));
 
         final TreeMap<Long, TempTestAttemptSummary> tempSummariesByAttemptId = new TreeMap<>();

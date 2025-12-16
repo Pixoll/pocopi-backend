@@ -101,16 +101,16 @@ public class ResultsController {
         );
     }
 
-    @GetMapping("/users/{userId}")
+    @GetMapping("/attempts/{attemptId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResultsByUser getUserResults(@PathVariable int userId) {
-        return resultsService.getUserResults(userId);
+    public ResultsByUser getAttemptResults(@PathVariable long attemptId) {
+        return resultsService.getAttemptResults(attemptId);
     }
 
-    @GetMapping(path = "/users/{userId}/csv", produces = {GZIP_MIME_TYPE})
+    @GetMapping(path = "/attempts/{attemptId}/csv", produces = {GZIP_MIME_TYPE})
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<byte[]> getUserResultsCsv(@PathVariable int userId) {
-        final ResultsByUser userResults = resultsService.getUserResults(userId);
+    public ResponseEntity<byte[]> getAttemptResultsCsv(@PathVariable long attemptId) {
+        final ResultsByUser userResults = resultsService.getAttemptResults(attemptId);
         final List<ResultCsv> resultsCsv = userResultsMapper.userResultsToCsv(userResults);
 
         return compressResults(
@@ -121,28 +121,28 @@ public class ResultsController {
         );
     }
 
-    @GetMapping("/users/{userId}/forms")
+    @GetMapping("/attempts/{attemptId}/forms")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public FormAnswersByUser getUserFormResults(@PathVariable int userId) {
-        return resultsService.getUserFormResults(userId);
+    public FormAnswersByUser getAttemptFormResults(@PathVariable long attemptId) {
+        return resultsService.getAttemptFormResults(attemptId);
     }
 
-    @GetMapping(path = "/users/{userId}/forms/csv", produces = {CSV_MIME_TYPE})
+    @GetMapping(path = "/attempts/{attemptId}/forms/csv", produces = {CSV_MIME_TYPE})
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String getUserFormResultsCsv(@PathVariable int userId) {
-        return userResultsMapper.userFormResultsToCsv(resultsService.getUserFormResults(userId));
+    public String getAttemptFormResultsCsv(@PathVariable long attemptId) {
+        return userResultsMapper.userFormResultsToCsv(resultsService.getAttemptFormResults(attemptId));
     }
 
-    @GetMapping("/users/{userId}/tests")
+    @GetMapping("/attempts/{attemptId}/tests")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public TestResultsByUser getUserTestResults(@PathVariable int userId) {
-        return resultsService.getUserTestResults(userId);
+    public TestResultsByUser getAttemptTestResults(@PathVariable long attemptId) {
+        return resultsService.getAttemptTestResults(attemptId);
     }
 
-    @GetMapping(path = "/users/{userId}/tests/csv", produces = {CSV_MIME_TYPE})
+    @GetMapping(path = "/attempts/{attemptId}/tests/csv", produces = {CSV_MIME_TYPE})
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String getUserTestResultsCsv(@PathVariable int userId) {
-        return userResultsMapper.userTestResultsToCsv(resultsService.getUserTestResults(userId));
+    public String getAttemptTestResultsCsv(@PathVariable long attemptId) {
+        return userResultsMapper.userTestResultsToCsv(resultsService.getAttemptTestResults(attemptId));
     }
 
     private <T> ResponseEntity<byte[]> compressResults(

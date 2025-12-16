@@ -47,7 +47,7 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
                    cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
                 from user_test_attempt    ta
                     inner join test_group g on g.id = ta.group_id
-                  and ta.end is not null
+                where ta.end is not null
                 order by ta.start
             """
     )
@@ -63,12 +63,29 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
                    cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
                 from user_test_attempt    ta
                     inner join test_group g on g.id = ta.group_id
-                  and ta.end is not null
                 where ta.user_id = :userId
+                  and ta.end is not null
                 order by ta.start
             """
     )
     List<UserTestAttemptWithGroupProjection> findFinishedAttemptsByUserId(int userId);
+
+    @NativeQuery(
+        """
+            select ta.id,
+                   g.config_version as config_version,
+                   g.label          as `group`,
+                   ta.user_id,
+                   cast(unix_timestamp(ta.start) * 1000 as unsigned) as start,
+                   cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
+                from user_test_attempt    ta
+                    inner join test_group g on g.id = ta.group_id
+                where ta.id = :attemptId
+                  and ta.end is not null
+                order by ta.start
+            """
+    )
+    Optional<UserTestAttemptWithGroupProjection> findFinishedAttemptById(long attemptId);
 
     @NativeQuery(
         """

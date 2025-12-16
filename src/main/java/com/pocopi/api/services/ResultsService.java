@@ -87,33 +87,30 @@ public class ResultsService {
 
         final List<FormAnswersByConfig> formAnswers = getUserFormResults(userId).answers();
         final List<TestResultsByConfig> testResults = getUserTestResults(userId).results();
+        final List<ResultsByConfig> results = groupResultsByConfig(formAnswers, testResults);
 
-        final HashMap<Integer, ResultsByConfig> resultsByConfigMap = new HashMap<>();
+        return new ResultsByUser(userInfo, results);
+    }
 
-        for (final FormAnswersByConfig formAnswer : formAnswers) {
-            resultsByConfigMap.putIfAbsent(
-                formAnswer.configVersion(),
-                new ResultsByConfig(formAnswer.configVersion(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
-            );
+    @Transactional
+    public ResultsByUser getAttemptResults(long attemptId) {
+        final UserModel user = userRepository.findByFinishedAttemptId(attemptId)
+            .orElseThrow(() -> HttpException.notFound("Finished attempt " + attemptId + " not found"));
 
-            final ResultsByConfig resultsByConfig = resultsByConfigMap.get(formAnswer.configVersion());
+        final User userInfo = new User(
+            user.getId(),
+            user.getUsername(),
+            user.isAnonymous(),
+            user.getName(),
+            user.getEmail(),
+            user.getAge() != null ? user.getAge().intValue() : null
+        );
 
-            resultsByConfig.preTestForm().addAll(formAnswer.preTestForm());
-            resultsByConfig.postTestForm().addAll(formAnswer.postTestForm());
-        }
+        final List<FormAnswersByConfig> formAnswers = getAttemptFormResults(attemptId).answers();
+        final List<TestResultsByConfig> testResults = getAttemptTestResults(attemptId).results();
+        final List<ResultsByConfig> results = groupResultsByConfig(formAnswers, testResults);
 
-        for (final TestResultsByConfig testResult : testResults) {
-            resultsByConfigMap.putIfAbsent(
-                testResult.configVersion(),
-                new ResultsByConfig(testResult.configVersion(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
-            );
-
-            final ResultsByConfig resultsByConfig = resultsByConfigMap.get(testResult.configVersion());
-
-            resultsByConfig.attemptsResults().addAll(testResult.attemptsResults());
-        }
-
-        return new ResultsByUser(userInfo, resultsByConfigMap.values().stream().toList());
+        return new ResultsByUser(userInfo, results);
     }
 
     @Transactional
@@ -136,6 +133,25 @@ public class ResultsService {
     }
 
     @Transactional
+    public FormAnswersByUser getAttemptFormResults(long attemptId) {
+        final UserModel user = userRepository.findByFinishedAttemptId(attemptId)
+            .orElseThrow(() -> HttpException.notFound("Finished attempt " + attemptId + " not found"));
+
+        final List<FormAnswersByConfig> formAnswers = formAnswerService.getAttemptFormAnswers(attemptId);
+
+        final User userInfo = new User(
+            user.getId(),
+            user.getUsername(),
+            user.isAnonymous(),
+            user.getName(),
+            user.getEmail(),
+            user.getAge() != null ? user.getAge().intValue() : null
+        );
+
+        return new FormAnswersByUser(userInfo, formAnswers);
+    }
+
+    @Transactional
     public TestResultsByUser getUserTestResults(int userId) {
         final UserModel user = userRepository.findById(userId)
             .orElseThrow(() -> HttpException.notFound("User " + userId + " not found"));
@@ -143,6 +159,45 @@ public class ResultsService {
         final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository
             .findFinishedAttemptsByUserId(userId);
 
+        final User userInfo = new User(
+            user.getId(),
+            user.getUsername(),
+            user.isAnonymous(),
+            user.getName(),
+            user.getEmail(),
+            user.getAge() != null ? user.getAge().intValue() : null
+        );
+
+        final List<TestResultsByConfig> results = getTestResultsFromAttempts(testAttempts);
+
+        return new TestResultsByUser(userInfo, results);
+    }
+
+    @Transactional
+    public TestResultsByUser getAttemptTestResults(long attemptId) {
+        final UserModel user = userRepository.findByFinishedAttemptId(attemptId)
+            .orElseThrow(() -> HttpException.notFound("Finished attempt " + attemptId + " not found"));
+
+        final UserTestAttemptWithGroupProjection testAttempt = userTestAttemptRepository
+            .findFinishedAttemptById(attemptId)
+            .orElseThrow(() -> HttpException.notFound("Finished attempt " + attemptId + " not found"));
+
+        final User userInfo = new User(
+            user.getId(),
+            user.getUsername(),
+            user.isAnonymous(),
+            user.getName(),
+            user.getEmail(),
+            user.getAge() != null ? user.getAge().intValue() : null
+        );
+
+        final List<TestResultsByConfig> results = getTestResultsFromAttempts(List.of(testAttempt));
+
+        return new TestResultsByUser(userInfo, results);
+    }
+
+    @Transactional
+    public List<TestResultsByConfig> getTestResultsFromAttempts(List<UserTestAttemptWithGroupProjection> testAttempts) {
         final List<Long> attemptIds = testAttempts.stream().map(UserTestAttemptWithGroupProjection::getId).toList();
 
         final List<QuestionEventProjection> questionEvents = userTestQuestionLogRepository
@@ -180,24 +235,45 @@ public class ResultsService {
             tempTestResult.processOptionEvent(optionEvent);
         }
 
-        final User userInfo = new User(
-            user.getId(),
-            user.getUsername(),
-            user.isAnonymous(),
-            user.getName(),
-            user.getEmail(),
-            user.getAge() != null ? user.getAge().intValue() : null
-        );
-
-        final List<TestResultsByConfig> results = groupedTempTestResults.entrySet()
+        return groupedTempTestResults.entrySet()
             .stream()
             .map(configEntry -> new TestResultsByConfig(
                 configEntry.getKey(),
                 configEntry.getValue().values().stream().map(TempTestResult::toTestResult).toList()
             ))
             .toList();
+    }
 
-        return new TestResultsByUser(userInfo, results);
+    public List<ResultsByConfig> groupResultsByConfig(
+        List<FormAnswersByConfig> formAnswers,
+        List<TestResultsByConfig> testResults
+    ) {
+        final HashMap<Integer, ResultsByConfig> resultsByConfigMap = new HashMap<>();
+
+        for (final FormAnswersByConfig formAnswer : formAnswers) {
+            resultsByConfigMap.putIfAbsent(
+                formAnswer.configVersion(),
+                new ResultsByConfig(formAnswer.configVersion(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
+            );
+
+            final ResultsByConfig resultsByConfig = resultsByConfigMap.get(formAnswer.configVersion());
+
+            resultsByConfig.preTestForm().addAll(formAnswer.preTestForm());
+            resultsByConfig.postTestForm().addAll(formAnswer.postTestForm());
+        }
+
+        for (final TestResultsByConfig testResult : testResults) {
+            resultsByConfigMap.putIfAbsent(
+                testResult.configVersion(),
+                new ResultsByConfig(testResult.configVersion(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
+            );
+
+            final ResultsByConfig resultsByConfig = resultsByConfigMap.get(testResult.configVersion());
+
+            resultsByConfig.attemptsResults().addAll(testResult.attemptsResults());
+        }
+
+        return resultsByConfigMap.values().stream().toList();
     }
 
     private static List<QuestionTimestamp> parseJsonTimestampArray(String json) {
