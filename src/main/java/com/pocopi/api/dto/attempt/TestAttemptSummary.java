@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 public record TestAttemptSummary(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    long id,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     User user,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

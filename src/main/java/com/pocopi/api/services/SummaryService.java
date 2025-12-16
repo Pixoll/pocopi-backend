@@ -144,6 +144,7 @@ public class SummaryService {
         );
 
         return new TestAttemptSummary(
+            attempt.getId(),
             userInfo,
             attempt.getGroup().getConfig().getVersion(),
             attempt.getGroup().getLabel(),
@@ -197,6 +198,7 @@ public class SummaryService {
                 : 0.0;
 
             return new TestAttemptSummary(
+                attempt.getId(),
                 userInfo,
                 attempt.getConfigVersion(),
                 attempt.getGroup(),
