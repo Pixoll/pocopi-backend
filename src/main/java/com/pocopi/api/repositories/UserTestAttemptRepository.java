@@ -42,6 +42,7 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
             select ta.id,
                    g.config_version as config_version,
                    g.label          as `group`,
+                   ta.user_id,
                    cast(unix_timestamp(ta.start) * 1000 as unsigned) as start,
                    cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
                 from user_test_attempt    ta
@@ -57,6 +58,7 @@ public interface UserTestAttemptRepository extends JpaRepository<UserTestAttempt
             select ta.id,
                    g.config_version as config_version,
                    g.label          as `group`,
+                   ta.user_id,
                    cast(unix_timestamp(ta.start) * 1000 as unsigned) as start,
                    cast(unix_timestamp(ta.end) * 1000 as unsigned) as end
                 from user_test_attempt    ta

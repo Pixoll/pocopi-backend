@@ -7,6 +7,8 @@ public interface UserTestAttemptWithGroupProjection {
 
     String getGroup();
 
+    int getUserId();
+
     long getStart();
 
     long getEnd();

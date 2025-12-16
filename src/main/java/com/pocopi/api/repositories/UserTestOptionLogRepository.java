@@ -39,7 +39,6 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
             with
                 question_log as (
                     select ol.attempt_id,
-                           ta.user_id,
                            o.question_id,
                            ol.type,
                            o.correct,
@@ -51,7 +50,6 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
                           and ol.type in ('select', 'deselect')
                     )
             select attempt_id,
-                   user_id,
                    question_id,
                    correct
                 from question_log

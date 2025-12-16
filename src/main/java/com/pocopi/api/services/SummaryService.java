@@ -42,36 +42,25 @@ public class SummaryService {
     public UsersTestAttemptsSummary getAllUsersTestAttemptsSummary() {
         final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository.findFinishedAttempts();
 
-        final ArrayList<Long> testAttemptIds = new ArrayList<>();
-        final HashMap<Long, UserTestAttemptWithGroupProjection> testAttemptsById = new HashMap<>();
-
-        for (final UserTestAttemptWithGroupProjection testAttempt : testAttempts) {
-            testAttemptIds.add(testAttempt.getId());
-            testAttemptsById.put(testAttempt.getId(), testAttempt);
-        }
+        final ArrayList<Long> testAttemptIds = testAttempts.stream()
+            .map(UserTestAttemptWithGroupProjection::getId)
+            .collect(Collectors.toCollection(ArrayList::new));
 
         final Map<Integer, UserModel> usersById = userRepository.findAllUsersByAttemptIds(testAttemptIds).stream()
             .collect(Collectors.toMap(UserModel::getId, (u) -> u, (a, b) -> b));
 
+        final TreeMap<Long, TempUserTestAttemptSummary> tempSummariesByAttemptId = new TreeMap<>();
+
+        for (final UserTestAttemptWithGroupProjection testAttempt : testAttempts) {
+            final UserModel user = usersById.get(testAttempt.getUserId());
+            final TempUserTestAttemptSummary tempSummary = new TempUserTestAttemptSummary(testAttempt, user);
+            tempSummariesByAttemptId.put(testAttempt.getId(), tempSummary);
+        }
+
         final List<LastSelectedOptionWithAttemptProjection> lastSelectedOptions = userTestOptionLogRepository
             .findLastSelectedOptionsByAttemptIds(testAttemptIds);
 
-        final HashMap<Long, TempUserTestAttemptSummary> tempSummariesByAttemptId = new HashMap<>();
-
         for (final LastSelectedOptionWithAttemptProjection lastSelectedOption : lastSelectedOptions) {
-            final UserTestAttemptWithGroupProjection testAttempt = testAttemptsById
-                .get(lastSelectedOption.getAttemptId());
-            final UserModel user = usersById.get(lastSelectedOption.getUserId());
-
-            if (!tempSummariesByAttemptId.containsKey(lastSelectedOption.getAttemptId())) {
-                final TempUserTestAttemptSummary tempSummary = new TempUserTestAttemptSummary(testAttempt, user);
-                tempSummary.processSelectedOption(lastSelectedOption);
-
-                tempSummariesByAttemptId.put(lastSelectedOption.getAttemptId(), tempSummary);
-
-                continue;
-            }
-
             final TempUserTestAttemptSummary tempSummary = tempSummariesByAttemptId
                 .get(lastSelectedOption.getAttemptId());
 
@@ -93,6 +82,8 @@ public class SummaryService {
 
             testSummaries.add(testAttemptSummary);
         }
+
+        testSummaries.sort(Comparator.comparing(UserTestAttemptSummary::timestamp).reversed());
 
         final double averageAccuracy = totalQuestionsAnswered > 0
             ? (double) totalCorrect / totalQuestionsAnswered
