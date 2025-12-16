@@ -1,7 +1,7 @@
 package com.pocopi.api.services;
 
-import com.pocopi.api.dto.attempt.UserTestAttemptSummary;
-import com.pocopi.api.dto.attempt.UsersTestAttemptsSummary;
+import com.pocopi.api.dto.attempt.TestAttemptSummary;
+import com.pocopi.api.dto.attempt.TestAttemptsSummary;
 import com.pocopi.api.dto.user.User;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.test.UserTestAttemptModel;
@@ -39,7 +39,7 @@ public class SummaryService {
     }
 
     @Transactional
-    public UsersTestAttemptsSummary getAllUsersTestAttemptsSummary() {
+    public TestAttemptsSummary getAllTestAttemptsSummary() {
         final List<UserTestAttemptWithGroupProjection> testAttempts = userTestAttemptRepository.findFinishedAttempts();
 
         final ArrayList<Long> testAttemptIds = testAttempts.stream()
@@ -49,11 +49,11 @@ public class SummaryService {
         final Map<Integer, UserModel> usersById = userRepository.findAllUsersByAttemptIds(testAttemptIds).stream()
             .collect(Collectors.toMap(UserModel::getId, (u) -> u, (a, b) -> b));
 
-        final TreeMap<Long, TempUserTestAttemptSummary> tempSummariesByAttemptId = new TreeMap<>();
+        final TreeMap<Long, TempTestAttemptSummary> tempSummariesByAttemptId = new TreeMap<>();
 
         for (final UserTestAttemptWithGroupProjection testAttempt : testAttempts) {
             final UserModel user = usersById.get(testAttempt.getUserId());
-            final TempUserTestAttemptSummary tempSummary = new TempUserTestAttemptSummary(testAttempt, user);
+            final TempTestAttemptSummary tempSummary = new TempTestAttemptSummary(testAttempt, user);
             tempSummariesByAttemptId.put(testAttempt.getId(), tempSummary);
         }
 
@@ -61,20 +61,18 @@ public class SummaryService {
             .findLastSelectedOptionsByAttemptIds(testAttemptIds);
 
         for (final LastSelectedOptionWithAttemptProjection lastSelectedOption : lastSelectedOptions) {
-            final TempUserTestAttemptSummary tempSummary = tempSummariesByAttemptId
-                .get(lastSelectedOption.getAttemptId());
-
+            final TempTestAttemptSummary tempSummary = tempSummariesByAttemptId.get(lastSelectedOption.getAttemptId());
             tempSummary.processSelectedOption(lastSelectedOption);
         }
 
-        final ArrayList<UserTestAttemptSummary> testSummaries = new ArrayList<>();
+        final ArrayList<TestAttemptSummary> testSummaries = new ArrayList<>();
 
         int totalCorrect = 0;
         int totalTime = 0;
         int totalQuestionsAnswered = 0;
 
-        for (final TempUserTestAttemptSummary tempSummary : tempSummariesByAttemptId.values()) {
-            final UserTestAttemptSummary testAttemptSummary = tempSummary.toUserTestAttemptSummary();
+        for (final TempTestAttemptSummary tempSummary : tempSummariesByAttemptId.values()) {
+            final TestAttemptSummary testAttemptSummary = tempSummary.toTestAttemptSummary();
 
             totalCorrect += testAttemptSummary.correctQuestions();
             totalQuestionsAnswered += testAttemptSummary.questionsAnswered();
@@ -83,14 +81,14 @@ public class SummaryService {
             testSummaries.add(testAttemptSummary);
         }
 
-        testSummaries.sort(Comparator.comparing(UserTestAttemptSummary::timestamp).reversed());
+        testSummaries.sort(Comparator.comparing(TestAttemptSummary::timestamp).reversed());
 
         final double averageAccuracy = totalQuestionsAnswered > 0
             ? (double) totalCorrect / totalQuestionsAnswered
             : 0.0;
         final double averageTimeTaken = totalQuestionsAnswered > 0 ? (double) totalTime / totalQuestionsAnswered : 0.0;
 
-        return new UsersTestAttemptsSummary(
+        return new TestAttemptsSummary(
             averageAccuracy,
             averageTimeTaken,
             totalQuestionsAnswered,
@@ -99,7 +97,7 @@ public class SummaryService {
     }
 
     @Transactional
-    public UserTestAttemptSummary getUserLatestTestAttemptSummary(int userId) {
+    public TestAttemptSummary getUserLatestTestAttemptSummary(int userId) {
         final UserModel user = userRepository.findById(userId)
             .orElseThrow(() -> HttpException.notFound("User " + userId + " not found"));
 
@@ -145,7 +143,7 @@ public class SummaryService {
             user.getAge() != null ? user.getAge().intValue() : null
         );
 
-        return new UserTestAttemptSummary(
+        return new TestAttemptSummary(
             userInfo,
             attempt.getGroup().getConfig().getVersion(),
             attempt.getGroup().getLabel(),
@@ -157,7 +155,7 @@ public class SummaryService {
         );
     }
 
-    private static class TempUserTestAttemptSummary {
+    private static class TempTestAttemptSummary {
         private final UserTestAttemptWithGroupProjection attempt;
         private final UserModel user;
         private int correctQuestions = 0;
@@ -165,7 +163,7 @@ public class SummaryService {
 
         private final Set<Integer> countedQuestions = new HashSet<>();
 
-        public TempUserTestAttemptSummary(UserTestAttemptWithGroupProjection attempt, UserModel user) {
+        public TempTestAttemptSummary(UserTestAttemptWithGroupProjection attempt, UserModel user) {
             this.attempt = attempt;
             this.user = user;
         }
@@ -182,7 +180,7 @@ public class SummaryService {
             }
         }
 
-        public UserTestAttemptSummary toUserTestAttemptSummary() {
+        public TestAttemptSummary toTestAttemptSummary() {
             final User userInfo = new User(
                 user.getId(),
                 user.getUsername(),
@@ -198,7 +196,7 @@ public class SummaryService {
                 ? ((double) correctQuestions / questionsAnswered) * 100
                 : 0.0;
 
-            return new UserTestAttemptSummary(
+            return new TestAttemptSummary(
                 userInfo,
                 attempt.getConfigVersion(),
                 attempt.getGroup(),

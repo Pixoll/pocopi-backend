@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record UsersTestAttemptsSummary(
+public record TestAttemptsSummary(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     double averageAccuracy,
 
@@ -15,6 +15,6 @@ public record UsersTestAttemptsSummary(
     int totalQuestionsAnswered,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<UserTestAttemptSummary> users
+    List<TestAttemptSummary> users
 ) {
 }

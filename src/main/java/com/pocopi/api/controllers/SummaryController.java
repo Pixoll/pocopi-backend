@@ -1,8 +1,8 @@
 package com.pocopi.api.controllers;
 
 import com.pocopi.api.config.auth.AuthUser;
-import com.pocopi.api.dto.attempt.UserTestAttemptSummary;
-import com.pocopi.api.dto.attempt.UsersTestAttemptsSummary;
+import com.pocopi.api.dto.attempt.TestAttemptSummary;
+import com.pocopi.api.dto.attempt.TestAttemptsSummary;
 import com.pocopi.api.services.SummaryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +24,16 @@ public class SummaryController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<UsersTestAttemptsSummary> getAllUsersTestAttemptsSummary() {
-        final UsersTestAttemptsSummary summary = summaryService.getAllUsersTestAttemptsSummary();
+    public ResponseEntity<TestAttemptsSummary> getAllTestAttemptsSummary() {
+        final TestAttemptsSummary summary = summaryService.getAllTestAttemptsSummary();
         return ResponseEntity.ok(summary);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserTestAttemptSummary> getCurrentUserLatestTestAttemptSummary(
+    public ResponseEntity<TestAttemptSummary> getCurrentUserLatestTestAttemptSummary(
         @AuthenticationPrincipal AuthUser authUser
     ) {
-        final UserTestAttemptSummary summary = summaryService.getUserLatestTestAttemptSummary(authUser.getId());
+        final TestAttemptSummary summary = summaryService.getUserLatestTestAttemptSummary(authUser.getId());
         return ResponseEntity.ok(summary);
     }
 }

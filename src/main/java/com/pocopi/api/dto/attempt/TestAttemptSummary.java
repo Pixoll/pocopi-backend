@@ -3,7 +3,7 @@ package com.pocopi.api.dto.attempt;
 import com.pocopi.api.dto.user.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record UserTestAttemptSummary(
+public record TestAttemptSummary(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     User user,
 
