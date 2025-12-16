@@ -5,11 +5,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record FormAnswersByUser(
+public record FormSubmissionsByUser(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     User user,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<FormAnswersByConfig> answers
+    List<FormSubmissionsByConfig> submissions
 ) {
 }

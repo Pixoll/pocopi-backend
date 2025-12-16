@@ -1,13 +1,13 @@
 package com.pocopi.api.repositories.projections;
 
 public interface UserFormAnswerProjection {
-    int getId();
+    long getAttemptId();
 
     int getConfigVersion();
 
-    int getFormId();
-
     String getFormType();
+
+    long getTimestamp();
 
     Integer getQuestionId();
 

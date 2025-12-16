@@ -3,7 +3,7 @@ package com.pocopi.api.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocopi.api.dto.csv.ResultCsv;
-import com.pocopi.api.dto.results.FormAnswersByUser;
+import com.pocopi.api.dto.results.FormSubmissionsByUser;
 import com.pocopi.api.dto.results.ResultsByUser;
 import com.pocopi.api.dto.results.TestResultsByUser;
 import com.pocopi.api.mappers.UserResultsMapper;
@@ -76,7 +76,7 @@ public class ResultsController {
     @GetMapping(path = "/forms", produces = {GZIP_MIME_TYPE})
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<byte[]> getAllFormResults(@RequestParam(defaultValue = "false") boolean csv) {
-        final List<FormAnswersByUser> userFormResults = resultsService.getAllFormResults();
+        final List<FormSubmissionsByUser> userFormResults = resultsService.getAllFormResults();
         final String extension = csv ? ".csv" : ".json";
 
         return compressResults(
@@ -123,7 +123,7 @@ public class ResultsController {
 
     @GetMapping("/attempts/{attemptId}/forms")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public FormAnswersByUser getAttemptFormResults(@PathVariable long attemptId) {
+    public FormSubmissionsByUser getAttemptFormResults(@PathVariable long attemptId) {
         return resultsService.getAttemptFormResults(attemptId);
     }
 

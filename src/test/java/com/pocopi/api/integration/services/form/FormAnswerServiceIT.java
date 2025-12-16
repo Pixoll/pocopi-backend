@@ -1,9 +1,8 @@
 package com.pocopi.api.integration.services.form;
 
-import com.pocopi.api.dto.form.FormAnswer;
 import com.pocopi.api.dto.form.NewFormAnswer;
 import com.pocopi.api.dto.form.NewFormAnswers;
-import com.pocopi.api.dto.results.FormAnswersByConfig;
+import com.pocopi.api.dto.results.FormSubmissionsByConfig;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.config.ConfigModel;
 import com.pocopi.api.models.form.*;
@@ -140,7 +139,7 @@ class FormAnswerServiceIT {
         log.info("----------- Iniciando getUserFormAnswers_WithNoAnswers_ShouldReturnEmptyList -----------");
 
         // Act
-        List<FormAnswersByConfig> result = formAnswerService.getUserFormAnswers(testUser.getId());
+        List<FormSubmissionsByConfig> result = formAnswerService.getUserFormAnswers(testUser.getId());
 
         // Assert
         assertNotNull(result);
@@ -185,7 +184,7 @@ class FormAnswerServiceIT {
         userFormAnswerRepository.save(answer);
 
         // Act
-        List<FormAnswersByConfig> result = formAnswerService.getUserFormAnswers(testUser.getId());
+        List<FormSubmissionsByConfig> result = formAnswerService.getUserFormAnswers(testUser.getId());
 
         // Assert
         assertNotNull(result);

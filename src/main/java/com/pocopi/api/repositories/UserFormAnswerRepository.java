@@ -12,10 +12,10 @@ import java.util.List;
 public interface UserFormAnswerRepository extends JpaRepository<UserFormAnswerModel, Integer> {
     @NativeQuery(
         """
-            select fa.id,
+            select fs.attempt_id,
                    f.config_version,
-                   fs.form_id,
-                   f.type as form_type,
+                   f.type                                                as form_type,
+                   cast(unix_timestamp(fs.timestamp) * 1000 as unsigned) as timestamp,
                    fa.question_id,
                    fa.option_id,
                    fa.value,
@@ -32,10 +32,10 @@ public interface UserFormAnswerRepository extends JpaRepository<UserFormAnswerMo
 
     @NativeQuery(
         """
-            select fa.id,
+            select fs.attempt_id,
                    f.config_version,
-                   fs.form_id,
-                   f.type as form_type,
+                   f.type                                                as form_type,
+                   cast(unix_timestamp(fs.timestamp) * 1000 as unsigned) as timestamp,
                    fa.question_id,
                    fa.option_id,
                    fa.value,

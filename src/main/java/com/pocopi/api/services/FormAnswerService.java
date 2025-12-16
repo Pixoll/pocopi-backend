@@ -3,7 +3,8 @@ package com.pocopi.api.services;
 import com.pocopi.api.dto.form.FormAnswer;
 import com.pocopi.api.dto.form.NewFormAnswer;
 import com.pocopi.api.dto.form.NewFormAnswers;
-import com.pocopi.api.dto.results.FormAnswersByConfig;
+import com.pocopi.api.dto.results.FormSubmission;
+import com.pocopi.api.dto.results.FormSubmissionsByConfig;
 import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.models.form.*;
 import com.pocopi.api.models.test.UserTestAttemptModel;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class FormAnswerService {
@@ -47,13 +45,13 @@ public class FormAnswerService {
     }
 
     @Transactional
-    public List<FormAnswersByConfig> getUserFormAnswers(int userId) {
+    public List<FormSubmissionsByConfig> getUserFormAnswers(int userId) {
         final List<UserFormAnswerProjection> userFormAnswers = userFormAnswerRepository.findAllByUserId(userId);
         return parseFormAnswerProjections(userFormAnswers);
     }
 
     @Transactional
-    public List<FormAnswersByConfig> getAttemptFormAnswers(long attemptId) {
+    public List<FormSubmissionsByConfig> getAttemptFormAnswers(long attemptId) {
         final List<UserFormAnswerProjection> userFormAnswers = userFormAnswerRepository.findAllByAttemptId(attemptId);
         return parseFormAnswerProjections(userFormAnswers);
     }
@@ -97,10 +95,10 @@ public class FormAnswerService {
             ) {
                 throw HttpException.conflict(
                     "Form question with id "
-                        + question.getId()
-                        + " cannot have multiple answers (is not of type "
-                        + FormQuestionType.SELECT_MULTIPLE.getValue()
-                        + ")"
+                    + question.getId()
+                    + " cannot have multiple answers (is not of type "
+                    + FormQuestionType.SELECT_MULTIPLE.getValue()
+                    + ")"
                 );
             }
 
@@ -116,8 +114,8 @@ public class FormAnswerService {
 
             if (question.getType() == FormQuestionType.SELECT_MULTIPLE) {
                 final int answersAmount = questionAnswers.getOrDefault(question.getId(), new HashSet<>()).size()
-                    + (questionHasOtherAnswer.getOrDefault(question.getId(), false) ? 1 : 0)
-                    + 1;
+                                          + (questionHasOtherAnswer.getOrDefault(question.getId(), false) ? 1 : 0)
+                                          + 1;
 
                 if (answersAmount < question.getMin() || answersAmount > question.getMax()) {
                     throw HttpException.badRequest(
@@ -165,21 +163,28 @@ public class FormAnswerService {
         userFormAnswerRepository.saveAll(answers);
     }
 
-    private List<FormAnswersByConfig> parseFormAnswerProjections(List<UserFormAnswerProjection> userFormAnswers) {
-        final HashMap<Integer, FormAnswersByConfig> formAnswersByConfig = new HashMap<>();
+    private List<FormSubmissionsByConfig> parseFormAnswerProjections(List<UserFormAnswerProjection> userFormAnswers) {
+        final HashMap<Integer, HashMap<FormType, HashMap<Long, FormSubmission>>> groupedFormSubmissions
+            = new HashMap<>();
 
         for (final UserFormAnswerProjection userFormAnswer : userFormAnswers) {
-            formAnswersByConfig.putIfAbsent(
+            groupedFormSubmissions.putIfAbsent(
                 userFormAnswer.getConfigVersion(),
-                new FormAnswersByConfig(userFormAnswer.getConfigVersion(), new ArrayList<>(), new ArrayList<>())
+                new HashMap<>(Map.of(FormType.PRE, new HashMap<>(), FormType.POST, new HashMap<>()))
             );
 
-            final FormAnswersByConfig answersByFormType = formAnswersByConfig
+            final HashMap<FormType, HashMap<Long, FormSubmission>> formSubmissionsByType = groupedFormSubmissions
                 .get(userFormAnswer.getConfigVersion());
 
-            final List<FormAnswer> formAnswers = userFormAnswer.getFormType().equals(FormType.PRE.getName())
-                ? answersByFormType.preTestForm()
-                : answersByFormType.postTestForm();
+            final HashMap<Long, FormSubmission> formSubmissionsByAttempt = formSubmissionsByType
+                .get(FormType.fromValue(userFormAnswer.getFormType()));
+
+            formSubmissionsByAttempt.putIfAbsent(
+                userFormAnswer.getAttemptId(),
+                new FormSubmission(userFormAnswer.getAttemptId(), userFormAnswer.getTimestamp(), new ArrayList<>())
+            );
+
+            final FormSubmission formSubmission = formSubmissionsByAttempt.get(userFormAnswer.getAttemptId());
 
             final FormAnswer formAnswer = new FormAnswer(
                 userFormAnswer.getQuestionId(),
@@ -188,10 +193,16 @@ public class FormAnswerService {
                 userFormAnswer.getAnswer()
             );
 
-            formAnswers.add(formAnswer);
+            formSubmission.answers().add(formAnswer);
         }
 
-        return formAnswersByConfig.values().stream().toList();
+        return groupedFormSubmissions.entrySet().stream()
+            .map((configEntry) -> new FormSubmissionsByConfig(
+                configEntry.getKey(),
+                configEntry.getValue().get(FormType.PRE).values().stream().toList(),
+                configEntry.getValue().get(FormType.POST).values().stream().toList()
+            ))
+            .toList();
     }
 
     private static void validateFormAnswer(NewFormAnswer answer, FormQuestionModel question) {
@@ -202,8 +213,8 @@ public class FormAnswerService {
                     if ((answer.optionId() == null) == (answer.answer() == null)) {
                         throw HttpException.conflict(
                             "Form answer for question with id "
-                                + question.getId()
-                                + " requires either optionId or answer fields, but not both at the same time"
+                            + question.getId()
+                            + " requires either optionId or answer fields, but not both at the same time"
                         );
                     }
                 } else {
@@ -241,8 +252,8 @@ public class FormAnswerService {
                 if (answer.optionId() != null || answer.answer() != null) {
                     throw HttpException.badRequest(
                         "Form answer for question with id "
-                            + question.getId()
-                            + " cannot have optionId or answer fields"
+                        + question.getId()
+                        + " cannot have optionId or answer fields"
                     );
                 }
             }
@@ -258,8 +269,8 @@ public class FormAnswerService {
                 if (answer.optionId() != null || answer.value() != null) {
                     throw HttpException.badRequest(
                         "Form answer for question with id "
-                            + question.getId()
-                            + " cannot have optionId or answer fields"
+                        + question.getId()
+                        + " cannot have optionId or answer fields"
                     );
                 }
             }

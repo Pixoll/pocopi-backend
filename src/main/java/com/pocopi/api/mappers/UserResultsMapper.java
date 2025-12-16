@@ -24,10 +24,10 @@ public class UserResultsMapper {
     private static final String CSV_DELIMITER = ";";
 
     public List<ResultCsv> userResultsToCsv(ResultsByUser userResults) {
-        final FormAnswersByUser userFormResults = new FormAnswersByUser(
+        final FormSubmissionsByUser userFormResults = new FormSubmissionsByUser(
             userResults.user(),
             userResults.results().stream()
-                .map(resultsByConfig -> new FormAnswersByConfig(
+                .map(resultsByConfig -> new FormSubmissionsByConfig(
                     resultsByConfig.configVersion(),
                     resultsByConfig.preTestForm(),
                     resultsByConfig.postTestForm()
@@ -55,7 +55,7 @@ public class UserResultsMapper {
         );
     }
 
-    public String userFormResultsToCsv(FormAnswersByUser userFormResults) {
+    public String userFormResultsToCsv(FormSubmissionsByUser userFormResults) {
         final ArrayList<UserFormResultCsvRow> rows = new ArrayList<>();
 
         rows.add(new UserFormResultCsvRow(
@@ -66,7 +66,9 @@ public class UserResultsMapper {
             "user_email",
             "user_age",
             "config_version",
+            "attempt_id",
             "form_type",
+            "timestamp",
             "question_id",
             "option_id",
             "value",
@@ -75,24 +77,28 @@ public class UserResultsMapper {
 
         final User user = userFormResults.user();
 
-        for (final FormAnswersByConfig resultsByConfig : userFormResults.answers()) {
+        for (final FormSubmissionsByConfig resultsByConfig : userFormResults.submissions()) {
             Map.of(FormType.PRE, resultsByConfig.preTestForm(), FormType.POST, resultsByConfig.postTestForm())
                 .forEach((type, formAnswers) -> {
-                    for (final FormAnswer formAnswer : resultsByConfig.preTestForm()) {
-                        rows.add(new UserFormResultCsvRow(
-                            Integer.toString(user.id()),
-                            user.username(),
-                            Boolean.toString(user.anonymous()),
-                            user.name(),
-                            user.email(),
-                            user.age() != null ? Integer.toString(user.age()) : null,
-                            Integer.toString(resultsByConfig.configVersion()),
-                            type.getName(),
-                            Integer.toString(formAnswer.questionId()),
-                            formAnswer.optionId() != null ? Integer.toString(formAnswer.optionId()) : null,
-                            formAnswer.value() != null ? Integer.toString(formAnswer.value()) : null,
-                            formAnswer.answer()
-                        ));
+                    for (final FormSubmission formSubmission : resultsByConfig.preTestForm()) {
+                        for (final FormAnswer formAnswer : formSubmission.answers()) {
+                            rows.add(new UserFormResultCsvRow(
+                                Integer.toString(user.id()),
+                                user.username(),
+                                Boolean.toString(user.anonymous()),
+                                user.name(),
+                                user.email(),
+                                user.age() != null ? Integer.toString(user.age()) : null,
+                                Integer.toString(resultsByConfig.configVersion()),
+                                Long.toString(formSubmission.attemptId()),
+                                type.getName(),
+                                Long.toString(formSubmission.timestamp()),
+                                Integer.toString(formAnswer.questionId()),
+                                formAnswer.optionId() != null ? Integer.toString(formAnswer.optionId()) : null,
+                                formAnswer.value() != null ? Integer.toString(formAnswer.value()) : null,
+                                formAnswer.answer()
+                            ));
+                        }
                     }
                 });
         }

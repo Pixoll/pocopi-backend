@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record ResultsByConfig(
+public record FormSubmissionsByConfig(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     int configVersion,
 
@@ -12,9 +12,6 @@ public record ResultsByConfig(
     List<FormSubmission> preTestForm,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<FormSubmission> postTestForm,
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<TestResult> attemptsResults
+    List<FormSubmission> postTestForm
 ) {
 }

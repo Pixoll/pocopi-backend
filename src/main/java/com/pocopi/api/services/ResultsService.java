@@ -58,7 +58,7 @@ public class ResultsService {
     }
 
     @Transactional
-    public List<FormAnswersByUser> getAllFormResults() {
+    public List<FormSubmissionsByUser> getAllFormResults() {
         return userRepository.findAll().stream()
             .map(user -> getUserFormResults(user.getId()))
             .toList();
@@ -85,7 +85,7 @@ public class ResultsService {
             user.getAge() != null ? user.getAge().intValue() : null
         );
 
-        final List<FormAnswersByConfig> formAnswers = getUserFormResults(userId).answers();
+        final List<FormSubmissionsByConfig> formAnswers = getUserFormResults(userId).submissions();
         final List<TestResultsByConfig> testResults = getUserTestResults(userId).results();
         final List<ResultsByConfig> results = groupResultsByConfig(formAnswers, testResults);
 
@@ -106,7 +106,7 @@ public class ResultsService {
             user.getAge() != null ? user.getAge().intValue() : null
         );
 
-        final List<FormAnswersByConfig> formAnswers = getAttemptFormResults(attemptId).answers();
+        final List<FormSubmissionsByConfig> formAnswers = getAttemptFormResults(attemptId).submissions();
         final List<TestResultsByConfig> testResults = getAttemptTestResults(attemptId).results();
         final List<ResultsByConfig> results = groupResultsByConfig(formAnswers, testResults);
 
@@ -114,11 +114,11 @@ public class ResultsService {
     }
 
     @Transactional
-    public FormAnswersByUser getUserFormResults(int userId) {
+    public FormSubmissionsByUser getUserFormResults(int userId) {
         final UserModel user = userRepository.findById(userId)
             .orElseThrow(() -> HttpException.notFound("User " + userId + " not found"));
 
-        final List<FormAnswersByConfig> formAnswers = formAnswerService.getUserFormAnswers(user.getId());
+        final List<FormSubmissionsByConfig> formAnswers = formAnswerService.getUserFormAnswers(user.getId());
 
         final User userInfo = new User(
             user.getId(),
@@ -129,15 +129,15 @@ public class ResultsService {
             user.getAge() != null ? user.getAge().intValue() : null
         );
 
-        return new FormAnswersByUser(userInfo, formAnswers);
+        return new FormSubmissionsByUser(userInfo, formAnswers);
     }
 
     @Transactional
-    public FormAnswersByUser getAttemptFormResults(long attemptId) {
+    public FormSubmissionsByUser getAttemptFormResults(long attemptId) {
         final UserModel user = userRepository.findByFinishedAttemptId(attemptId)
             .orElseThrow(() -> HttpException.notFound("Finished attempt " + attemptId + " not found"));
 
-        final List<FormAnswersByConfig> formAnswers = formAnswerService.getAttemptFormAnswers(attemptId);
+        final List<FormSubmissionsByConfig> formAnswers = formAnswerService.getAttemptFormAnswers(attemptId);
 
         final User userInfo = new User(
             user.getId(),
@@ -148,7 +148,7 @@ public class ResultsService {
             user.getAge() != null ? user.getAge().intValue() : null
         );
 
-        return new FormAnswersByUser(userInfo, formAnswers);
+        return new FormSubmissionsByUser(userInfo, formAnswers);
     }
 
     @Transactional
@@ -245,12 +245,12 @@ public class ResultsService {
     }
 
     public List<ResultsByConfig> groupResultsByConfig(
-        List<FormAnswersByConfig> formAnswers,
+        List<FormSubmissionsByConfig> formAnswers,
         List<TestResultsByConfig> testResults
     ) {
         final HashMap<Integer, ResultsByConfig> resultsByConfigMap = new HashMap<>();
 
-        for (final FormAnswersByConfig formAnswer : formAnswers) {
+        for (final FormSubmissionsByConfig formAnswer : formAnswers) {
             resultsByConfigMap.putIfAbsent(
                 formAnswer.configVersion(),
                 new ResultsByConfig(formAnswer.configVersion(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>())

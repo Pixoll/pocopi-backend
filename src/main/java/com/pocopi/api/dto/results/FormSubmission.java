@@ -5,14 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-public record FormAnswersByConfig(
+public record FormSubmission(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    int configVersion,
+    long attemptId,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<FormAnswer> preTestForm,
+    long timestamp,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    List<FormAnswer> postTestForm
+    List<FormAnswer> answers
 ) {
 }
