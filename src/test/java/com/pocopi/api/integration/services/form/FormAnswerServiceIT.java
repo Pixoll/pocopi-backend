@@ -25,10 +25,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Integration tests para FormAnswerService
- * Testea: getUserFormAnswers (2 tests), saveUserFormAnswers (8 tests)
- */
+
 @SpringBootTest
 @ActiveProfiles("integration")
 class FormAnswerServiceIT {
@@ -166,6 +163,10 @@ class FormAnswerServiceIT {
             .required(true)
             .build();
         question = formQuestionRepository.save(question);
+
+        testAttempt.setUser(testUser);
+        testAttempt.setEnd(Instant.now());
+        testAttempt = userTestAttemptRepository.save(testAttempt);
 
         UserFormSubmissionModel submission = UserFormSubmissionModel.builder()
             .attempt(testAttempt)
