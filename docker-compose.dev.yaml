@@ -19,7 +19,7 @@ services:
       - ${NGINX_PORT:-8081}:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${IMAGES_BASE_PATH:-./images}:/var/www/images
+      - ./images:/var/www/images
 
 volumes:
   db:

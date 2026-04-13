@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Configuration
 public class ImageConfig {
-    @Value("${app.images.base-path}")
-    private String basePath;
+    @Getter
+    private final String basePath = "./images";
 
     @Value("${app.images.base-url}")
     private String baseUrl;

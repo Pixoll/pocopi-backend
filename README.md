@@ -1,67 +1,75 @@
 # PoCoPI backend
 
-This project uses Docker Compose to run a full-stack application with MySQL database, Spring Boot, and Nginx.
+This project uses Docker Compose to run an application with Spring Boot, a MySQL database, and an image service with Nginx.
 
 ## Application Setup Guide
 
 ### Prerequisites
 
-#### For Docker (Recommended)
+#### For Deployment
 
-- [Docker](https://docs.docker.com/get-docker/) (version 20.10 or later)
-- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0 or later)
+- [Docker](https://docs.docker.com/get-docker/) (version 29 or later)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 5 or later)
 
-#### For Local Development (Without Docker)
+#### For Local Development
 
-- [MySQL](https://dev.mysql.com/downloads/mysql/) (version 9.4.0 or compatible)
-- [Nginx](https://nginx.org/en/download.html) (version 1.29.2 or compatible)
+- [Docker](https://docs.docker.com/get-docker/) (version 29 or later)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 5 or later)
 - [Java](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html) (version 21 or later)
+- [IntelliJ IDEA](https://www.jetbrains.com/idea/) (ideal for frictionless development)
 
 ### Setup Instructions
 
 1. **Create environment file**:
+   Create the `.env` file by copying `.env.example`.
     ```bash
     cp .env.example .env
     ```
 
-   Edit `.env` and configure the following required variables:
-    ```env
-    MYSQL_DATABASE=pocopi
-    MYSQL_ROOT_PASSWORD=....
-    
-    SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/pocopi
-    
-    IMAGES_BASE_PATH=./images
-    IMAGES_BASE_URL=http://localhost:8081
-    
-    JWT_SECRET=secret_token
-    JWT_EXPIRATION=21600000
-    
-    OLD_CONFIG_PATH=/path/to/old/PoCoPI/config
-    ```
+   Edit `.env` and configure the variables. It's recommended you modify the following:
+    - `APP_PORT`
+    - `NGINX_PORT`
+    - `MYSQL_PORT` (only in development)
+    - `CORS_ALLOWED_ORIGINS`
+    - `MYSQL_ROOT_PASSWORD`
+    - `IMAGES_BASE_URL`
+    - `JWT_SECRET`
+    - `JWT_EXPIRATION`
+    - `OLD_CONFIG_PATH` (if you're migrating from the old infrastructure)
 
-2. **Create required directories**:
+2. **Build and start the services**:
+    - In production:
    ```bash
-   mkdir -p images
+   docker compose up -d --build
    ```
 
-3. **Build and start the services**:
+    - In development:
    ```bash
-   docker compose up -d
+   docker compose -f docker-compose.dev.yaml up -d --build
+   # Then start up the Spring Boot app from your IDE
    ```
 
-4. **Check service health**:
+3. **Check service health**:
+    - In production:
    ```bash
    docker compose ps
    docker compose logs
    ```
 
-5. **Access the application**:
+    - In development:
+   ```bash
+   docker compose -f docker-compose.dev.yaml ps
+   docker compose -f docker-compose.dev.yaml logs
+   ```
+
+4. **Access the application**:
     - Application: `http://localhost:8080` (or your configured `APP_PORT`)
-    - Nginx: `http://localhost:8081` (or your configured `NGINX_PORT`)
-    - MySQL: `localhost:33061` (might be removed in the future)
+    - Images service: `http://localhost:8081` (or your configured `NGINX_PORT`)
+    - MySQL database: `localhost:33061` (in development with your configured `MYSQL_PORT`)
 
 ### Common Docker Commands
+
+> Note: add `-f docker-compose.dev.yaml` right after `docker compose` when in development.
 
 ```bash
 ## Start services
@@ -91,6 +99,8 @@ docker compose exec db mysql -u root -p
 
 Run this command to migrate the old configuration from [PoCoPI](https://github.com/Pixoll/pocopi-frontend)
 
+> Note: add `-f docker-compose.dev.yaml` right after `docker compose` when in development.
+
 ```shell
 docker compose exec app java -jar app.jar --server.port=9090 --migrate-old-config
 ```
@@ -99,18 +109,20 @@ docker compose exec app java -jar app.jar --server.port=9090 --migrate-old-confi
 
 Run this command to create a new admin user. You need this to access the dashboard and settings panel in the frontend.
 
+> Note: add `-f docker-compose.dev.yaml` right after `docker compose` when in development.
+
 ```shell
 docker compose exec app java -jar app.jar --server.port=9090 --create-admin
 ```
 
 ### Port Configuration
 
-| Service | Default Port | Environment Variable | Description         |
-|---------|--------------|----------------------|---------------------|
-| MySQL   | 33061        | -                    | Database (external) |
-| MySQL   | 3306         | -                    | Database (internal) |
-| App     | 8080         | `APP_PORT`           | Application server  |
-| Nginx   | 8081         | `NGINX_PORT`         | Web server          |
+| Service | Default Port | Environment Variable | Description                        |
+|---------|--------------|----------------------|------------------------------------|
+| MySQL   | 33061        | `MYSQL_PORT`         | Database (external in development) |
+| MySQL   | 3306         | -                    | Database (internal)                |
+| App     | 8080         | `APP_PORT`           | Application server                 |
+| Nginx   | 8081         | `NGINX_PORT`         | Web server                         |
 
 ### Volume Mounts
 
@@ -119,6 +131,8 @@ docker compose exec app java -jar app.jar --server.port=9090 --create-admin
 - `db` - MySQL data persistence
 
 ### Troubleshooting
+
+> Note: add `-f docker-compose.dev.yaml` right after `docker compose` when in development.
 
 #### Database connection issues
 
