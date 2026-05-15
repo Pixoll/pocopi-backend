@@ -79,6 +79,7 @@ public class FormAnswerService {
 
         final UserFormSubmissionModel savedSubmission = userFormSubmissionRepository.save(formSubmission);
 
+        final HashMap<Integer, FormQuestionModel> selectMultipleQuestions = new HashMap<>();
         final ArrayList<UserFormAnswerModel> answers = new ArrayList<>();
         final HashMap<Integer, HashSet<Integer>> questionAnswers = new HashMap<>();
         final HashMap<Integer, Boolean> questionHasOtherAnswer = new HashMap<>();
@@ -89,6 +90,10 @@ public class FormAnswerService {
                 .orElseThrow(() -> HttpException.notFound(
                     "Form question with id " + answer.questionId() + " in form " + form.getId() + " not found"
                 ));
+
+            if (question.getType() == FormQuestionType.SELECT_MULTIPLE) {
+                selectMultipleQuestions.putIfAbsent(question.getId(), question);
+            }
 
             if (questionAnswers.containsKey(question.getId())
                 && question.getType() != FormQuestionType.SELECT_MULTIPLE
@@ -112,25 +117,13 @@ public class FormAnswerService {
                 throw HttpException.conflict("Form answer is repeated in question " + question.getId());
             }
 
-            if (question.getType() == FormQuestionType.SELECT_MULTIPLE) {
-                final int answersAmount = questionAnswers.getOrDefault(question.getId(), new HashSet<>()).size()
-                                          + (questionHasOtherAnswer.getOrDefault(question.getId(), false) ? 1 : 0)
-                                          + 1;
-
-                if (answersAmount < question.getMin() || answersAmount > question.getMax()) {
-                    throw HttpException.badRequest(
-                        "Form question with id " + question.getId() + " has either too few or too many answers"
-                    );
-                }
-            }
-
             validateFormAnswer(answer, question);
 
             final FormQuestionOptionModel option = answer.optionId() != null
                 ? formQuestionOptionRepository.findByIdAndFormQuestionId(answer.optionId(), question.getId())
-                .orElseThrow(() -> HttpException.notFound(
-                    "Form option with id " + answer.optionId() + " in question " + question.getId() + " not found"
-                ))
+                  .orElseThrow(() -> HttpException.notFound(
+                      "Form option with id " + answer.optionId() + " in question " + question.getId() + " not found"
+                  ))
                 : null;
 
             final UserFormAnswerModel userAnswer = UserFormAnswerModel.builder()
@@ -158,6 +151,17 @@ public class FormAnswerService {
                     return set;
                 }
             );
+        }
+
+        for (final FormQuestionModel question : selectMultipleQuestions.values()) {
+            final int answersAmount = questionAnswers.getOrDefault(question.getId(), new HashSet<>()).size()
+                                      + (questionHasOtherAnswer.getOrDefault(question.getId(), false) ? 1 : 0);
+
+            if (answersAmount < question.getMin() || answersAmount > question.getMax()) {
+                throw HttpException.badRequest(
+                    "Form question with id " + question.getId() + " has either too few or too many answers"
+                );
+            }
         }
 
         userFormAnswerRepository.saveAll(answers);
