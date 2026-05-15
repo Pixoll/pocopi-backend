@@ -2,6 +2,8 @@ package com.pocopi.api.models.test;
 
 import com.pocopi.api.converters.TestOptionEventTypeJpaConverter;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -20,6 +22,9 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 public class UserTestOptionLogModel {
+    public static final int COORD_MIN = 0;
+    public static final int COORD_MAX = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "int8 unsigned")
@@ -46,4 +51,14 @@ public class UserTestOptionLogModel {
     @NotNull
     @Column(name = "timestamp", nullable = false)
     private Instant timestamp;
+
+    @Min(COORD_MIN)
+    @Max(COORD_MAX)
+    @Column(name = "x")
+    private Byte x;
+
+    @Min(COORD_MIN)
+    @Max(COORD_MAX)
+    @Column(name = "y")
+    private Byte y;
 }

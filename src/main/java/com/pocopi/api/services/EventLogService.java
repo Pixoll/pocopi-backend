@@ -82,6 +82,8 @@ public class EventLogService {
             .option(option)
             .type(optionEventLog.type())
             .timestamp(Instant.ofEpochMilli(optionEventLog.timestamp()))
+            .x((byte) optionEventLog.x())
+            .y((byte) optionEventLog.y())
             .build();
 
         userTestOptionLogRepository.save(newOptionLog);
