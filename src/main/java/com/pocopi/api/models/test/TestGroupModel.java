@@ -23,7 +23,7 @@ public class TestGroupModel {
     public static final int PROBABILITY_MIN = 0;
     public static final int PROBABILITY_MAX = 100;
     public static final int GREETING_MIN_LEN = 1;
-    public static final int GREETING_MAX_LEN = 2000;
+    public static final int GREETING_MAX_LEN = 11000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
