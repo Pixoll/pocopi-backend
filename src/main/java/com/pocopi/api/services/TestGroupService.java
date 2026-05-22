@@ -10,6 +10,7 @@ import com.pocopi.api.models.test.TestOptionModel;
 import com.pocopi.api.models.test.TestPhaseModel;
 import com.pocopi.api.models.test.TestQuestionModel;
 import com.pocopi.api.repositories.*;
+import com.pocopi.api.services.ImageService.ImageCategory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -114,9 +115,14 @@ public class TestGroupService {
             questionIdToOptionsMap.put(questionId, options);
         }
 
+        final Image greetingImage = groupModel.getGreetingImage() != null
+            ? imageService.getImageById(groupModel.getGreetingImage().getId())
+            : null;
+
         final AssignedTestGroup group = new AssignedTestGroup(
             groupModel.getLabel(),
             groupModel.getGreeting(),
+            greetingImage,
             groupModel.isAllowPreviousPhase(),
             groupModel.isAllowPreviousQuestion(),
             groupModel.isAllowSkipQuestion(),
@@ -193,11 +199,16 @@ public class TestGroupService {
         final HashMap<Integer, TestQuestion> questionsMap = new HashMap<>();
 
         for (final TestGroupModel groupModel : groupsList) {
+            final Image greetingImage = groupModel.getGreetingImage() != null
+                ? imageService.getImageById(groupModel.getGreetingImage().getId())
+                : null;
+
             final TestGroup group = new TestGroup(
                 groupModel.getId(),
                 groupModel.getProbability(),
                 groupModel.getLabel(),
                 groupModel.getGreeting(),
+                greetingImage,
                 groupModel.isAllowPreviousPhase(),
                 groupModel.isAllowPreviousQuestion(),
                 groupModel.isAllowSkipQuestion(),
@@ -339,15 +350,25 @@ public class TestGroupService {
         final AtomicInteger imageIndex = new AtomicInteger(0);
 
         for (final TestGroupUpdate groupUpdate : groupsUpdates != null ? groupsUpdates : List.<TestGroupUpdate>of()) {
+            final MultipartFile greetingImageFile = imageFiles.get(imageIndex.getAndIncrement());
             final boolean isNew = groupUpdate.id() == null
                 || !storedGroupsMap.containsKey(groupUpdate.id());
 
             if (isNew) {
+                final ImageModel image = greetingImageFile != null && !greetingImageFile.isEmpty()
+                    ? imageService.saveImageFile(
+                    ImageCategory.TEST_GREETING,
+                    greetingImageFile,
+                    "Test group greeting image"
+                )
+                    : null;
+
                 final TestGroupModel newGroup = TestGroupModel.builder()
                     .config(config)
                     .label(groupUpdate.label())
                     .probability((byte) groupUpdate.probability())
                     .greeting(groupUpdate.greeting())
+                    .greetingImage(image)
                     .allowPreviousPhase(groupUpdate.allowPreviousPhase())
                     .allowPreviousQuestion(groupUpdate.allowPreviousQuestion())
                     .allowSkipQuestion(groupUpdate.allowSkipQuestion())
@@ -384,7 +405,8 @@ public class TestGroupService {
                 || storedGroup.isAllowPreviousPhase() != groupUpdate.allowPreviousPhase()
                 || storedGroup.isAllowPreviousQuestion() != groupUpdate.allowPreviousQuestion()
                 || storedGroup.isAllowSkipQuestion() != groupUpdate.allowSkipQuestion()
-                || storedGroup.isRandomizePhases() != groupUpdate.randomizePhases();
+                || storedGroup.isRandomizePhases() != groupUpdate.randomizePhases()
+                || greetingImageFile != null;
 
             if (!updated) {
                 final boolean modifiedPhases = testPhaseService.updatePhases(
@@ -404,6 +426,8 @@ public class TestGroupService {
                 continue;
             }
 
+            final ImageModel storedGreetingImage = storedGroup.getGreetingImage();
+
             storedGroup.setLabel(groupUpdate.label());
             storedGroup.setProbability((byte) groupUpdate.probability());
             storedGroup.setGreeting(groupUpdate.greeting());
@@ -412,7 +436,26 @@ public class TestGroupService {
             storedGroup.setAllowSkipQuestion(groupUpdate.allowSkipQuestion());
             storedGroup.setRandomizePhases(groupUpdate.randomizePhases());
 
+            if (greetingImageFile != null) {
+                if (greetingImageFile.isEmpty()) {
+                    storedGroup.setGreetingImage(null);
+                } else if (storedGreetingImage == null) {
+                    final ImageModel newImage = imageService.saveImageFile(
+                        ImageCategory.TEST_GREETING,
+                        greetingImageFile,
+                        "Test group greeting image"
+                    );
+                    storedGroup.setGreetingImage(newImage);
+                } else {
+                    imageService.updateImageFile(ImageCategory.TEST_QUESTION, storedGreetingImage, greetingImageFile);
+                }
+            }
+
             final TestGroupModel updatedGroup = testGroupRepository.save(storedGroup);
+
+            if (storedGreetingImage != null && storedGroup.getGreetingImage() == null) {
+                imageService.deleteImageIfUnused(storedGreetingImage);
+            }
 
             testPhaseService.updatePhases(
                 updatedGroup,

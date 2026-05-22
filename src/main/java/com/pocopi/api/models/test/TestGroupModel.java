@@ -1,6 +1,7 @@
 package com.pocopi.api.models.test;
 
 import com.pocopi.api.models.config.ConfigModel;
+import com.pocopi.api.models.config.ImageModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -51,6 +52,11 @@ public class TestGroupModel {
     @Size(min = GREETING_MIN_LEN, max = GREETING_MAX_LEN)
     @Column(name = "greeting", length = GREETING_MAX_LEN)
     private String greeting = null;
+
+    @Builder.Default
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "greeting_image_id")
+    private ImageModel greetingImage = null;
 
     @Builder.Default()
     @Column(name = "allow_previous_phase")

@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.test;
 
+import com.pocopi.api.dto.config.Image;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -10,6 +11,9 @@ public record AssignedTestGroup(
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"string", "null"})
     String greeting,
+
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, types = {"object", "null"})
+    Image greetingImage,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     boolean allowPreviousPhase,

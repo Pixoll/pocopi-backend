@@ -234,6 +234,7 @@ public class ImageService {
         INFO_CARD("cards"),
         FORM_QUESTION("forms/questions"),
         FORM_OPTION("forms/questions/options"),
+        TEST_GREETING("test/greetings"),
         TEST_QUESTION("test/questions"),
         TEST_OPTION("test/questions/options");
 
