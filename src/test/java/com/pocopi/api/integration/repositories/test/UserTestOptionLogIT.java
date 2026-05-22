@@ -128,6 +128,8 @@ class UserTestOptionLogIT {
             .option(savedOption)
             .type(TestOptionEventType.SELECT)
             .timestamp(logTime)
+            .x((byte) 1)
+            .y((byte) 1)
             .build();
 
         UserTestOptionLogModel savedLog = userTestOptionLogRepository.save(logEntry);
