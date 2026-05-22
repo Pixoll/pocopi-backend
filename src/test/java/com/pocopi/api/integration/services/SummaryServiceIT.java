@@ -107,11 +107,11 @@ class SummaryServiceIT {
         return userRepository.save(u);
     }
 
-    private void insertOptionLog(long attemptId, int optionId, String type, long tsMillis) {
+    private void insertOptionLog(long attemptId, int optionId, String type, long tsMillis, byte x, byte y) {
         Timestamp ts = Timestamp.from(Instant.ofEpochMilli(tsMillis));
         jdbcTemplate.update(
-            "INSERT INTO user_test_option_log (attempt_id, option_id, `type`, timestamp) VALUES (?, ?, ?, ?)",
-            attemptId, optionId, type, ts
+            "INSERT INTO user_test_option_log (attempt_id, option_id, `type`, timestamp, x, y) VALUES (?, ?, ?, ?, ?, ?)",
+            attemptId, optionId, type, ts, x, y
         );
     }
 
@@ -143,7 +143,7 @@ class SummaryServiceIT {
         int questionId = testQuestionRepository.findAllByPhaseId(testPhaseRepository.findAllByGroupId(group.getId()).get(0).getId()).get(0).getId();
         int optionId = testOptionRepository.findAllByQuestionId(questionId).get(0).getId();
 
-        insertOptionLog(attempt.getId(), optionId, "select", 1500L);
+        insertOptionLog(attempt.getId(), optionId, "select", 1500L, (byte) 1, (byte) 1);
 
         // Act
         TestAttemptSummary summary = summaryService.getUserLatestTestAttemptSummary(user.getId());
@@ -173,7 +173,7 @@ class SummaryServiceIT {
         atA = userTestAttemptRepository.save(atA);
         int qA = testQuestionRepository.findAllByPhaseId(testPhaseRepository.findAllByGroupId(gA.getId()).get(0).getId()).get(0).getId();
         int optA = testOptionRepository.findAllByQuestionId(qA).get(0).getId();
-        insertOptionLog(atA.getId(), optA, "select", 1200L);
+        insertOptionLog(atA.getId(), optA, "select", 1200L, (byte) 1, (byte) 1);
 
         UserModel b = createUser("userB");
         TestGroupModel gB = createGroupWithOneQuestion("GB", false);
@@ -183,7 +183,7 @@ class SummaryServiceIT {
         atB = userTestAttemptRepository.save(atB);
         int qB = testQuestionRepository.findAllByPhaseId(testPhaseRepository.findAllByGroupId(gB.getId()).get(0).getId()).get(0).getId();
         int optB = testOptionRepository.findAllByQuestionId(qB).get(0).getId();
-        insertOptionLog(atB.getId(), optB, "select", 2500L);
+        insertOptionLog(atB.getId(), optB, "select", 2500L, (byte) 1, (byte) 1);
 
         // Act
         TestAttemptsSummary summary = summaryService.getAllTestAttemptsSummary();

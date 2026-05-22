@@ -17,7 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Builder
 public class TestQuestionModel {
     public static final int TEXT_MIN_LEN = 1;
-    public static final int TEXT_MAX_LEN = 100;
+    public static final int TEXT_MAX_LEN = 10000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

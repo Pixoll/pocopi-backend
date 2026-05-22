@@ -20,7 +20,7 @@ public class FormQuestionModel {
     public static final int CATEGORY_MIN_LEN = 1;
     public static final int CATEGORY_MAX_LEN = 50;
     public static final int TEXT_MIN_LEN = 1;
-    public static final int TEXT_MAX_LEN = 200;
+    public static final int TEXT_MAX_LEN = 400;
     public static final int PLACEHOLDER_MIN_LEN = 1;
     public static final int PLACEHOLDER_MAX_LEN = 50;
 

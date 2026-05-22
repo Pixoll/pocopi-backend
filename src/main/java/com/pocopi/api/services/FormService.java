@@ -281,7 +281,7 @@ public class FormService {
                 );
             }
 
-            final FormQuestionModel question = storedQuestions.get(questionId);
+            final FormQuestionModel question = storedQuestionsMap.get(questionId);
             final ImageModel image = question.getImage();
 
             formQuestionRepository.delete(question);

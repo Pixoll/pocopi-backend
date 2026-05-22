@@ -157,7 +157,7 @@ class EventLogServiceTest {
         UserTestAttemptModel attempt = UserTestAttemptModel.builder().id(1L).group(group).build();
         TestOptionModel option = TestOptionModel.builder().id(3).build();
 
-        NewOptionEventLog eventLog = new NewOptionEventLog(3, TestOptionEventType.SELECT, 2000L);
+        NewOptionEventLog eventLog = new NewOptionEventLog(3, TestOptionEventType.SELECT, 2000L, 50, 60);
 
         when(configRepository.getLastConfig()).thenReturn(config);
         when(userTestAttemptRepository.findUnfinishedAttempt(configVersion, userId))
@@ -175,6 +175,8 @@ class EventLogServiceTest {
         assertEquals(option, savedLog.getOption());
         assertEquals(TestOptionEventType.SELECT, savedLog.getType());
         assertEquals(Instant.ofEpochMilli(2000L), savedLog.getTimestamp());
+        assertEquals((byte) 50, savedLog.getX());
+        assertEquals((byte) 60, savedLog.getY());
     }
 
     @Test
@@ -183,7 +185,7 @@ class EventLogServiceTest {
         int userId = 1;
         int configVersion = 1;
         ConfigModel config = ConfigModel.builder().version(configVersion).build();
-        NewOptionEventLog eventLog = new NewOptionEventLog(3, TestOptionEventType.HOVER, 2000L);
+        NewOptionEventLog eventLog = new NewOptionEventLog(3, TestOptionEventType.HOVER, 2000L, 50, 60);
 
         when(configRepository.getLastConfig()).thenReturn(config);
         when(userTestAttemptRepository.findUnfinishedAttempt(configVersion, userId))
@@ -207,7 +209,7 @@ class EventLogServiceTest {
         ConfigModel config = ConfigModel.builder().version(configVersion).build();
         TestGroupModel group = TestGroupModel.builder().id(groupId).build();
         UserTestAttemptModel attempt = UserTestAttemptModel.builder().id(1L).group(group).build();
-        NewOptionEventLog eventLog = new NewOptionEventLog(999, TestOptionEventType.DESELECT, 2000L);
+        NewOptionEventLog eventLog = new NewOptionEventLog(999, TestOptionEventType.DESELECT, 2000L, 50, 60);
 
         when(configRepository.getLastConfig()).thenReturn(config);
         when(userTestAttemptRepository.findUnfinishedAttempt(configVersion, userId))

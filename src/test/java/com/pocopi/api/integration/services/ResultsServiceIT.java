@@ -117,11 +117,11 @@ class ResultsServiceIT {
         );
     }
 
-    private void insertOptionLog(long attemptId, int optionId, String type, long tsMillis) {
+    private void insertOptionLog(long attemptId, int optionId, String type, long tsMillis, byte x, byte y) {
         Timestamp ts = Timestamp.from(Instant.ofEpochMilli(tsMillis));
         jdbcTemplate.update(
-            "INSERT INTO user_test_option_log (attempt_id, option_id, `type`, timestamp) VALUES (?, ?, ?, ?)",
-            attemptId, optionId, type, ts
+            "INSERT INTO user_test_option_log (attempt_id, option_id, `type`, timestamp, x, y) VALUES (?, ?, ?, ?, ?, ?)",
+            attemptId, optionId, type, ts, x, y
         );
     }
 
@@ -147,7 +147,7 @@ class ResultsServiceIT {
         int optionId = testOptionRepository.findAllByQuestionId(questionId).get(0).getId();
 
         insertQuestionLog(attemptId, questionId, 1_000L, 1_500L, 500);
-        insertOptionLog(attemptId, optionId, "select", 1_200L);
+        insertOptionLog(attemptId, optionId, "select", 1_200L, (byte) 1, (byte) 1);
 
         // Act
         TestResultsByUser resultsByUser = resultsService.getUserTestResults(user.getId());
@@ -210,13 +210,13 @@ class ResultsServiceIT {
         int qid1 = testQuestionRepository.findAllByPhaseId(phase1).get(0).getId();
         int opt1 = testOptionRepository.findAllByQuestionId(qid1).get(0).getId();
         insertQuestionLog(a1.getId(), qid1, 100L, 150L, 50);
-        insertOptionLog(a1.getId(), opt1, "select", 120L);
+        insertOptionLog(a1.getId(), opt1, "select", 120L, (byte) 1, (byte) 1);
 
         int phase2 = testPhaseRepository.findAllByGroupId(g2.getId()).get(0).getId();
         int qid2 = testQuestionRepository.findAllByPhaseId(phase2).get(0).getId();
         int opt2 = testOptionRepository.findAllByQuestionId(qid2).get(0).getId();
         insertQuestionLog(a2.getId(), qid2, 200L, 250L, 50);
-        insertOptionLog(a2.getId(), opt2, "select", 220L);
+        insertOptionLog(a2.getId(), opt2, "select", 220L, (byte) 1, (byte) 1);
 
         // Act
         TestResultsByUser results = resultsService.getUserTestResults(user.getId());

@@ -22,7 +22,7 @@ public class ConfigModel {
     public static final int DESCRIPTION_MIN_LEN = 1;
     public static final int DESCRIPTION_MAX_LEN = 2000;
     public static final int INFORMED_CONSENT_MIN_LEN = 1;
-    public static final int INFORMED_CONSENT_MAX_LEN = 2000;
+    public static final int INFORMED_CONSENT_MAX_LEN = 10000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
