@@ -4,6 +4,7 @@ import com.pocopi.api.dto.form.Form;
 import com.pocopi.api.dto.test.TestGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.LocalTime;
 import java.util.List;
 
 public record FullConfig(
@@ -27,6 +28,14 @@ public record FullConfig(
 
     @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     Pattern usernamePattern,
+
+    @Schema(
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+        types = {"string", "null"},
+        format = "time",
+        example = "00:30:00"
+    )
+    LocalTime timer,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     List<InformationCard> informationCards,

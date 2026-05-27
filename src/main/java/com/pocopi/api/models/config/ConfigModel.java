@@ -7,6 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.LocalTime;
+
 @Entity
 @Table(name = "config")
 @Getter
@@ -66,6 +68,10 @@ public class ConfigModel {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "username_pattern_id")
     private PatternModel usernamePattern = null;
+
+    @Builder.Default
+    @Column(name = "timer")
+    private LocalTime timer = null;
 
     @Builder.Default
     @NotNull

@@ -132,6 +132,7 @@ public class ConfigService {
             configModel.getDescription(),
             configModel.isAnonymous(),
             usernamePattern,
+            configModel.getTimer(),
             informationCards,
             configModel.getInformedConsent(),
             frequentlyAskedQuestions,
@@ -188,6 +189,7 @@ public class ConfigService {
             configModel.getDescription(),
             configModel.isAnonymous(),
             usernamePattern,
+            configModel.getTimer(),
             informationCards,
             configModel.getInformedConsent(),
             frequentlyAskedQuestions,
@@ -223,6 +225,7 @@ public class ConfigService {
             || !Objects.equals(storedConfig.getDescription(), configUpdate.description())
             || storedConfig.isAnonymous() != configUpdate.anonymous()
             || !Objects.equals(storedConfig.getInformedConsent(), configUpdate.informedConsent())
+            || !Objects.equals(storedConfig.getTimer(), configUpdate.timer())
             || iconFile != null;
 
         final ConfigModel savedConfig;
@@ -235,6 +238,7 @@ public class ConfigService {
             storedConfig.setDescription(configUpdate.description());
             storedConfig.setAnonymous(configUpdate.anonymous());
             storedConfig.setInformedConsent(configUpdate.informedConsent());
+            storedConfig.setTimer(configUpdate.timer());
 
             if (iconFile != null) {
                 if (iconFile.isEmpty()) {

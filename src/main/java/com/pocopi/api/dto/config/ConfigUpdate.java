@@ -1,5 +1,6 @@
 package com.pocopi.api.dto.config;
 
+import com.pocopi.api.annotations.PositiveTime;
 import com.pocopi.api.dto.form.FormUpdate;
 import com.pocopi.api.dto.test.TestGroupUpdate;
 import com.pocopi.api.models.config.ConfigModel;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalTime;
 import java.util.List;
 
 public record ConfigUpdate(
@@ -27,6 +29,9 @@ public record ConfigUpdate(
 
     @Valid
     PatternUpdate usernamePattern,
+
+    @PositiveTime
+    LocalTime timer,
 
     @NotNull
     @Size(min = ConfigModel.INFORMED_CONSENT_MIN_LEN, max = ConfigModel.INFORMED_CONSENT_MAX_LEN)
