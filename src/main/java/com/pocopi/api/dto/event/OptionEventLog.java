@@ -11,6 +11,12 @@ public record OptionEventLog(
     TestOptionEventType type,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    long timestamp
+    long timestamp,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int x,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int y
 ) {
 }

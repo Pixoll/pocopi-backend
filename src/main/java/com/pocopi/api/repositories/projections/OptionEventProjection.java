@@ -12,4 +12,8 @@ public interface OptionEventProjection {
     int getOptionId();
 
     long getTimestamp();
+
+    int getX();
+
+    int getY();
 }

@@ -67,7 +67,9 @@ public interface UserTestOptionLogRepository extends JpaRepository<UserTestOptio
                    o.question_id,
                    ol.type,
                    ol.option_id,
-                   cast(unix_timestamp(ol.timestamp) * 1000 as unsigned) as timestamp
+                   cast(unix_timestamp(ol.timestamp) * 1000 as unsigned) as timestamp,
+                   ol.x,
+                   ol.y
                 from user_test_option_log  ol
                     join user_test_attempt ta on ta.id = ol.attempt_id
                     join test_option       o  on o.id = ol.option_id

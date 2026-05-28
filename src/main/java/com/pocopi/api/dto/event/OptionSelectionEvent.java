@@ -7,6 +7,12 @@ public record OptionSelectionEvent(
     int optionId,
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    long timestamp
+    long timestamp,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int x,
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    int y
 ) {
 }

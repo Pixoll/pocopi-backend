@@ -336,7 +336,9 @@ public class ResultsService {
             final OptionEventLog eventLog = new OptionEventLog(
                 optionEvent.getOptionId(),
                 TestOptionEventType.fromValue(optionEvent.getType()),
-                optionEvent.getTimestamp()
+                optionEvent.getTimestamp(),
+                optionEvent.getX(),
+                optionEvent.getY()
             );
 
             final QuestionEventLog questionEventLog = questionEventLogsMap.get(optionEvent.getQuestionId());
@@ -346,7 +348,9 @@ public class ResultsService {
             if (eventLog.type() == TestOptionEventType.SELECT) {
                 final OptionSelectionEvent selectionEvent = new OptionSelectionEvent(
                     eventLog.optionId(),
-                    eventLog.timestamp()
+                    eventLog.timestamp(),
+                    eventLog.x(),
+                    eventLog.y()
                 );
 
                 questionEventLog.optionSelections().add(selectionEvent);
