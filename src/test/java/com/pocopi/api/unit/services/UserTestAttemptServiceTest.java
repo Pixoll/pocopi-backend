@@ -77,7 +77,7 @@ class UserTestAttemptServiceTest {
         } else {
             qlist = List.of();
         }
-        return new AssignedTestGroup("G", "hi", true, true, true, List.of(new AssignedTestPhase(qlist)));
+        return new AssignedTestGroup("G", "hi", null, true, true, true, List.of(new AssignedTestPhase(qlist)));
     }
 
     @Test
