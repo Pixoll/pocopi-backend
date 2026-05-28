@@ -121,8 +121,23 @@ public class ApiExceptionMapper {
                 return HttpException.badRequest("JsonParseException: " + ex.getMessage());
             }
 
-            default -> {
-                return HttpException.internalServerError(e);
+            case JsonProcessingException ex -> {
+                switch (ex.getCause()) {
+                    case HttpException exx -> {
+                        return new MultiFieldException(
+                            "JsonProcessingException",
+                            List.of(new FieldError(path, exx.getMessage().split("\n")[0]))
+                        );
+                    }
+
+                    case MultiFieldException exx -> {
+                        return exx;
+                    }
+
+                    default -> {
+                        return HttpException.internalServerError(ex);
+                    }
+                }
             }
         }
     }

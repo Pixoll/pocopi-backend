@@ -1,6 +1,8 @@
 package com.pocopi.api.dto.config;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.pocopi.api.annotations.PositiveTime;
+import com.pocopi.api.deserializers.TimeDeserializer;
 import com.pocopi.api.dto.form.FormUpdate;
 import com.pocopi.api.dto.test.TestGroupUpdate;
 import com.pocopi.api.models.config.ConfigModel;
@@ -31,6 +33,7 @@ public record ConfigUpdate(
     PatternUpdate usernamePattern,
 
     @PositiveTime
+    @JsonDeserialize(using = TimeDeserializer.class)
     LocalTime timer,
 
     @NotNull
