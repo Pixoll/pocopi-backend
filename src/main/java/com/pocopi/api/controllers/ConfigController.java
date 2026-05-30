@@ -11,7 +11,6 @@ import com.pocopi.api.exception.HttpException;
 import com.pocopi.api.mappers.ApiExceptionMapper;
 import com.pocopi.api.services.ConfigService;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -26,10 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Set;
 
-import static com.pocopi.api.config.OpenApiCustomizer.SECURITY_SCHEME_NAME;
-
 @RestController
-@RequestMapping("/api/configs")
+@RequestMapping("/configs")
 @Tag(name = "Configurations")
 public class ConfigController {
     private final ConfigService configService;
@@ -84,27 +81,15 @@ public class ConfigController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<TrimmedConfig> getActiveConfigAsUser() {
-        final TrimmedConfig config = configService.getTrimmedActiveConfig();
-        return ResponseEntity.ok(config);
-    }
-
-    @GetMapping("/active/full")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<FullConfig> getActiveConfigAsAdmin() {
-        final FullConfig config = configService.getFullActiveConfig();
-        return ResponseEntity.ok(config);
-    }
-
-    @SecurityRequirement(name = SECURITY_SCHEME_NAME)
     @PatchMapping(
-        path = "/active",
+        path = "/{version}",
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Void> updateActiveConfig(
+    public ResponseEntity<Void> updateConfig(
+        @PathVariable int version,
+
         @RequestPart(name = "icon", required = false)
         @Schema(description = "New application icon")
         MultipartFile icon,
@@ -138,7 +123,8 @@ public class ConfigController {
             throw apiExceptionMapper.fromValidationErrors(errors);
         }
 
-        final boolean modified = configService.updateActiveConfig(
+        final boolean modified = configService.updateConfig(
+            version,
             configUpdate,
             icon,
             informationCardImages != null ? informationCardImages : List.of(),
@@ -148,6 +134,12 @@ public class ConfigController {
         );
 
         return new ResponseEntity<>(modified ? HttpStatus.OK : HttpStatus.NOT_MODIFIED);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<TrimmedConfig> getActiveConfigAsUser() {
+        final TrimmedConfig config = configService.getTrimmedActiveConfig();
+        return ResponseEntity.ok(config);
     }
 
     private ConfigUpdate parseUpdateConfigPayload(String json) {

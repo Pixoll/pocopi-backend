@@ -6,13 +6,20 @@ import com.pocopi.api.mappers.ApiExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,7 +47,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ApiHttpError> authorizationDeniedException(AuthorizationDeniedException exception) {
-        return new ApiHttpError(HttpStatus.FORBIDDEN, exception).toResponseEntity();
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        final HttpStatus status = auth == null
+            || !auth.isAuthenticated()
+            || auth instanceof AnonymousAuthenticationToken
+            ? HttpStatus.UNAUTHORIZED
+            : HttpStatus.FORBIDDEN;
+
+        return new ApiHttpError(status, exception).toResponseEntity();
     }
 
     @ExceptionHandler(JsonProcessingException.class)
@@ -73,7 +87,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiHttpError> genericException(Exception exception) {
-        LOGGER.error(exception.getMessage(), exception);
+        final HttpStatusCode status = Objects.requireNonNull(exception) instanceof ErrorResponse errorResponse
+            ? errorResponse.getStatusCode()
+            : HttpStatus.INTERNAL_SERVER_ERROR;
+
+        if (status == HttpStatus.INTERNAL_SERVER_ERROR) {
+            LOGGER.error(exception.getMessage(), exception);
+        }
+
         return new ApiHttpError(HttpStatus.INTERNAL_SERVER_ERROR, exception).toResponseEntity();
     }
 }

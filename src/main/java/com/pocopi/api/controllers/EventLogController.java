@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/event-logs")
+@RequestMapping("/event-logs")
 @Tag(name = "Event logs")
 public class EventLogController {
     private final EventLogService eventLogService;
@@ -25,6 +26,7 @@ public class EventLogController {
     }
 
     @PostMapping("/question")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> saveQuestionEventLog(
         @RequestBody @Valid NewQuestionEventLog questionEventLog,
         @AuthenticationPrincipal AuthUser authUser
@@ -34,6 +36,7 @@ public class EventLogController {
     }
 
     @PostMapping("/option")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> saveOptionEventLog(
         @RequestBody @Valid NewOptionEventLog optionEventLog,
         @AuthenticationPrincipal AuthUser authUser

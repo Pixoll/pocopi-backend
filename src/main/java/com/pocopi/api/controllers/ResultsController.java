@@ -26,7 +26,7 @@ import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 
 @RestController
-@RequestMapping("/api/results")
+@RequestMapping("/results")
 @Tag(name = "Results")
 public class ResultsController {
     private static final String CSV_MIME_TYPE = "text/csv";

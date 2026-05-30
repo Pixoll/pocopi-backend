@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/summaries")
+@RequestMapping("/summaries")
 @Tag(name = "Summaries")
 public class SummaryController {
     private final SummaryService summaryService;
@@ -30,6 +30,7 @@ public class SummaryController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TestAttemptSummary> getCurrentUserLatestTestAttemptSummary(
         @AuthenticationPrincipal AuthUser authUser
     ) {

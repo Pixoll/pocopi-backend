@@ -30,7 +30,6 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        SecurityPathConfiguration securityPathConfiguration,
         AppCorsProperties corsProperties
     ) throws Exception {
         http
@@ -41,10 +40,6 @@ public class WebSecurityConfig {
             )
             .sessionManagement(builder -> builder
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(builder -> builder
-                .requestMatchers(securityPathConfiguration.getPermitAllPaths()).permitAll()
-                .anyRequest().authenticated()
             );
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);

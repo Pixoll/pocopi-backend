@@ -143,12 +143,6 @@ public class ConfigService {
     }
 
     @Transactional
-    public FullConfig getFullActiveConfig() {
-        final ConfigModel configModel = configRepository.getLastConfig();
-        return getFullConfig(configModel);
-    }
-
-    @Transactional
     public FullConfig getFullConfigByVersion(int version) {
         final ConfigModel config = configRepository.findByVersion(version)
             .orElseThrow(() -> HttpException.notFound("Config with version " + version + " not found"));
@@ -201,7 +195,8 @@ public class ConfigService {
     }
 
     @Transactional
-    public boolean updateActiveConfig(
+    public boolean updateConfig(
+        int version,
         ConfigUpdate configUpdate,
         MultipartFile iconFile,
         List<MultipartFile> informationCardImageFiles,
@@ -209,7 +204,8 @@ public class ConfigService {
         List<MultipartFile> postTestFormImageFiles,
         List<MultipartFile> groupImageFiles
     ) {
-        final ConfigModel storedConfig = configRepository.getLastConfig();
+        final ConfigModel storedConfig = configRepository.findByVersion(version)
+            .orElseThrow(() -> HttpException.notFound("Config with version " + version + " not found"));
 
         if (!configUpdate.groups().isEmpty()) {
             final int probabilitySum = configUpdate.groups().stream()
