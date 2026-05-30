@@ -137,7 +137,7 @@ public class ConfigController {
     }
 
     @GetMapping("/active")
-    public ResponseEntity<TrimmedConfig> getActiveConfigAsUser() {
+    public ResponseEntity<TrimmedConfig> getActiveConfig() {
         final TrimmedConfig config = configService.getTrimmedActiveConfig();
         return ResponseEntity.ok(config);
     }
