@@ -11,4 +11,6 @@ public interface FormQuestionSliderLabelRepository extends JpaRepository<FormQue
     List<FormQuestionSliderLabelModel> findAllByFormQuestionFormConfigVersion(int formQuestionFormConfigVersion);
 
     List<FormQuestionSliderLabelModel> findAllByFormQuestionFormId(int formQuestionFormId);
+
+    List<FormQuestionSliderLabelModel> findAllByFormQuestionId(int formQuestionId);
 }

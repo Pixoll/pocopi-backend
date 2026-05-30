@@ -20,6 +20,22 @@ public class FormSliderLabelService {
     }
 
     @Transactional
+    public void cloneSliderLabels(int originalQuestionId, FormQuestionModel question) {
+        final List<FormQuestionSliderLabelModel> sliderLabels = formQuestionSliderLabelRepository
+            .findAllByFormQuestionId(originalQuestionId);
+
+        for (final FormQuestionSliderLabelModel sliderLabel : sliderLabels) {
+            final FormQuestionSliderLabelModel newSliderLabel = FormQuestionSliderLabelModel.builder()
+                .formQuestion(question)
+                .number(sliderLabel.getNumber())
+                .label(sliderLabel.getLabel())
+                .build();
+
+            formQuestionSliderLabelRepository.save(newSliderLabel);
+        }
+    }
+
+    @Transactional
     public boolean updateSliderLabels(
         FormQuestionModel question,
         List<SliderLabelUpdate> sliderLabelsUpdates,

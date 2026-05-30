@@ -318,6 +318,7 @@ public class ConfigService {
             .anonymous(config.isAnonymous())
             .informedConsent(config.getInformedConsent())
             .usernamePattern(config.getUsernamePattern())
+            .timer(config.getTimer())
             .build()
         );
 

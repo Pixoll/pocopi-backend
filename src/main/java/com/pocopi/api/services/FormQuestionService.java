@@ -61,6 +61,7 @@ public class FormQuestionService {
             );
 
             formOptionService.cloneOptions(question.getId(), newQuestion);
+            formSliderLabelService.cloneSliderLabels(question.getId(), newQuestion);
         }
     }
 
