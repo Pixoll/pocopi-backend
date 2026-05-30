@@ -26,7 +26,9 @@ public class OpenApiCustomizer implements GlobalOpenApiCustomizer, OperationCust
     private static final String UNAUTHORIZED_CODE = String.valueOf(HttpStatus.UNAUTHORIZED.value());
     private static final String FORBIDDEN_CODE = String.valueOf(HttpStatus.FORBIDDEN.value());
     private static final String SECURITY_SCHEME_NAME = "bearerAuth";
-    private Schema<?> errorSchema = null;
+    private static final Schema<?> ERROR_SCHEMA = new Schema<>().$ref(
+        "#/components/schemas/" + ApiHttpError.class.getSimpleName()
+    );
 
     @Override
     public void customise(OpenAPI openApi) {
@@ -34,7 +36,7 @@ public class OpenApiCustomizer implements GlobalOpenApiCustomizer, OperationCust
             return;
         }
 
-        this.errorSchema = SpringDocAnnotationsUtils.resolveSchemaFromType(
+        SpringDocAnnotationsUtils.resolveSchemaFromType(
             ApiHttpError.class,
             openApi.getComponents(),
             null,
@@ -90,36 +92,26 @@ public class OpenApiCustomizer implements GlobalOpenApiCustomizer, OperationCust
             return;
         }
 
-        final ApiResponse errorResponse = new ApiResponse()
-            .description("Validation error")
-            .content(new Content()
-                .addMediaType("application/json", new MediaType().schema(this.errorSchema))
-            );
-
-        responses.addApiResponse(VALIDATION_ERROR_CODE, errorResponse);
+        responses.addApiResponse(VALIDATION_ERROR_CODE, errorResponse("Validation error"));
     }
 
     private void addAuthErrorResponses(Operation operation) {
         final ApiResponses responses = operation.getResponses();
 
         if (responses.get(UNAUTHORIZED_CODE) == null) {
-            final ApiResponse unauthorizedResponse = new ApiResponse()
-                .description("Unauthorized")
-                .content(new Content()
-                    .addMediaType("application/json", new MediaType().schema(this.errorSchema))
-                );
-
-            responses.addApiResponse(UNAUTHORIZED_CODE, unauthorizedResponse);
+            responses.addApiResponse(UNAUTHORIZED_CODE, errorResponse("Unauthorized"));
         }
 
         if (responses.get(FORBIDDEN_CODE) == null) {
-            final ApiResponse forbiddenResponse = new ApiResponse()
-                .description("Forbidden")
-                .content(new Content()
-                    .addMediaType("application/json", new MediaType().schema(this.errorSchema))
-                );
-
-            responses.addApiResponse(FORBIDDEN_CODE, forbiddenResponse);
+            responses.addApiResponse(FORBIDDEN_CODE, errorResponse("Forbidden"));
         }
+    }
+
+    private static ApiResponse errorResponse(String description) {
+        return new ApiResponse()
+            .description(description)
+            .content(new Content()
+                .addMediaType("application/json", new MediaType().schema(ERROR_SCHEMA))
+            );
     }
 }
