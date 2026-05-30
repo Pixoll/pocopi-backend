@@ -6,7 +6,6 @@ import com.pocopi.api.mappers.ApiExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -87,14 +86,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiHttpError> genericException(Exception exception) {
-        final HttpStatusCode status = Objects.requireNonNull(exception) instanceof ErrorResponse errorResponse
-            ? errorResponse.getStatusCode()
+        final HttpStatus status = Objects.requireNonNull(exception) instanceof ErrorResponse errorResponse
+            ? (HttpStatus) errorResponse.getStatusCode()
             : HttpStatus.INTERNAL_SERVER_ERROR;
 
         if (status == HttpStatus.INTERNAL_SERVER_ERROR) {
             LOGGER.error(exception.getMessage(), exception);
         }
 
-        return new ApiHttpError(HttpStatus.INTERNAL_SERVER_ERROR, exception).toResponseEntity();
+        return new ApiHttpError(status, exception).toResponseEntity();
     }
 }
